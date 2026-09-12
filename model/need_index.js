@@ -97,6 +97,10 @@ const coordsFile = opt('--coords');
 const sirutaFile = opt('--siruta') || 'data/siruta_2026.csv';
 const budgetFile = opt('--budget') || 'data/uat_venituri_2025.xlsx';
 const popFile = opt('--population') || 'data/uat_populatie_2023.xlsx';
+const censusFile = opt('--census') || 'data/rpl2021_activ_inactiv.xlsx';
+// Which variable drives deprivation_score: 'income' (budget proxy, refreshes yearly) or 'nonemp'
+// (census 2021 non-employment, ~2x the signal but frozen until 2031). See deprivation.js header.
+const depBasis = opt('--deprivation-basis') || 'income';
 const noDeprivation = args.includes('--no-deprivation') && args.splice(args.indexOf('--no-deprivation'), 1);
 const noCoverage = args.includes('--no-coverage') && args.splice(args.indexOf('--no-coverage'), 1);
 const depWeight = Number(opt('--deprivation-weight') ?? 0.5);
@@ -229,15 +233,21 @@ for (const s of list) {
 // ---------- deprivation / purchasing power (per UAT, joined on the school's locality SIRUTA) ----------
 let dep = null, depHit = 0;
 if (!noDeprivation && fs.existsSync(sirutaFile) && fs.existsSync(budgetFile) && fs.existsSync(popFile)) {
-  dep = loadDeprivation({ siruta: sirutaFile, budget: budgetFile, population: popFile });
+  dep = loadDeprivation({ siruta: sirutaFile, budget: budgetFile, population: popFile,
+    census: censusFile, basis: depBasis });
   console.log(`loaded deprivation layer: ${dep.stats.uats} UATs, median ${dep.stats.median.toFixed(0)} lei/capita income tax`);
+  console.log(`  census 2021: ${dep.stats.censusUats} UATs, median non-employment ${(dep.stats.medianNonEmp * 100).toFixed(1)}% | deprivation_score basis: ${dep.basis}`);
   for (const s of list) {
     const d = s.siruta ? dep.forLocality(s.siruta) : null;
     if (!d) continue;
     depHit++;
     s.uatSiruta = d.siruta; s.uatName = d.name; s.uatPop = d.pop;
     s.incomeTaxPc = d.incomeTaxPc; s.equalizationPc = d.equalizationPc;
-    s.deprivation = Number(d.deprivation.toFixed(6));
+    s.nonEmpRate = d.nonEmpRate; s.coreNonEmpRate = d.coreNonEmpRate; s.unemploymentRate = d.unemploymentRate;
+    s.incomeDeprivation = Number(d.incomeDeprivation.toFixed(6));
+    s.nonEmpDeprivation = Number.isFinite(d.nonEmpDeprivation) ? Number(d.nonEmpDeprivation.toFixed(6)) : NaN;
+    s.coreNonEmpDeprivation = Number.isFinite(d.coreNonEmpDeprivation) ? Number(d.coreNonEmpDeprivation.toFixed(6)) : NaN;
+    s.deprivation = Number.isFinite(d.deprivation) ? Number(d.deprivation.toFixed(6)) : NaN;
   }
   console.log(`deprivation join: ${depHit}/${list.length} schools matched to a UAT budget`);
 
@@ -361,7 +371,9 @@ function rankAndWrite(subset, file) {
     'fail_rate_shrunk', 'fail_rate_p10', 'fail_rate_p90', 'county_prior_rate', 'need_per_year', 'absent_rate', 'mean_avg',
     'n_present_2026', 'raw_fail_rate_2026', 'rank_rate',
     'uat_siruta', 'uat_name', 'uat_population', 'income_tax_per_capita', 'equalization_per_capita',
-    'deprivation_score', 'priority_score',
+    'non_employment_rate', 'core_non_employment_rate', 'unemployment_rate',
+    'income_deprivation', 'non_employment_deprivation', 'core_non_employment_deprivation',
+    'deprivation_basis', 'deprivation_score', 'priority_score',
     'inbox', 'inbox_schools',
     'pnras_eligible', 'pnras_priority', 'pnras_grant', 'masa_sanatoasa',
     'coverage_programmes'];
@@ -372,7 +384,9 @@ function rankAndWrite(subset, file) {
     s.uatSiruta, s.uatName, s.uatPop,
     Number.isFinite(s.incomeTaxPc) ? s.incomeTaxPc.toFixed(1) : '',
     Number.isFinite(s.equalizationPc) ? s.equalizationPc.toFixed(1) : '',
-    f6(s.deprivation), f6(s.priority),
+    f6(s.nonEmpRate), f6(s.coreNonEmpRate), f6(s.unemploymentRate),
+    f6(s.incomeDeprivation), f6(s.nonEmpDeprivation), f6(s.coreNonEmpDeprivation),
+    dep ? dep.basis : '', f6(s.deprivation), f6(s.priority),
     s.inbox || '', s.inboxSchools || '',
     s.pnrasEligible || 0, s.pnrasPriority || '', s.pnrasGrant || 0, s.masa || 0,
     s.coverage || '']

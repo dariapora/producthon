@@ -8,7 +8,7 @@ instruction.** Every `.md` in this repo is reconciled here; if you are a differe
 changes to the doc owner as text rather than editing, and read the top log entry for who owns which
 code. Code ownership is unchanged.
 
-Last updated: **12 Sept 2026 (late)** — BRAND.md written and applied to app/index.html; J1 classifier built but never run (no API key), schools placed from their commune when their own point is missing, tenth test suite, five denominator errors corrected
+Last updated: **12 Sept 2026 (late)** — SOURCES.md written; census deprivation basis landed (opt-in, `income` still default); BRAND.md applied to app/index.html; J1 classifier built but never run (no API key); schools placed from their commune when their own point is missing; tenth test suite; five denominator errors corrected and the Călărași pilot figures re-measured
 
 ---
 
@@ -153,6 +153,62 @@ Two demo schools, for two different points — don't mix them up:
 ---
 
 ## Log
+
+### 12 Sept 2026 — census deprivation basis landed, and the pilot figures my own fix had moved
+
+Took over another session's `model/` work and landed it after review (`model/deprivation.js`,
+`model/need_index.js`, `model/README.md`, `package.json`). A mentor suggested unemployment; the
+measurement says unemployment is **worse** than what we already had, and a third variable neither
+suggestion named wins by more than 2:1. Same 2,730 rural schools (≥10 candidates **per year**,
+census join), against `fail_rate_shrunk`:
+
+| basis | variable | r | r² |
+|---|---|---|---|
+| — | unemployment (șomeri / activi) | +0.170 | 2.8% |
+| `income` *(default)* | log(income tax per capita) | −0.197 | 3.9% |
+| `nonemp` | non-employment (1 − ocupați / rezidenți) | +0.295 | 8.7% |
+| `nonemp-core` | ditto, minus students and pensioners | **+0.319** | **10.2%** |
+
+**Why unemployment loses is the finding, not a footnote.** In rural Romania the poorest are not
+unemployed, they are *inactive*: subsistence farmers self-declare as employed and discouraged
+workers leave the labour force, so neither reaches the `șomeri` numerator. Dividing by **all
+residents** instead of by the active population is the entire difference — do not "fix" it back.
+It is also not an age-structure artifact (r = 0.086 with pensioner share), and `nonemp-core` strips
+students and pensioners anyway. Stacking bases buys +0.13pp for a second data source, so it is a
+**replacement**, not an extra term.
+
+`income` stays the **default** and the census basis is opt-in, because the census is frozen until
+the **2031 census** while the budget file refreshes yearly.
+
+**What I checked before landing it, rather than taking the summary on trust:**
+
+- **`out/` is byte-identical after a full `npm run index && npm run app`**, and `app/index.html`'s
+  SHA-256 is unchanged. `deprivation_score == income_deprivation` on all **6,335** rows with
+  `deprivation_basis = income` throughout. The opt-in design really is non-breaking.
+- **Are Tabel 5.29's rows per village or per UAT?** This mattered: `readCensus` has an
+  `if (out.has(code)) continue` guard, which on per-village rows would silently use one village's
+  rate for a whole commune. Census residents / domicile population runs **median 0.95** (p05 0.80,
+  p95 1.07) across 3,143 UATs, with only 5 below 0.5 — consistent with resident-under-domicile
+  emigration, not with single-village truncation. Rows are per-UAT; the guard is a dedupe.
+- **Fixed a footgun before it fired.** `npm run deprivation:nonemp` wrote to `--out out`, while
+  `index:nonemp` correctly writes to `out_nonemp`. Running the former then `npm run app` would have
+  baked a census-basis deprivation into the page while every doc says the basis is budget line
+  04.02.01 — a **silent basis swap with no error**. Now points at `out_nonemp`.
+- All ten suites pass after the rebuild (40 assertions).
+
+**And a stale claim of my own, found by reading the pipeline's output instead of the docs.** The
+Călărași pilot line in `CLAUDE.md` said *68 geocoded · 64 with both · 50 inboxes*. `59bdb98` — my
+commune-centroid fix — gave **all 72** Călărași rural schools a position, so it is now **68 with
+both → 54 distinct inboxes**, and the binding constraint is the email alone. Verified
+independently: 72 rural · 68 email · 72 placed · 68 own point · 4 commune · 68 both · 54 inboxes.
+**I shipped the fix and did not sweep for the figures it moved — the same omission as the
+coordinate claims in `evals/demo-corner-cases.md`, in the same afternoon, for the same reason.**
+The 4 commune-placed schools are good to ~1.7 km, which is fine for "closest 3" and not fine for a
+quoted distance.
+
+**Not verified, and it is not mine to resolve:** the r² figures for the three census bases. They
+require running the nonemp pipeline, and I only confirmed the income row (−0.197 / 3.9%)
+reproduces. The measurement is the other session's; `model/README.md` carries its method.
 
 ### 12 Sept 2026 — `SOURCES.md`: every input, its URL, and the caveat that travels with it
 

@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "index": "node model/need_index.js data/en_2023.xlsx data/en_2024.xlsx data/en_2025.xlsx data/en_2026.xlsx --network data/retea_scolara_2025_2026.xlsx --coords data/scoli_coordonate_2017.xlsx --out out",
+    "index:nonemp": "node model/need_index.js data/en_2023.xlsx data/en_2024.xlsx data/en_2025.xlsx data/en_2026.xlsx --network data/retea_scolara_2025_2026.xlsx --coords data/scoli_coordonate_2017.xlsx --deprivation-basis nonemp-core --out out_nonemp",
     "deprivation": "node model/deprivation.js --out out",
+    "deprivation:nonemp": "node model/deprivation.js --out out_nonemp --deprivation-basis nonemp-core",
     "extract": "python3 model/extract_pdfs.py",
     "coverage": "node model/coverage.js --out out",
     "app": "node model/build_app_data.js",

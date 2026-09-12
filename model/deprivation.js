@@ -19,6 +19,32 @@
 //     (INS via DPFBL, PDOM_SIRUTA2023.xlsx)
 //   - data/siruta_2026.csv         SIRUTA nomenclator (INS via data.gov.ro, "SIRUTA_s1 2026").
 //     Gives SIRSUP, so a school's *village* SIRUTA can be walked up to its *UAT* SIRUTA.
+//   - data/rpl2021_activ_inactiv.xlsx  RPL 2021 Tabel 5.29, resident population active/inactive
+//     per locality, 1 Dec 2021 (INS). https://www.recensamantromania.ro/rezultate-rpl-2021/
+//
+// ---------------------------------------------------------------- the non-employment layer
+// The census adds a second, *better* deprivation basis. Measured against exam results on the
+// same 2,730 rural schools, non-employment beats the budget proxy more than 2:1:
+//
+//   non-employment rate (1 - ocupati/rezidenti)   r = +0.295   r2 = 8.7%
+//   inactivity rate                               r = +0.273   r2 = 7.5%
+//   log(income tax per capita)                    r = -0.197   r2 = 3.9%
+//   unemployment rate (someri/activi)             r = +0.170   r2 = 2.8%
+//
+// Note where *unemployment* lands: below the budget proxy. In rural Romania the poorest people
+// are not unemployed, they are **inactive** — subsistence farmers self-declare as employed and
+// discouraged workers leave the labour force, so neither enters the someri numerator (nationally
+// `casnice` is 834,775 rural vs 334,790 urban). Dividing by all residents instead of by the
+// active population is the whole difference. Do not "fix" this by switching to someri/activi.
+//
+// Stacking the two bases buys nothing — they are already r = -0.566 with each other:
+//   non-employment alone r2 = 0.0867 | + income tax r2 = 0.0880 | all three r2 = 0.0882
+// So this is a *replacement* basis, selected with --deprivation-basis, not an extra term.
+//
+// The cost of choosing it: the census is frozen at 1 Dec 2021 and does not refresh until the
+// 2031 census, where the budget file refreshes every year. Non-employment is a structural
+// property of a commune and moves on a decade scale, so the staleness is defensible — but say
+// it out loud rather than letting anyone assume this layer is current.
 //
 // Usage as a module:  const { loadDeprivation } = require('./deprivation');
 // Usage standalone:   node model/deprivation.js --out out      (writes out/uat_deprivation.csv)
@@ -31,6 +57,8 @@ const DEFAULTS = {
   siruta: 'data/siruta_2026.csv',
   budget: 'data/uat_venituri_2025.xlsx',
   population: 'data/uat_populatie_2023.xlsx',
+  census: 'data/rpl2021_activ_inactiv.xlsx',
+  basis: 'income',        // 'income' = budget proxy (default, annual) | 'nonemp' = census 2021
 };
 
 // Budget line codes we pull, by their official indicator code in the header row.
@@ -76,6 +104,12 @@ function spellings(s) {
 const ALIAS = {
   '35|V V DELAMARINA': 159259,   // VICTOR VLAD DELAMARINA
   '38|PAUSESTI OTASAU': 171995,  // PĂUŞEŞTI (seat: Păuşeşti-Otăsău), not PĂUŞEŞTI-MĂGLAŞI
+  // Three more that only the census (RPL 2021) trips on. The first two are a plain `I` in SIRUTA
+  // written `A` in the census, which `spellings` cannot recover because it only varies Â/Î; the
+  // third is the Păuşeşti case again — SIRUTA still carries the old commune name.
+  '1|RAMETEA': 6592,             // RIMETEA (Alba)
+  '12|RASCA': 59238,             // RIŞCA (Cluj)
+  '5|ABRAMUT': 27169,            // SIRUTA names the commune PETREU; its seat is Abrămuţ
 };
 
 function editDistance(a, b) {
@@ -197,12 +231,62 @@ function readBudget(file, { counties, uatByName, uatNames }) {
   return { budget: out, seen, fuzzyHits, unmatched };
 }
 
+// ---------------------------------------------------------------- census (RPL 2021 Tabel 5.29)
+// Layout: col A = county header row, col B = "Urban"/"Rural" header row, col C = locality row.
+// County and locality names carry the same Â/Î inconsistency as the budget file, so both go
+// through `spellings` — skipping it on the *county* silently drops Dâmboviţa and Vâlcea.
+function readCensus(file, { counties, uatByName }) {
+  const wb = XLSX.readFile(file, { dense: true });
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
+
+  const judByName = new Map();
+  for (const [j, n] of counties) for (const v of spellings(n)) if (!judByName.has(v)) judByName.set(v, j);
+  judByName.set('BUCURESTI', 40);
+
+  const num = v => {
+    const n = typeof v === 'number' ? v : parseFloat(String(v).replace(/[^0-9.-]/g, ''));
+    return Number.isFinite(n) ? n : NaN;
+  };
+
+  const out = new Map();
+  const unmatched = [];
+  let jud = null;
+
+  for (const r of rows.slice(4)) {                 // rows 0-3 are titles and the ROMANIA total
+    const a = String(r[0] ?? '').trim();
+    const b = String(r[1] ?? '').trim();
+    const c = String(r[2] ?? '').trim();
+    if (a) { jud = judByName.get(baseName(a.replace(/^JUDE[ŢT]UL\s+/i, ''))) ?? null; continue; }
+    if (b) continue;                               // Urban / Rural subtotal
+    if (!c || jud === null) continue;
+
+    // 3 total | 4 activa | 5 ocupata | 6 someri | 7 inactiva | 8 elevi/studenti | 9 pensionari
+    const [resident, active, occupied, unemployed, inactive, students, pensioners] =
+      [3, 4, 5, 6, 7, 8, 9].map(i => num(r[i]));
+    if (![resident, active, occupied, unemployed, inactive, students, pensioners].every(Number.isFinite)
+      || resident <= 0) continue;
+
+    const nm = baseName(c);
+    let code;
+    for (const v of spellings(nm)) { code = uatByName.get(`${jud}|${v}`); if (code !== undefined) break; }
+    if (code === undefined) code = ALIAS[`${jud}|${nm}`];
+    if (code === undefined) { unmatched.push(`${jud}: ${c}`); continue; }
+    if (out.has(code)) continue;
+
+    out.set(code, { resident, active, occupied, unemployed, inactive, students, pensioners });
+  }
+  return { census: out, unmatched };
+}
+
 // ---------------------------------------------------------------- public API
 function loadDeprivation(opts = {}) {
   const o = { ...DEFAULTS, ...opts };
   const sir = readSiruta(o.siruta);
   const pop = readPopulation(o.population, sir.all);
   const { budget, seen, fuzzyHits, unmatched } = readBudget(o.budget, sir);
+  const hasCensus = o.census && fs.existsSync(o.census);
+  const { census, unmatched: censusUnmatched } =
+    hasCensus ? readCensus(o.census, sir) : { census: new Map(), unmatched: [] };
 
   // walk a village SIRUTA up to the UAT (NIV 2) it belongs to
   function resolveUAT(localitySiruta) {
@@ -222,6 +306,7 @@ function loadDeprivation(opts = {}) {
     const p = pop.get(code);
     const meta = sir.all.get(code);
     if (!p || !meta) continue;
+    const cs = census.get(code);
     rec.set(code, {
       siruta: code,
       name: meta.name,
@@ -232,6 +317,17 @@ function loadDeprivation(opts = {}) {
       ownRevenuePc: b.ownRevenue / p,
       equalizationPc: b.equalization / p,
       totalRevenuePc: b.totalRevenue / p,
+      // Census 2021. `nonEmpRate` divides by ALL residents, not by the active population —
+      // that is what makes it see subsistence and discouraged workers. See the header note.
+      censusResident: cs ? cs.resident : NaN,
+      nonEmpRate: cs ? 1 - cs.occupied / cs.resident : NaN,
+      // Same idea minus the two legitimate reasons not to work — still in school, and retired.
+      // Stronger than plain non-employment (r = +0.319 vs +0.295) and it answers the obvious
+      // objection: plain non-employment is NOT an age-structure artifact (it correlates only
+      // r = 0.086 with pensioner share), but stripping the two categories makes that explicit.
+      coreNonEmpRate: cs ? (cs.resident - cs.occupied - cs.students - cs.pensioners) / cs.resident : NaN,
+      unemploymentRate: cs && cs.active > 0 ? cs.unemployed / cs.active : NaN,
+      inactivityRate: cs ? cs.inactive / cs.resident : NaN,
     });
   }
 
@@ -240,8 +336,32 @@ function loadDeprivation(opts = {}) {
   const sorted = [...rec.values()].sort((a, b) => a.incomeTaxPc - b.incomeTaxPc);
   sorted.forEach((r, i) => {
     r.incomePct = sorted.length > 1 ? i / (sorted.length - 1) : 0.5;   // 0 = poorest
-    r.deprivation = 1 - r.incomePct;                                    // 1 = poorest
+    r.incomeDeprivation = 1 - r.incomePct;                              // 1 = poorest
   });
+
+  // Same treatment for non-employment, over the UATs that carry a census figure. Higher raw
+  // rate is already "worse", so the percentile IS the score — no inversion.
+  for (const [field, score] of [['nonEmpRate', 'nonEmpDeprivation'], ['coreNonEmpRate', 'coreNonEmpDeprivation']]) {
+    const s = [...rec.values()].filter(r => Number.isFinite(r[field])).sort((a, b) => a[field] - b[field]);
+    s.forEach((r, i) => { r[score] = s.length > 1 ? i / (s.length - 1) : 0.5; });   // 1 = worst
+  }
+  const withCensus = [...rec.values()].filter(r => Number.isFinite(r.nonEmpRate))
+    .sort((a, b) => a.nonEmpRate - b.nonEmpRate);
+
+  // `deprivation` is whichever basis was selected, so every downstream consumer (priority_score,
+  // the >=0.8 / <=0.2 archetype thresholds) keeps working untouched.
+  const BASIS = {
+    income: 'incomeDeprivation',            // budget proxy, refreshes yearly  (r2 3.9%)
+    nonemp: 'nonEmpDeprivation',            // census 2021 non-employment      (r2 8.7%)
+    'nonemp-core': 'coreNonEmpDeprivation', // ditto, minus students/pensioners (r2 10.2%)
+  };
+  if (!BASIS[o.basis]) {
+    throw new Error(`unknown --deprivation-basis "${o.basis}" (expected ${Object.keys(BASIS).join(' | ')})`);
+  }
+  if (o.basis !== 'income' && !withCensus.length) {
+    throw new Error(`--deprivation-basis ${o.basis} needs ${o.census}, which did not load`);
+  }
+  for (const r of rec.values()) r.deprivation = r[BASIS[o.basis]];
 
   return {
     records: rec,
@@ -250,8 +370,11 @@ function loadDeprivation(opts = {}) {
       const u = resolveUAT(localitySiruta);
       return u === null ? null : (rec.get(u) || null);
     },
+    basis: o.basis,
     stats: {
       uats: rec.size, budgetRows: seen, fuzzyHits, unmatched,
+      censusUats: withCensus.length, censusUnmatched,
+      medianNonEmp: withCensus.length ? withCensus[Math.floor(withCensus.length / 2)].nonEmpRate : NaN,
       median: sorted.length ? sorted[Math.floor(sorted.length / 2)].incomeTaxPc : NaN,
       p10: sorted.length ? sorted[Math.floor(sorted.length * 0.1)].incomeTaxPc : NaN,
       p90: sorted.length ? sorted[Math.floor(sorted.length * 0.9)].incomeTaxPc : NaN,
@@ -270,23 +393,36 @@ if (require.main === module) {
     siruta: opt('--siruta') || DEFAULTS.siruta,
     budget: opt('--budget') || DEFAULTS.budget,
     population: opt('--population') || DEFAULTS.population,
+    census: opt('--census') || DEFAULTS.census,
+    basis: opt('--deprivation-basis') || DEFAULTS.basis,
   });
   const s = d.stats;
   console.log(`UATs with budget + population: ${s.uats}`);
   console.log(`budget rows read: ${s.budgetRows} (${s.fuzzyHits} matched by near-spelling, ${s.unmatched.length} unmatched)`);
   if (s.unmatched.length) console.log('  unmatched:', s.unmatched.slice(0, 10));
   console.log(`income tax per capita (lei/year): p10 ${s.p10.toFixed(0)} | median ${s.median.toFixed(0)} | p90 ${s.p90.toFixed(0)}`);
+  console.log(`census 2021 (Tabel 5.29): ${s.censusUats} UATs, median non-employment ${(s.medianNonEmp * 100).toFixed(1)}%` +
+    (s.censusUnmatched.length ? ` (${s.censusUnmatched.length} localities unmatched: ${s.censusUnmatched.slice(0, 4).join(', ')})` : ''));
+  console.log(`deprivation_score basis: ${d.basis}`);
 
   fs.mkdirSync(outDir, { recursive: true });
   const q = v => { const t = v === undefined || v === null || (typeof v === 'number' && !Number.isFinite(v)) ? '' : String(v); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
   const head = ['uat_siruta', 'uat_name', 'county_no', 'rural', 'population',
     'income_tax_per_capita', 'own_revenue_per_capita', 'equalization_per_capita',
-    'income_percentile', 'deprivation_score'];
+    'income_percentile', 'income_deprivation',
+    'census_residents_2021', 'non_employment_rate', 'unemployment_rate', 'inactivity_rate',
+    'core_non_employment_rate', 'non_employment_deprivation', 'core_non_employment_deprivation',
+    'deprivation_basis', 'deprivation_score'];
   const lines = [head.join(',')];
   for (const r of [...d.records.values()].sort((a, b) => a.incomeTaxPc - b.incomeTaxPc)) {
+    const f6 = v => Number.isFinite(v) ? v.toFixed(6) : '';
     lines.push([r.siruta, r.name, r.jud, r.rural ? 'rural' : 'urban', r.pop,
       r.incomeTaxPc.toFixed(2), r.ownRevenuePc.toFixed(2), r.equalizationPc.toFixed(2),
-      r.incomePct.toFixed(4), r.deprivation.toFixed(4)].map(q).join(','));
+      f6(r.incomePct), f6(r.incomeDeprivation),
+      Number.isFinite(r.censusResident) ? r.censusResident : '',
+      f6(r.nonEmpRate), f6(r.unemploymentRate), f6(r.inactivityRate),
+      f6(r.coreNonEmpRate), f6(r.nonEmpDeprivation), f6(r.coreNonEmpDeprivation),
+      d.basis, f6(r.deprivation)].map(q).join(','));
   }
   fs.writeFileSync(path.join(outDir, 'uat_deprivation.csv'), '﻿' + lines.join('\n'), 'utf8');
   console.log(`wrote ${path.join(outDir, 'uat_deprivation.csv')}`);

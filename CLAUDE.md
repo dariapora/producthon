@@ -145,10 +145,14 @@ ministry-data model; #4 is a Sunday-morning task, not a Saturday one.
 2. ~~Load the Registrul Național ONG; geocode NGOs~~ **done** (`model/ngos.js`, 1,260 candidates). **Classify each NGO's purpose — written, never run.** `npm run classify` needs `ANTHROPIC_API_KEY`; the dry run measures **$1.80 for 1,252 organisations, ~5 min**, and writes `out/ngo_profiles.json`, after which `npm run app` changes the director cards. Then `npm run eval` — but it needs `out/ngo_gold.csv` **relabelled by a person**: the 120 rows there now are Claude-labelled against this classifier's own rubric (silver, not gold), so scoring J1 on them is two models agreeing with themselves. **Two unblockers, different in kind: machine time for the profiles, human judgement for the labels. Only the second changes the figures' status.**
 3. ~~Add PNRAS and Masă sănătoasă school lists as coverage layers~~ **done**. Remaining: OCR `data/pnras/elig_r2s2.pdf` (scanned, ~900 eligible schools missing) — needs `tesseract`, not installed.
 4. Add INS TEMPO SCL103D grade-8 enrolment by locality to estimate the ~9% missing before the exam.
-5. Build the Călărași pilot flow end to end (72 rural schools · 68 with an email · 68 geocoded ·
-   **64 with both** → **50 distinct inboxes** to write to. The two 68s are different sets — 4 have
-   an email but no coordinates, 4 the reverse. The flow needs both, so 64 is the pilot universe
-   and 50 is what J4 actually addresses): red zone → school → recommended NGOs → draft email → "Vreau să ajut". Simulate the sending; do not send real email blasts. **`WORKFLOW.md` is the spec for this task** — trigger, 8 steps, per-step
+5. Build the Călărași pilot flow end to end (72 rural schools · 68 with an email · **all 72 now
+   placed** · **68 with both** → **54 distinct inboxes** to write to. The flow needs an address and
+   a position, so 68 is the pilot universe and 54 is what J4 actually addresses. **These four
+   numbers changed on 12 Sept and the old ones are dead: 68 geocoded / 64 with both / 50 inboxes.**
+   `59bdb98` gave every Călărași school a position, so the binding constraint is now the email
+   alone — 4 of the 68 sit on their commune's point rather than their own, good to ~1.7 km, which
+   is fine for "closest 3" and not fine for a quoted distance. Recount with `npm run index`, which
+   prints all four): red zone → school → recommended NGOs → draft email → "Vreau să ajut". Simulate the sending; do not send real email blasts. **`WORKFLOW.md` is the spec for this task** — trigger, 8 steps, per-step
    input/output, an unhappy path per AI step, and the three human decision points.
 
 ## Pipeline order

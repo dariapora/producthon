@@ -138,6 +138,90 @@ decile of commune income tax per capita -> mean share of pupils below 5
 So do **not** sell this as "we found that poverty drives dropout" — the data does not support
 that claim at this grain, and anyone with the file can check.
 
+## The census basis — a better deprivation variable (`--deprivation-basis`)
+
+A mentor suggested unemployment instead of purchasing power. Tested on the same 2,730 rural
+schools (≥10 candidates, census join), **plain unemployment is worse than what we already had**,
+and the variable that actually wins is a third one neither suggestion named:
+
+| basis | variable | r | r² |
+|---|---|---|---|
+| — | unemployment rate (someri / activi) | +0.170 | 2.8% |
+| `income` *(default)* | log(income tax per capita) | −0.197 | 3.9% |
+| `nonemp` | non-employment (1 − ocupati / rezidenti) | +0.295 | 8.7% |
+| `nonemp-core` | ditto, minus students and pensioners | **+0.319** | **10.2%** |
+
+**Why unemployment loses.** In rural Romania the poorest people are not unemployed, they are
+*inactive*: subsistence farmers self-declare as employed and discouraged workers leave the labour
+force, so neither reaches the `someri` numerator (nationally `casnice` is 834,775 rural vs 334,790
+urban, and the rural activity rate is 39.0% vs 46.6% urban). Dividing by **all residents** instead
+of by the active population is the entire difference. Do not "improve" this by switching the
+denominator back.
+
+**It is a replacement, not an extra term.** The two bases are already r = −0.566 with each other:
+
+```
+non-employment alone          r² = 0.0867
+non-employment + income tax   r² = 0.0880      <- +0.13pp for a second data source
+all three                     r² = 0.0882
+```
+
+**It is not an age-structure artifact** — the obvious objection, and it does not hold:
+non-employment correlates only r = 0.086 with pensioner share, and pensioner share itself runs
+slightly the *wrong* way against failure (r = −0.094). `nonemp-core` strips students and
+pensioners anyway, which both answers the question on a slide and scores better.
+
+### Source
+
+| File | What | Where |
+|---|---|---|
+| `data/rpl2021_activ_inactiv.xlsx` | RPL 2021 Tabel 5.29, resident population active/inactive per locality, 1 Dec 2021 | https://www.recensamantromania.ro/rezultate-rpl-2021/ |
+
+3,143 / 3,180 UATs carry a census figure. Three communes needed `ALIAS` entries — RÂMETEA,
+RÂŞCA (SIRUTA writes a plain `I` where the census writes `A`, which `spellings` cannot recover
+because it only varies Â/Î) and ABRĂMUŢ (SIRUTA still names the commune PETREU). County names
+need the same Â/Î treatment as the budget file or Dâmboviţa and Vâlcea drop out silently.
+
+### What it costs
+
+The census is frozen at 1 Dec 2021 and does not refresh until the **2031 census**, where the
+budget file refreshes every year (the 2026 Anexa 24 is due ~March 2027). Non-employment is a
+structural property of a commune and moves on a decade scale, so the staleness is defensible —
+but state it rather than letting anyone assume the layer is current. This is why `income`
+remains the default and the census basis is opt-in.
+
+### What changes if you switch
+
+`npm run index:nonemp` writes the same files to `out_nonemp/` using `nonemp-core`. Against the
+default ranking, on 4,202 rural schools ranked by `priority_score`:
+
+```
+                                income -> nonemp    income -> nonemp-core
+median rank movement                469 places              483 places
+top   250 unchanged               122 (49%)               109 (44%)
+top  1000 unchanged               633 (63%)               627 (63%)
+mean fail_rate_shrunk, top 250    67.6%                    69.2%     (income basis: 64.6%)
+```
+
+So it is a material re-ranking — **roughly half the top 250 turns over** — and the schools it
+promotes do have worse measured outcomes (69.2% vs 64.6% mean failure). That last number is the
+argument for the switch; it is also the number to check first if the layer is ever changed again.
+
+**One case to know before you present this.** Budila (Braşov) has a 98% failure rate and sits at
+rank 22 under `income`. Under plain `nonemp` it falls to 920 — its non-employment is at the
+national median while its income tax per capita is genuinely low. `nonemp-core` recovers it to
+262. A basis that demotes the worst-performing school in the set is a basis worth arguing about,
+so if anyone challenges the switch, this is the honest counter-example to put up first.
+
+### New columns
+
+`non_employment_rate`, `core_non_employment_rate`, `unemployment_rate`, `income_deprivation`,
+`non_employment_deprivation`, `core_non_employment_deprivation`, `deprivation_basis`.
+
+`deprivation_score` stays the *selected* basis, so `priority_score` and the ≥0.8 / ≤0.2 archetype
+thresholds keep working untouched. `deprivation_basis` records which variable produced the file —
+read it before comparing two CSVs.
+
 **And do not oversell the routing either.** See `RESEARCH.md` §3: the ROSE evaluation
 (IDB/UQAM/Columbia, randomised, 41,524 pupils, 165 schools) found *no meaningful differences by
 local economic conditions* — the exact moderator a poor-vs-rich routing rule assumes. Present the
