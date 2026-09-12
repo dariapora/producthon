@@ -3,30 +3,34 @@
 <title>Puntea 8→9</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,650&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
 :root{
-  --ground:#F3F5F8; --surface:#FFFFFF; --sunk:#E8ECF2; --ink:#172033; --muted:#5A6477; --line:#D5DBE4;
-  --accent:#2A4D8F; --accent-soft:#DCE5F5; --red:#C4302B; --red-soft:#F6DEDC;
-  --sem-g:#1E8A5F; --sem-y:#FFD400; --sem-r:#C4302B; --sem-0:#C2CBD8; --money:#9A6B12;
+  /* BRAND.md §4. Brand palette; the EN performance triple is deliberately a separate system. */
+  --ground:#F7F9FC; --surface:#FFFFFF; --sunk:#EDF1F7; --ink:#183B56; --muted:#5F6B7A; --line:#E2E8F0;
+  --accent:#2878D0; --accent-soft:#E6F0FB; --red:#D64545; --red-soft:#FBEAEA;
+  --sem-g:#2E8B57; --sem-y:#E5A72E; --sem-r:#D64545; --sem-0:#CBD5E1; --money:#B07A16;
+  /* BRAND.md §6/§7: 8px spacing scale, 12px cards, 8px controls. */
+  --r-card:12px; --r-ctl:8px; --tap:44px;
   --ease-out:cubic-bezier(.23,1,.32,1);
   --dur-press:160ms; --dur-swap:200ms; --dur-reorder:240ms;
   --stag-row:30ms; --stag-card:40ms;
-  --serif:"Newsreader", Georgia, "Times New Roman", serif;
-  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  /* BRAND.md §5: Inter is the only face. --serif and --mono are kept as names so the rest of the
+     sheet still reads, but they all resolve to Inter — no decorative or technical-looking type. */
+  --sans:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif:var(--sans); --mono:var(--sans);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --ground:#0E141F; --surface:#161F2E; --sunk:#1D2839; --ink:#E5EAF2; --muted:#98A3B6; --line:#2A3649;
-    --accent:#93B2EE; --accent-soft:#223352; --red:#FF7A70; --red-soft:#3A2126;
-    --sem-g:#5FCB9B; --sem-y:#FFE14D; --sem-r:#FF7A70; --sem-0:#36435B; --money:#D9A441;
+    --ground:#0D1822; --surface:#152634; --sunk:#1D3142; --ink:#E8EEF5; --muted:#9DAABA; --line:#2A3F52;
+    --accent:#6FA8E8; --accent-soft:#1C3452; --red:#F08A8A; --red-soft:#3A2226;
+    --sem-g:#5FC08C; --sem-y:#F0C264; --sem-r:#F08A8A; --sem-0:#33475C; --money:#D9A441;
   }
 }
 :root[data-theme="dark"]{
-  --ground:#0E141F; --surface:#161F2E; --sunk:#1D2839; --ink:#E5EAF2; --muted:#98A3B6; --line:#2A3649;
-  --accent:#93B2EE; --accent-soft:#223352; --red:#FF7A70; --red-soft:#3A2126;
-    --sem-g:#5FCB9B; --sem-y:#FFE14D; --sem-r:#FF7A70; --sem-0:#36435B; --money:#D9A441;
+  --ground:#0D1822; --surface:#152634; --sunk:#1D3142; --ink:#E8EEF5; --muted:#9DAABA; --line:#2A3F52;
+  --accent:#6FA8E8; --accent-soft:#1C3452; --red:#F08A8A; --red-soft:#3A2226;
+  --sem-g:#5FC08C; --sem-y:#F0C264; --sem-r:#F08A8A; --sem-0:#33475C; --money:#D9A441;
 }
 *{box-sizing:border-box}
 /* a class with an explicit display beats the UA [hidden] rule, so state it */
@@ -40,43 +44,43 @@
 ::-webkit-scrollbar-thumb:hover{background:var(--muted)}
 :where(a,button,summary,input,select,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
 a{color:var(--accent);text-underline-offset:3px;text-decoration-thickness:1px}
-body{background:var(--ground);color:var(--ink);font:15px/1.55 var(--sans);padding-inline:20px;padding-block:28px 60px}
-.wrap{max-width:1180px;margin:0 auto;display:grid;gap:28px}
+body{background:var(--ground);color:var(--ink);font:16px/1.6 var(--sans);padding-inline:24px;padding-block:32px 64px}
+.wrap{max-width:1280px;margin:0 auto;display:grid;gap:32px}
 /* Grid and flex items default to min-width:auto, so the table's min-width:960px propagates all
    the way up and the page scrolls sideways instead of the table scrolling inside its own box. */
 .wrap>*,.grid2>*,.mgrid>*,.panel>*{min-width:0}
-h1,h2,h3{font-family:var(--serif);font-weight:650;text-wrap:balance;margin:0;letter-spacing:-.01em}
-h1{font-size:clamp(34px,5vw,52px);line-height:1.02;margin-top:10px}
-h2{font-size:24px;margin-top:2px}
-h3{font-size:16px;font-family:var(--sans);font-weight:600;letter-spacing:0}
+h1,h2,h3{font-family:var(--sans);font-weight:600;text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(32px,4vw,36px);line-height:1.12;margin-top:8px}
+h2{font-size:26px;margin-top:2px}
+h3{font-size:20px;font-family:var(--sans);font-weight:600;letter-spacing:0}
 p{margin:0;max-width:66ch}
-.label{font:500 11px/1.35 var(--mono);text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.label{font:600 12px/1.35 var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
 header{display:grid;grid-template-columns:1.4fr 1fr;gap:28px;align-items:end;border-bottom:1px solid var(--line);padding-bottom:24px}
-header .lede{font-size:17px;color:var(--muted);margin-top:12px}
-.five{font-family:var(--serif);color:var(--red);font-style:italic;font-size:1.15em}
-.north{border-left:2px solid var(--red);padding-left:16px;font-family:var(--serif);font-size:19px;line-height:1.4}
-.north small{display:block;font:12px/1.45 var(--sans);color:var(--muted);margin-top:8px}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:20px}
+header .lede{font-size:18px;color:var(--muted);margin-top:12px}
+.five{color:var(--sem-r);font-weight:600}
+.north{border-left:3px solid var(--accent);padding-left:16px;font-size:18px;line-height:1.45}
+.north small{display:block;font:14px/1.5 var(--sans);color:var(--muted);margin-top:8px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:24px}
 .newer{margin-bottom:14px}
 .newer summary{cursor:pointer;font-size:13px;color:var(--muted);width:max-content}
 .newer summary:hover{color:var(--ink)}
 .controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
-.drop{position:relative;flex:1 1 320px;border:1.5px dashed var(--line);border-radius:6px;padding:14px 16px;cursor:pointer;transition:border-color .15s,background .15s}
+.drop{position:relative;flex:1 1 320px;border:1.5px dashed var(--line);border-radius:var(--r-ctl);padding:16px;cursor:pointer;transition:border-color .15s,background .15s}
 .drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
 .drop:focus-within{outline:2px solid var(--accent);outline-offset:2px}
 .drop input{position:absolute;opacity:0;width:1px;height:1px}
 .drop b{font-weight:600}
-.drop span{color:var(--muted);font-size:13px}
-select,input[type=search]{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:7px 10px}
+.drop span{color:var(--muted);font-size:15px}
+select,input[type=search]{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-ctl);padding:10px 12px;min-height:var(--tap)}
 select:focus,input:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.check{display:flex;gap:8px;align-items:center;font-size:14px}
-.badge{font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:5px 8px;border-radius:3px;background:var(--red-soft);color:var(--red)}
+.check{display:flex;gap:8px;align-items:center;font-size:16px}
+.badge{font:600 12px/1 var(--sans);letter-spacing:.05em;text-transform:uppercase;padding:6px 9px;border-radius:6px;background:var(--red-soft);color:var(--red)}
 .badge.real{background:var(--accent-soft);color:var(--accent)}
-.status{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:14px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.stat{background:var(--surface);padding:16px 18px;display:grid;gap:8px}
-.stat .v{font:500 28px/1 var(--mono);font-variant-numeric:tabular-nums}
-.stat .v.red{color:var(--red)}
+.status{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:15px;color:var(--muted);margin-top:16px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-card);overflow:hidden}
+.stat{background:var(--surface);padding:24px;display:grid;gap:8px}
+.stat .v{font:600 40px/1.05 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.stat .v.red{color:var(--sem-r)}
 .grid2{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
 .counties{display:grid;gap:10px}
 .crow{display:grid;gap:5px;cursor:pointer;border-radius:4px;padding:6px;background:none;border:0;text-align:left;color:inherit;font:inherit;width:100%}
@@ -86,9 +90,9 @@ select:focus,input:focus,button:focus-visible{outline:2px solid var(--accent);ou
 .btn,.more{transition:transform var(--dur-press) var(--ease-out)}
 .btn:active,.more:active{transform:scale(.97)}
 .drop{transition:border-color var(--dur-swap) var(--ease-out),background var(--dur-swap) var(--ease-out)}
-.crow .top{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+.crow .top{display:flex;justify-content:space-between;gap:8px;font-size:16px}
 .crow .top b{font-weight:600}
-.crow .top span{font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.crow .top span{font:15px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
 .track{height:8px;background:var(--sunk);border-radius:2px;overflow:hidden}
 .crow[aria-pressed="true"] .track{background:var(--surface)}
 .track i{display:block;height:100%;background:var(--accent)}
@@ -104,83 +108,86 @@ select:focus,input:focus,button:focus-visible{outline:2px solid var(--accent);ou
   box-shadow:0 0 0 .5px var(--muted);opacity:.9}
 .deplg i{background:var(--money)}
 .tabs{display:flex;gap:2px 4px;border-bottom:1px solid var(--line);flex-wrap:wrap;row-gap:0}
-.tab{font:500 14px var(--sans);color:var(--muted);background:none;border:0;padding:10px 12px;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;
+.tab{font:500 16px var(--sans);color:var(--muted);background:none;border:0;padding:12px 14px;min-height:var(--tap);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;
   transition:color 160ms cubic-bezier(.23,1,.32,1),border-color 160ms cubic-bezier(.23,1,.32,1)}
 @media (hover:hover) and (pointer:fine){.tab:hover{color:var(--ink)}}
 .tab:active{transform:scale(.98)}
-.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--red)}
-.tabnote{font-size:13px;color:var(--muted);margin:10px 0 12px}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabnote{font-size:16px;color:var(--muted);margin:12px 0 16px}
 .tabnote details.why{display:inline}
 .tabnote details.why summary{display:inline;cursor:pointer;color:var(--accent);text-decoration:underline;
   text-underline-offset:2px;list-style:none}
 .tabnote details.why summary::-webkit-details-marker{display:none}
 .tabnote details.why[open] summary{display:block;margin-bottom:4px}
-.mout{font-size:15px;color:var(--ink);margin:14px 0 2px}
+.mout{font-size:18px;color:var(--ink);margin:16px 0 2px}
 .mout b{font-weight:600}
 .tablewrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:14px;min-width:780px;font-variant-numeric:tabular-nums}
-th{text-align:left;font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:15px;min-width:780px;font-variant-numeric:tabular-nums}
+th{text-align:left;font:600 12px var(--sans);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
 td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
 td.rank{font-family:var(--mono);color:var(--muted);width:36px}
 .school{font-weight:500;min-width:150px}
 .nb{display:grid;gap:4px;min-width:200px}
-.sub{font-size:12px;color:var(--muted)}
-.pill{font:500 10px/1 var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:4px 6px;border-radius:3px;border:1px solid var(--line);color:var(--muted)}
-.pill.rural{border-color:var(--red);color:var(--red)}
+.sub{font-size:14px;color:var(--muted)}
+.pill{font:600 11px/1 var(--sans);text-transform:uppercase;letter-spacing:.05em;padding:5px 7px;border-radius:6px;border:1px solid var(--line);color:var(--muted)}
+.pill.rural{border-color:var(--accent);color:var(--accent)}
 .crow .top span,.stat .v,.km,.mfoot span{font-variant-numeric:tabular-nums}
 .rate{display:grid;grid-template-columns:72px 36px;gap:8px;align-items:center}
 .rbar{position:relative;height:10px;background:var(--sunk);border-radius:2px}
 .rbar .ci{position:absolute;top:3px;height:4px;background:var(--red);opacity:.28;border-radius:2px}
 .rbar .pt{position:absolute;top:-2px;width:3px;height:14px;background:var(--red);border-radius:1px}
 .rbar .prior{position:absolute;top:-3px;width:1px;height:16px;background:var(--muted)}
-.rate .pv{font:13px var(--mono);font-variant-numeric:tabular-nums;text-align:right}
-.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:12px}
+.rate .pv{font:15px var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-top:16px}
 .legend i{display:inline-block;vertical-align:middle;margin-right:6px}
 .notes{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .notes .panel{display:grid;gap:10px;align-content:start}
-.notes p,.notes li{font-size:14px;color:var(--muted)}
+.notes p,.notes li{font-size:16px;color:var(--muted)}
 .notes ul{margin:0;padding-left:18px;display:grid;gap:6px}
 a{color:var(--accent)}
-.more{margin-top:12px;font:inherit;font-size:13px;color:var(--accent);background:none;border:1px solid var(--line);border-radius:4px;padding:6px 12px;cursor:pointer}
-.err{color:var(--red);font-size:13px}
+/* SecondaryButton: outline, same tap target. */
+.more{margin-top:16px;font:500 16px var(--sans);color:var(--accent);background:none;border:1px solid var(--accent);
+  border-radius:var(--r-ctl);padding:0 16px;min-height:var(--tap);cursor:pointer}
+@media (hover:hover) and (pointer:fine){.more:hover{background:var(--accent-soft)}}
+.err{color:var(--sem-r);font-size:15px}
 .chips{display:flex;flex-wrap:wrap;gap:4px}
-.chip{font-size:12px;padding:2px 7px;border-radius:3px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.chip{font-size:13px;padding:4px 9px;border-radius:6px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
 .chip.lo{background:var(--sunk);color:var(--muted)}
 .far{font:12px var(--mono);color:var(--red)}
 .near{font:12px var(--mono);color:var(--muted)}
 .ngos{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin-top:14px}
-.ngo{border:1px solid var(--line);border-radius:6px;padding:14px;display:grid;gap:8px;align-content:start;background:var(--surface)}
+.ngo{border:1px solid var(--line);border-radius:var(--r-card);padding:20px;display:grid;gap:8px;align-content:start;background:var(--surface)}
 .ngo .hd{display:flex;justify-content:space-between;gap:8px;align-items:start}
 .ngo b{font-weight:600}
-.ngo p{font-size:13px;color:var(--muted)}
-.rel{font:500 10px/1 var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:4px 6px;border-radius:3px;white-space:nowrap}
-.rel.high{background:var(--red-soft);color:var(--red)}
-.rel.med{background:var(--accent-soft);color:var(--accent)}
+.ngo p{font-size:15px;color:var(--muted)}
+.rel{font:600 11px/1 var(--sans);text-transform:uppercase;letter-spacing:.05em;padding:5px 7px;border-radius:6px;white-space:nowrap}
+.rel.high{background:var(--accent-soft);color:var(--accent)}
+.rel.med{background:var(--sunk);color:var(--ink)}
 .rel.low{background:var(--sunk);color:var(--muted)}
-.reg{font:12px var(--mono);color:var(--muted)}
+.reg{font:14px var(--mono);color:var(--muted)}
 .matcher{display:grid;gap:18px}
 .mgrid{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start}
 .mctl{display:grid;gap:14px}
-.mctl label{display:grid;gap:6px;font-size:13px;color:var(--muted)}
+.mctl label{display:grid;gap:6px;font-size:15px;color:var(--muted)}
 .mctl select{width:100%}
 .mctl .row{display:flex;justify-content:space-between;align-items:baseline}
-.mctl output{font:500 13px var(--mono);color:var(--ink)}
-.mctl input[type=range]{width:100%;accent-color:var(--red)}
-.ends{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
-.mctl label.check{display:flex;color:var(--ink);font-size:14px;align-items:flex-start}
+.mctl output{font:600 16px var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.mctl input[type=range]{width:100%;accent-color:var(--accent)}
+.ends{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);letter-spacing:.03em}
+.mctl label.check{display:flex;color:var(--ink);font-size:16px;align-items:flex-start}
 .mctl label.check input{margin-top:3px}
-.mapwrap{position:relative;background:var(--ground);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.mapwrap{position:relative;background:var(--ground);border:1px solid var(--line);border-radius:var(--r-card);overflow:hidden}
 .zoomui{position:absolute;top:8px;right:8px;z-index:2;display:flex;gap:4px;align-items:center;
   background:color-mix(in srgb,var(--surface) 88%,transparent);border:1px solid var(--line);
-  border-radius:5px;padding:3px;backdrop-filter:blur(6px)}
-.zoomui button{font:500 13px var(--mono);min-width:26px;height:26px;padding:0 7px;cursor:pointer;
+  border-radius:var(--r-ctl);padding:4px;backdrop-filter:blur(6px)}
+.zoomui button{font:500 14px var(--sans);min-width:34px;height:34px;padding:0 9px;cursor:pointer;
   color:var(--ink);background:transparent;border:0;border-radius:3px;
   transition:background 160ms cubic-bezier(.23,1,.32,1)}
 @media (hover:hover) and (pointer:fine){.zoomui button:hover{background:var(--sunk)}}
 .zoomui button:active{transform:scale(.94)}
 .maphint{margin-left:auto;color:var(--muted);opacity:.85}
-.zlvl{font:500 11px var(--mono);color:var(--muted);padding:0 6px;font-variant-numeric:tabular-nums}
+.zlvl{font:500 13px var(--mono);color:var(--muted);padding:0 6px;font-variant-numeric:tabular-nums}
 #map{cursor:grab;touch-action:pan-y}
 #basehit{touch-action:none}
 #map.panning{cursor:grabbing}
@@ -196,7 +203,9 @@ a{color:var(--accent)}
 #map.countryview #dots{pointer-events:none}
 #map.countryview .seat{opacity:0}
 #map:not(.countryview) .cty{stroke-opacity:.55}
-.zoomui select{font:inherit;font-size:12px;padding:2px 4px;max-width:190px}
+/* BRAND.md §9: a selected county gets a visible outline, not only a colour shift. */
+#counties .cty.sel{stroke:var(--accent);stroke-width:3;stroke-opacity:1}
+.zoomui select{font:inherit;font-size:14px;padding:4px 6px;min-height:34px;max-width:190px}
 .semkey{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap}
 .semkey i{border-radius:2px}
 /* Redundant encoding for the red band. Red/yellow/green is the one triple that collapses under
@@ -228,23 +237,27 @@ a{color:var(--accent)}
 .dot.out{opacity:.14}
 .picknum{font-family:var(--mono);font-weight:600;fill:var(--ink);pointer-events:none}
 .hit{fill:transparent;cursor:pointer}
-.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:8px 10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.12);max-width:240px;opacity:0;transition:opacity .12s}
-.tip b{display:block;font-weight:600;margin-bottom:2px}
-.maplegend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);padding:8px 12px;border-top:1px solid var(--line);background:var(--surface)}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-ctl);padding:12px 14px;font-size:15px;line-height:1.45;box-shadow:0 6px 18px rgba(24,59,86,.10);max-width:260px;opacity:0;transition:opacity .12s}
+.tip b{display:block;font-weight:600;font-size:16px;margin-bottom:4px}
+.maplegend{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--muted);padding:12px 14px;border-top:1px solid var(--line);background:var(--surface)}
 .maplegend i{display:inline-block;vertical-align:middle;margin-right:6px;border-radius:50%}
 .matches{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;counter-reset:m}
-.match{border:1px solid var(--line);border-radius:6px;padding:14px;display:grid;gap:10px;background:var(--surface);animation:rise .4s both}
+.match{border:1px solid var(--line);border-radius:var(--r-card);padding:20px;display:grid;gap:12px;background:var(--surface);animation:rise .4s both}
 .match .hd{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:start}
-.match .no{font:600 13px var(--mono);width:26px;height:26px;border-radius:50%;border:1.5px solid var(--ink);display:grid;place-items:center}
-.match .km{font:500 13px var(--mono);color:var(--muted);white-space:nowrap}
+.match .no{font:600 14px var(--sans);width:28px;height:28px;border-radius:50%;border:1.5px solid var(--accent);color:var(--accent);display:grid;place-items:center}
+/* BRAND.md §11: distance must be easy to find at a glance. */
+.match .km{font:600 16px var(--sans);color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
 .score{display:grid;gap:4px}
 .sbar{display:flex;height:8px;border-radius:2px;overflow:hidden;background:var(--sunk);gap:2px}
-.sbar .sv{background:var(--red)}
+.sbar .sv{background:var(--sem-r)}
 .sbar .px{background:var(--accent)}
-.score .lg{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--muted)}
-.why{font-size:13px;color:var(--muted)}
-.mfoot{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
-.btn{font:inherit;font-size:13px;color:var(--surface);background:var(--ink);border:0;border-radius:4px;padding:8px 14px;cursor:pointer}
+.score .lg{display:flex;justify-content:space-between;font:13px var(--sans);color:var(--muted)}
+.why{font-size:15px;color:var(--muted)}
+.mfoot{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:15px;color:var(--muted)}
+/* PrimaryButton: action blue on white text, 44px tap target, action-shaped label. */
+.btn{font:600 16px var(--sans);color:#FFFFFF;background:var(--accent);border:0;border-radius:var(--r-ctl);
+  padding:0 20px;min-height:var(--tap);cursor:pointer}
+@media (hover:hover) and (pointer:fine){.btn:hover{background:color-mix(in srgb,var(--accent) 88%,#000)}}
 @keyframes rise{from{opacity:.001;transform:translateY(6px)}to{opacity:1;transform:none}}
 tbody.swap tr{animation:rise var(--dur-swap) var(--ease-out) both}
 @media (prefers-reduced-motion:reduce){.match{animation:none}.ring,.dot,.base{transition:none}}
@@ -254,8 +267,8 @@ tbody.swap tr{animation:rise var(--dur-swap) var(--ease-out) both}
 
 /* ---- role chooser + director path ---------------------------------------- */
 .roleswitch{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.roleswitch .rl{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-right:2px}
-.rsw{font:500 13px var(--sans);padding:7px 13px;border:1px solid var(--line);border-radius:999px;
+.roleswitch .rl{font:600 12px var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-right:2px}
+.rsw{font:500 16px var(--sans);padding:0 18px;min-height:var(--tap);border:1px solid var(--line);border-radius:999px;
   background:var(--surface);color:var(--muted);cursor:pointer;
   transition:color 160ms var(--ease-out),border-color 160ms var(--ease-out),background 160ms var(--ease-out)}
 .rsw[aria-selected="true"]{color:var(--ink);border-color:var(--accent);background:var(--accent-soft)}
@@ -264,43 +277,62 @@ tbody.swap tr{animation:rise var(--dur-swap) var(--ease-out) both}
 .chooser{display:grid;gap:14px;justify-items:start}
 .roles{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
 @media (max-width:700px){.roles{grid-template-columns:1fr}}
-.role{text-align:left;padding:18px 20px;border:1px solid var(--line);border-radius:6px;background:var(--surface);
+.role{text-align:left;padding:24px;border:1px solid var(--line);border-radius:var(--r-card);background:var(--surface);
   cursor:pointer;display:grid;gap:5px;transition:border-color 160ms var(--ease-out),transform 160ms var(--ease-out)}
 .role:hover{border-color:var(--accent)}
 .role:active{transform:scale(.995)}
-.role b{font:600 16px var(--sans)}
-.role span{color:var(--muted);font-size:13px}
+.role b{font:600 20px var(--sans)}
+.role span{color:var(--muted);font-size:16px}
 .dirwrap{display:grid;gap:18px}
 .picker{position:relative;max-width:560px}
 .picker input{width:100%}
-.hits{list-style:none;margin:6px 0 0;padding:0;border:1px solid var(--line);border-radius:5px;
-  background:var(--surface);max-height:260px;overflow:auto}
-.hits li{padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--line);font-size:14px}
+.hits{list-style:none;margin:6px 0 0;padding:0;border:1px solid var(--line);border-radius:var(--r-ctl);
+  background:var(--surface);max-height:300px;overflow:auto}
+.hits li{padding:14px;cursor:pointer;border-bottom:1px solid var(--line);font-size:16px;min-height:var(--tap)}
 .hits li:last-child{border-bottom:0}
 .hits li:hover,.hits li[aria-selected="true"]{background:var(--sunk)}
-.hits .sub{font-size:12px}
+.hits .sub{font-size:14px}
 .profile{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px 22px;
-  border:1px solid var(--line);border-radius:6px;padding:16px 18px;background:var(--surface)}
+  border:1px solid var(--line);border-radius:var(--r-card);padding:24px;background:var(--surface)}
 .pf{display:grid;gap:3px;min-width:0}
-.pf .k{font:500 10px/1.35 var(--mono);text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
-.pf .v{font-size:15px;font-variant-numeric:tabular-nums}
-.pf .src{font-size:11px;color:var(--muted)}
+.pf .k{font:600 12px/1.35 var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.pf .v{font-size:18px;font-variant-numeric:tabular-nums}
+.pf .src{font-size:13px;color:var(--muted);line-height:1.45}
 .tier{display:grid;gap:8px}
-.tier h4{margin:0;font:600 13px var(--sans)}
-.tierlab{font-size:12px;color:var(--muted)}
+.tier h4{margin:0;font:600 20px var(--sans)}
+.tierlab{font-size:16px;color:var(--muted)}
 .ngorow{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;justify-content:space-between;
-  border:1px solid var(--line);border-radius:5px;padding:10px 12px;background:var(--surface)}
-.ngorow .nm{font-size:14px}
-.ngorow .meta{font:500 11px var(--mono);color:var(--muted);white-space:nowrap}
+  border:1px solid var(--line);border-radius:var(--r-card);padding:16px;background:var(--surface)}
+.ngorow .nm{font-size:17px}
+.ngorow .meta{font:600 15px var(--sans);color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
 /* The verbatim span the model's verdict rests on. Full width on its own line, and quiet — it is
    there to be checked when someone doubts the row, not to compete with the organisation's name. */
-.ngorow .why{flex-basis:100%;font-size:12.5px;line-height:1.45;color:var(--muted);
+.ngorow .why{flex-basis:100%;font-size:15px;line-height:1.5;color:var(--muted);
   border-left:2px solid var(--line);padding-left:9px;margin-top:2px}
 .badge2.ok{color:var(--sem-g);border-color:color-mix(in srgb,var(--sem-g) 45%,var(--line))}
 .badge2.warn{color:var(--money);border-color:color-mix(in srgb,var(--money) 45%,var(--line))}
-.badge2{font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:2px 5px;
-  border-radius:3px;border:1px solid var(--line);color:var(--muted);margin-left:6px}
-.alone{border:1px solid var(--red);border-radius:6px;padding:14px 16px;background:var(--red-soft)}
+.badge2{font:600 11px var(--sans);text-transform:uppercase;letter-spacing:.05em;padding:3px 7px;
+  border-radius:6px;border:1px solid var(--line);color:var(--muted);margin-left:8px}
+.alone{border:1px solid var(--sem-r);border-radius:var(--r-card);padding:18px 20px;background:var(--red-soft);font-size:16px}
+
+/* ---- design-system components (BRAND.md §15) ----------------------------- */
+/* PerformanceBadge. BRAND.md §4: colour is never the only carrier — the badge always ships a
+   dot, the numeric average and the word, so it survives greyscale and colour blindness. */
+.perf{display:inline-flex;align-items:center;gap:8px;font:600 15px var(--sans);
+  padding:6px 12px;border-radius:999px;border:1px solid;white-space:nowrap}
+.perf i{width:10px;height:10px;border-radius:50%;background:currentColor;flex:none}
+.perf .n{font-variant-numeric:tabular-nums}
+.perf.r{color:var(--sem-r);border-color:color-mix(in srgb,var(--sem-r) 40%,var(--line));background:color-mix(in srgb,var(--sem-r) 8%,var(--surface))}
+.perf.y{color:var(--money);border-color:color-mix(in srgb,var(--sem-y) 45%,var(--line));background:color-mix(in srgb,var(--sem-y) 12%,var(--surface))}
+.perf.g{color:var(--sem-g);border-color:color-mix(in srgb,var(--sem-g) 40%,var(--line));background:color-mix(in srgb,var(--sem-g) 8%,var(--surface))}
+.perf.na{color:var(--muted);border-color:var(--line);background:var(--sunk)}
+/* KPI card. BRAND.md §10: the number first, the comparison under it, nothing else. */
+.kpi{display:grid;gap:10px;justify-items:start;border:1px solid var(--line);border-radius:var(--r-card);
+  padding:24px;background:var(--surface);margin:16px 0}
+.kpi .k{font:600 12px var(--sans);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.kpi .big{font:600 44px/1 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.kpi .cmp{font-size:16px;color:var(--muted)}
+.kpi .cmp b{color:var(--ink);font-variant-numeric:tabular-nums}
 </style>
 
 <div class="wrap">
@@ -697,7 +729,7 @@ $("county").onchange=e=>{countySel=e.target.value;limit=25;render()};
 async function load(files){$("err").textContent="";
   try{let c=[];for(const f of files)c=c.concat(candidatesFrom(await f.text(),f.name));
     if(!c.length)throw new Error("No candidate rows found in these files.");
-    ALL=model(c);rankPercentiles(ALL);countySel="";
+    ALL=model(c);rankPercentiles(ALL);BENCH=null;countySel="";
     $("badge").textContent="Your data";$("badge").className="badge real";
     $("statusText").textContent=`${c.length.toLocaleString("en")} candidates from ${files.length} file${files.length>1?"s":""} · ${ALL.length.toLocaleString("en")} schools`;
     $("rural").checked=ALL.some(s=>s.rural);render()}
@@ -749,6 +781,39 @@ $("dirQ").oninput=dirSearch;
 $("dirQ").onkeydown=e=>{if(e.key==="Enter"){const f=$("dirHits").querySelector("li");if(f){e.preventDefault();f.click()}}};
 
 const kmTo=(a,b)=>a&&b?km(a,b):null;
+
+// PerformanceBadge (BRAND.md §4). The thresholds are the brand's, not the model's: <5 "Sub prag",
+// 5-7 "Nivel mediu", >7 "Rezultate bune". Never returns a colour on its own — the caller is
+// expected to print the number and the word too, which is what the markup below does.
+function perfBand(avg){
+  if(avg==null||!isFinite(avg))return{cls:"na",label:"Fără rezultate"};
+  if(avg<5)return{cls:"r",label:"Sub prag"};
+  if(avg<=7)return{cls:"y",label:"Nivel mediu"};
+  return{cls:"g",label:"Rezultate bune"};
+}
+// num:false where the figure is already the headline right above it — the rule is that the colour
+// never travels alone, not that the number has to be printed twice.
+const perfBadge=(avg,num=true)=>{const b=perfBand(avg);
+  return `<span class="perf ${b.cls}"><i></i>${num&&avg!=null&&isFinite(avg)?`<span class="n">${avg.toFixed(2)}</span> · `:""}${b.label}</span>`};
+
+// Școala ta / Județ / România (BRAND.md §10). Candidate-weighted mean of the school means, over
+// schools that HAVE a mean — the count is carried with the figure so the denominator is never
+// separated from it. Same 2023-2026 pooling as meanAvg itself; this is not a 2026-only average.
+let BENCH=null;
+function bench(){
+  if(BENCH)return BENCH;
+  const acc={ro:{w:0,s:0,n:0}},by={};
+  for(const s of ALL){
+    if(s.meanAvg==null||!isFinite(s.meanAvg))continue;
+    const w=s.perYear>0?s.perYear:1;
+    acc.ro.w+=w;acc.ro.s+=w*s.meanAvg;acc.ro.n++;
+    const c=by[s.county]||(by[s.county]={w:0,s:0,n:0});
+    c.w+=w;c.s+=w*s.meanAvg;c.n++;
+  }
+  BENCH={ro:acc.ro.w?{v:acc.ro.s/acc.ro.w,n:acc.ro.n}:null,
+         cty:Object.fromEntries(Object.entries(by).map(([k,c])=>[k,{v:c.s/c.w,n:c.n}]))};
+  return BENCH;
+}
 function dirPick(s){
   dirSel=s;$("dirHits").hidden=true;$("dirQ").value=s.school;
   const pct=x=>x==null?"–":(x*100).toFixed(0)+"%";
@@ -758,7 +823,6 @@ function dirPick(s){
   const fields=[
     ["Sub 5 la Evaluarea Națională",`${pct(s.shr)}`,`estimare netezită, interval ${band} · ${s.years.size} ani cumulați (2023–2026)`],
     ["Elevi sub 5 pe an",`≈${s.need.toFixed(1)}`,`din ≈${fmt(s.perYear)} candidați pe an — candidați la EN, nu efectivul școlii`],
-    ["Media generală",s.meanAvg!=null?s.meanAvg.toFixed(2):"–","media notelor la EN, cumulat"],
     ["Înscriși dar neprezentați",pct(s.absent),"candidați înscriși care nu au susținut examenul"],
     ["Poziție națională",s.failPct!=null?`în primele ${(100-s.failPct*100).toFixed(0)}% cele mai slabe`:"–","percentilă peste toate cele 6.331 de școli cu rezultate, urban inclus"],
     ["Venitul comunei",s.income!=null?`${s.income.toLocaleString("ro-RO")} lei/locuitor`:"–",`impozit pe venit colectat, buget 2025 · scor ${s.dep!=null?s.dep.toFixed(2):"–"} din 1`],
@@ -787,9 +851,18 @@ function dirPick(s){
   const withD=all.filter(c=>c.rel!==0)
     .sort((a,b)=>(a.d==null)-(b.d==null)||(a.d??1e9)-(b.d??1e9)||b.util-a.util).slice(0,3);
 
+  const B=bench(),bc=B.cty[s.county]||null;
+  const cmp=v=>v==null?"–":v.v.toFixed(2);
   $("dirOut").innerHTML=`
     <h3>${esc(s.school)}</h3>
     <p class="tierlab">${esc(s.locality||"")} · ${esc(s.county)} · ${s.mediu}${arch?` · <b>${arch==="money"?"banii par constrângerea":"banii nu par constrângerea"}</b>`:""}</p>
+    <div class="kpi">
+      <span class="k">Media EN 2023–2026</span>
+      <span class="big">${s.meanAvg!=null?s.meanAvg.toFixed(2):"–"}</span>
+      ${perfBadge(s.meanAvg,false)}
+      <span class="cmp">Școala ta <b>${s.meanAvg!=null?s.meanAvg.toFixed(2):"–"}</b> · ${esc(title(s.county))} <b>${cmp(bc)}</b> · România <b>${cmp(B.ro)}</b>
+        <br><span style="font-size:14px">media notelor la EN, cumulat 2023–2026, ponderată pe candidați${bc?` · ${bc.n.toLocaleString("ro-RO")} școli cu rezultate în județ`:""}${B.ro?` · ${B.ro.n.toLocaleString("ro-RO")} la nivel național`:""}</span></span>
+    </div>
     <div class="profile">${fields.map(([k,v,src])=>
       `<div class="pf"><span class="k">${esc(k)}</span><span class="v">${esc(String(v))}</span><span class="src">${esc(src)}</span></div>`).join("")}</div>
     <p class="tierlab" style="margin-top:10px">Datele vin din fișierele publice ale ministerului. <b>Dacă ceva e greșit, spuneți-ne</b> —
@@ -1089,7 +1162,9 @@ function fillCountyZoom(){const sel=$("zCty");if(!sel)return;
   const ks=Object.keys(COUNTY_PATHS).filter(k=>CTY_STAT.has(k)).sort((a,b)=>title(a).localeCompare(title(b)));
   sel.innerHTML=`<option value="">Whole country</option>`+ks.map(k=>{const c=CTY_STAT.get(k);
     return `<option value="${k}">${title(k)} — ${c.a}/${c.n} (${Math.round(c.a/c.n*100)}%)</option>`}).join("");
-  sel.onchange=()=>zoomToCounty(sel.value);
+  // BRAND.md §9: the selected county carries a visible outline, not just the zoom.
+  sel.onchange=()=>{zoomToCounty(sel.value);
+    document.querySelectorAll("#counties .cty").forEach(p=>p.classList.toggle("sel",!!sel.value&&p.dataset.c===sel.value))};
 }
 function renderMatch(){if(mapBuilt!==ALL){buildMap();setupBaseDrag();setupZoom();shadeDots._m=null;fillCountyZoom()}
   const org=$("mOrg").value,base=customBase||SEATS[$("mBase").value]||SEATS[Object.keys(SEATS)[0]],R=+$("mRad").value,w=+$("mW").value/100,metric=$("mMetric").value,cap=+$("mCap").value;
@@ -1168,7 +1243,7 @@ if(DATA&&DATA.rows&&DATA.rows.length){
   $("badge").textContent="Real ministry data";$("badge").className="badge real";
   $("statusText").textContent=`${ALL.length.toLocaleString("en")} schools (${ALL.filter(s=>s.rural).length.toLocaleString("en")} rural) from Evaluarea Națională 2023–2026 · ${ALL.filter(s=>!s.approx).length.toLocaleString("en")} geocoded${ALL.filter(s=>s.geo===2).length?` · ${ALL.filter(s=>s.geo===2).length.toLocaleString("en")} placed at commune level`:""} · commune income and programme coverage joined`;
 }else{
-  ALL=model(synth());rankPercentiles(ALL);
+  ALL=model(synth());rankPercentiles(ALL);BENCH=null;
 }
 $("rural").checked=true;renderNgos();render();fillOrgs();$("mOrg").value=String(NGOS.findIndex(o=>o.n.startsWith("World Vision")));fillBase();
 if([...$("mBase").options].some(o=>o.value==="CALARASI"))$("mBase").value="CALARASI";

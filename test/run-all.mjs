@@ -12,6 +12,7 @@ const suites=[
   ['Need means: view preserved, encoding follows','metric.mjs'],
   ['table fits its box','cols.mjs'],
   ['payload invariants (no addresses, field alignment, position provenance)','payload.mjs'],
+  ['benchmark stays candidate-weighted (6.69, not 5.96)','bench.mjs'],
 ];
 let bad=0;
 for(const [name,f] of suites){

@@ -18,7 +18,7 @@ pipeline. Entry for a hackathon (see **Event context** below).
 | Pitch, narrative, sources, risks | `SUMMARY.md` |
 | **Claims discipline, stats, prior art, evals plan** | **`RESEARCH.md` — read §1 before touching the deck** |
 | Animation, transitions, the scroll pitch | `MOTION.md` (tokens + what each file is allowed to do) |
-| Colours, type, components, Romanian UI copy | `BRAND.md` (proposed brand/design system — not yet applied) |
+| Colours, type, components, Romanian UI copy | `BRAND.md` (**applied to `app/index.html` 12 Sept**; `pitch.html` keeps its own narrative palette, and §13's Romanian copy is unapplied on the NGO/analyst half) |
 | Just orienting | nothing else — this file is enough |
 
 **Any session that changes something: update `PROGRESS.md` before finishing** (newest log entry

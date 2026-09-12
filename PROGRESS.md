@@ -8,7 +8,7 @@ instruction.** Every `.md` in this repo is reconciled here; if you are a differe
 changes to the doc owner as text rather than editing, and read the top log entry for who owns which
 code. Code ownership is unchanged.
 
-Last updated: **12 Sept 2026 (late)** — J1 classifier built but never run (no API key), schools placed from their commune when their own point is missing, ninth test suite, four denominator errors corrected
+Last updated: **12 Sept 2026 (late)** — BRAND.md written and applied to app/index.html; J1 classifier built but never run (no API key), schools placed from their commune when their own point is missing, tenth test suite, five denominator errors corrected
 
 ---
 
@@ -153,6 +153,54 @@ Two demo schools, for two different points — don't mix them up:
 ---
 
 ## Log
+
+### 12 Sept 2026 — `BRAND.md` applied to `app/index.html` (Andrei's ask)
+
+The brand system is now live in the tool, not just written down. All colour was already in `:root`
+tokens, so the palette swap was a token edit and there is still no hardcoded hex outside them.
+
+- **Palette**: `--ink #183B56` · `--accent #2878D0` · `--ground #F7F9FC` · `--line #E2E8F0` ·
+  `--muted #5F6B7A`. Performance triple now the brand's: `--sem-r #D64545` · `--sem-y #E5A72E` ·
+  `--sem-g #2E8B57`. Dark mode kept (repo convention) and re-derived from the same palette.
+- **Type**: Inter only — `--serif` and `--mono` now resolve to it, so Newsreader and IBM Plex are
+  gone and nothing reads as a technical dashboard. Body 15→16px, KPI numbers 40–44px, tabnotes and
+  table text up to 15–16px. Micro-labels (`th`, `.label`, `.pill`) deliberately left at 11–12px.
+- **Shape / targets**: `--r-card` 12px, `--r-ctl` 8px, `--tap` 44px. `.btn` is now the blue CTA with
+  white text; `.more` the outline secondary. Buttons, tabs, selects, role pills and search inputs
+  all measure ≥44px (verified in the browser at 1400px and 400px).
+- **New components**: `.perf` PerformanceBadge (`perfBand()` / `perfBadge()` — dot + label, and the
+  number when it is not already the headline) and `.kpi` KPICard, both used in the director view.
+  A selected county on the map now takes a 3px accent outline, not only a zoom.
+
+**The KPI card is the one place where new data is computed**: `bench()` gives the candidate-weighted
+mean of school means for the county and for the country, cached and invalidated wherever `ALL` is
+rebuilt. **Cojasca reads 4.15 · Dâmbovița 6.28 · România 6.69 (172 county schools with a mean, 6,331
+nationally)** — the counts are printed inside the card so the denominator never travels separately.
+The label says **„Media EN 2023–2026, cumulat"**, not „EN 2026": `meanAvg` is pooled across years and
+BRAND §10's „MEDIA EN 2026 + delta față de 2025" would need a per-year mean the payload does not
+carry. Do not relabel it without adding that field.
+
+**Verified by session 1 against `out/schools_need_index.csv`, and one number to know before a judge
+finds it.** All five figures reproduce exactly (6.69 · 6.28 · 172 · 6,331 · Cojasca 4.152). But
+recomputing "the national average" the obvious way — an **unweighted** mean of school means — gives
+**5.96**, and the county **5.84**. A 0.73 gap, and 5.96 is what a checker gets on the first try, so
+they will conclude the card is wrong. Candidate-weighting is the correct choice and must not be
+changed: the comparison is one school's pupils against the average *pupil*, not the average
+*school*. The clause „ponderată pe candidați" in the label is the entire defence — **it is not
+decoration, and trimming it for space makes the figure indefensible.** Guarded by
+`test/bench.mjs`, which fails if the benchmark ever silently becomes the unweighted mean.
+
+The weight is `candidates_per_year`, not total candidates. Weighting by `per_year × years` gives
+6.73 / 6.31 — +0.04, so nothing moves — but 1,129 of the 6,331 schools carry fewer than four years
+(343 · 179 · 607 at one, two and three), so a one-year school currently counts as much as a
+four-year school of the same annual size. The precise phrase is *„ponderată pe candidați pe an"*.
+
+All nine suites pass (`cd test && node run-all.mjs`), no console errors, no horizontal overflow in
+light, dark or at 400px.
+
+**Not done, on purpose:** BRAND §13 (all UI copy in Romanian) on the NGO/analyst half — those
+sentences carry counts and denominators, so translating them is its own pass with its own check, not
+a find-and-replace. `app/pitch.html` keeps its committed-dark narrative palette (`MOTION.md`).
 
 ### 12 Sept 2026 — `BRAND.md` added (Andrei's ask)
 
