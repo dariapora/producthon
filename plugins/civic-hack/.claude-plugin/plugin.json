@@ -1,0 +1,9 @@
+{
+  "name": "civic-hack",
+  "version": "1.0.0",
+  "description": "Preloads the Puntea 8→9 project context for a Civic Producthon working session: current state, deadline, judging criteria, claims discipline, and which file to open for the task at hand — deliberately without deep-mapping the repo.",
+  "author": {
+    "name": "Puntea 8→9 team"
+  },
+  "keywords": ["civic-producthon", "puntea", "onboarding", "context"]
+}

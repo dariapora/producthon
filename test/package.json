@@ -1,0 +1,3 @@
+{ "name":"puntea-app-tests","private":true,"type":"module",
+  "scripts":{"test":"node run-all.mjs"},
+  "devDependencies":{"playwright":"^1.48.0"} }

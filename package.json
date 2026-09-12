@@ -1,0 +1,20 @@
+{
+  "name": "puntea-8-9",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "index": "node model/need_index.js data/en_2023.xlsx data/en_2024.xlsx data/en_2025.xlsx data/en_2026.xlsx --network data/retea_scolara_2025_2026.xlsx --coords data/scoli_coordonate_2017.xlsx --out out",
+    "deprivation": "node model/deprivation.js --out out",
+    "extract": "python3 model/extract_pdfs.py",
+    "coverage": "node model/coverage.js --out out",
+    "app": "node model/build_app_data.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "private": true
+}

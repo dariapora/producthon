@@ -1,0 +1,15 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "puntea-8-9",
+  "description": "Plugins for the Puntea 8→9 civic-hackathon project",
+  "owner": {
+    "name": "Puntea 8→9 team"
+  },
+  "plugins": [
+    {
+      "name": "civic-hack",
+      "source": "./plugins/civic-hack",
+      "description": "Preloads the Puntea 8→9 project context — state, deadline, judging criteria, claims discipline and file ownership — without mapping the repo."
+    }
+  ]
+}

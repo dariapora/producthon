@@ -1,0 +1,7 @@
+node_modules/
+# every ministry source file — ~155 MB total, all re-downloadable (model/README.md lists the URLs)
+data/
+# generated: rebuild with `npm run index` (and `npm run app` to bake into the page)
+out/
+test/node_modules/
+test/*.png
