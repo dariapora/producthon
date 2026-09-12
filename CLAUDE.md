@@ -19,12 +19,14 @@ pipeline. Entry for a hackathon (see **Event context** below).
 | **Claims discipline, stats, prior art, evals plan** | **`RESEARCH.md` — read §1 before touching the deck** |
 | Animation, transitions, the scroll pitch | `MOTION.md` (tokens + what each file is allowed to do) |
 | Colours, type, components, Romanian UI copy | `BRAND.md` (**applied to `app/index.html` 12 Sept**; `pitch.html` keeps its own narrative palette, and §13's Romanian copy is unapplied on the NGO/analyst half) |
+| **Where a dataset or figure came from** | **`SOURCES.md`** — every input, its URL, its as-of date, and the caveat that has to travel with it |
 | Just orienting | nothing else — this file is enough |
 
 **Any session that changes something: update `PROGRESS.md` before finishing** (newest log entry
 at the top). It is how the next session picks up without re-deriving.
 
-**Never** read or list `data/` (~80 MB XLSX) or `node_modules/`. Never read `out/*.csv` whole —
+**Never** read or list `data/` (**128 MiB** measured — XLSX plus the PDF coverage lists and the
+2021 census file; `SOURCES.md` §1 is the inventory so no session needs to look) or `node_modules/`. Never read `out/*.csv` whole —
 `head`/`awk` a few rows. `source/CivicPTeam1.md` is the 118KB original team doc: grep, never read.
 
 ## Event context

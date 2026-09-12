@@ -154,6 +154,42 @@ Two demo schools, for two different points — don't mix them up:
 
 ## Log
 
+### 12 Sept 2026 — `SOURCES.md`: every input, its URL, and the caveat that travels with it
+
+Andrei asked for a separate document of all sources and datasets. `SOURCES.md` now carries the
+inventory of `data/` (so no session has to list it), the derived `out/` files and how to regenerate
+them, the external evidence cited in the deck, the services, what a fresh clone can and cannot
+rebuild, and five provenance warnings. Linked from `CLAUDE.md`'s Orientation table.
+
+Four things the write-up turned up, all of them measurement rather than transcription:
+
+- **`data/` is 128 MiB, not the "~80 MB XLSX" `CLAUDE.md` claimed.** That line predates the PDF
+  coverage lists and the 2021 census file. Both files now say 128 MiB. My own first draft said
+  103 MB, which was wrong the same way — I had summed the top-level listing and missed the
+  `pnras/` and `masa/` subdirectories. Measured, then written.
+- **`data/uat_siruta_bridge.xls` (957 KiB) is read by nothing.** No script in `model/` references
+  it. Recorded as unused rather than quietly cited as a source.
+- **"≥10 candidates" names two different sets in `model/README.md`, both with the same label.** The
+  deprivation correlation (r = −0.161, r² = 2.6%) uses **3,969** schools — ≥10 candidates *in
+  total*. The census comparison table (log income r = −0.197, r² = 3.9%) uses **2,730** — ≥10
+  candidates *per year*. Both figures are right; they are not comparable, and the shared label
+  hides a difference of about 1,200 schools. Independently measured: 3,963 and 2,731, so both
+  stated n reproduce to within a handful of rows. **A correlation's sample is a denominator too**,
+  and this is the first instance of the pattern appearing in a *statistic's* sample rather than in
+  a count.
+- **The census file was fetched with TLS verification disabled**, because `recensamantromania.ro`
+  and `dpfbl.mdlpa.ro` both fail certificate validation from this machine — the same error class as
+  the `corporatebrain` MCP server this session, so it reads as a local trust-store problem rather
+  than the sites. It is still an unverified download that reorders which schools rank as most in
+  need. `SOURCES.md` §6 says it should be integrity-checked another way before the census basis is
+  ever made the default. Flagged, not resolved — it is not mine to resolve.
+
+Verified while documenting, against `out/schools_need_index.csv` after the census re-run:
+`deprivation_score == income_deprivation` on **all 6,335 rows** and `deprivation_basis` is `income`
+throughout, so the opt-in design really is non-breaking; the benchmark figures still reproduce
+(6.69 national, 6.28 Dâmbovița, n = 6,331 / 172); and the worst-quartile set is untouched at
+1,583 / 1,320 with positions 1,249 own · 55 commune · 16 none.
+
 ### 12 Sept 2026 — `BRAND.md` applied to `app/index.html` (Andrei's ask)
 
 The brand system is now live in the tool, not just written down. All colour was already in `:root`
