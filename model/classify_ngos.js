@@ -67,6 +67,11 @@ const LIMIT    = parseInt(opt('--limit', '0'), 10) || 0;
 const CONC     = parseInt(opt('--concurrency', '8'), 10);
 const DRY      = flag('--dry-run');
 const FORCE    = flag('--force');           // ignore the cache and reclassify everything
+// Backend: 'api' calls the Anthropic API with ANTHROPIC_API_KEY; 'cli' shells out to the local
+// `claude` binary in print mode, which runs on whatever the machine is logged in as (a Claude
+// subscription counts). Same system prompt, same JSON schema, same model names — only the
+// transport differs. Added 12 Sept so J1 could run on a machine with no API key.
+const BACKEND  = opt('--backend', process.env.ANTHROPIC_API_KEY ? 'api' : 'cli');
 
 const MODEL      = 'claude-haiku-4-5';      // bulk extraction against a fixed taxonomy
 const MODEL_HARD = 'claude-sonnet-5';       // escalation for confidence < 0.6 (§6)
@@ -113,6 +118,11 @@ Exemple de fals pozitiv, toate education_relevant=false:
 - casă de ajutor reciproc a salariaților din învățământ (este o unitate de creditare, nu un program educațional)
 - asociație de părinți care administrează fondul clasei fără nicio activitate descrisă
 - organizație de educație exclusiv pentru adulți sau formare profesională corporativă
+- asociație de părinți, de elevi sau de cadre didactice a UNEI SINGURE școli sau grădinițe, chiar dacă descrie activități (after-school, burse, ajutoare) — ele sunt doar pentru elevii ei și nu are ce oferi altei școli
+- organizație al cărei scop este să înființeze sau să administreze propria școală, grădiniță sau unitate de învățământ privată
+- organizație exclusiv pentru preșcolari, sau exclusiv artistică / sportivă / de sănătate, fără legătură cu parcursul școlar
+
+Regula de decizie, în numele produsului: education_relevant=true înseamnă "o școală rurală din alt sat ar putea să îi scrie și să primească un program pentru elevii ei".
 
 evidence: un citat EXACT, copiat literă cu literă din textul primit, care justifică decizia. Nu rescrie, nu traduce, nu prescurta. Dacă nu găsești niciun fragment care să justifice education_relevant=true, întoarce education_relevant=false și citează fragmentul cel mai apropiat de subiect.
 
@@ -239,17 +249,44 @@ if (DRY) {
   process.exit(0);
 }
 
-if (!process.env.ANTHROPIC_API_KEY) {
-  console.error('ANTHROPIC_API_KEY is not set. Use --dry-run to inspect the prompt and cost without it.');
+if (BACKEND === 'api' && !process.env.ANTHROPIC_API_KEY) {
+  console.error('ANTHROPIC_API_KEY is not set. Use --dry-run to inspect the prompt and cost without it, or --backend cli.');
   process.exit(1);
 }
-const client = new Anthropic();
+const client = BACKEND === 'api' ? new Anthropic() : null;
+const { execFile } = require('child_process');
+
+// The `claude` CLI, print mode. Everything that is not the classification is switched off: no MCP
+// servers (the user's Notion/Slack tool lists alone were 60k tokens of system prompt), no hooks,
+// no tools, no session file, low effort. `--json-schema` gives the same structured output the API
+// path relies on. CLAUDECODE is unset so a run started from inside a Claude Code session is not
+// refused as nested.
+function askCli(o, model) {
+  const args = ['-p', '--no-session-persistence', '--model', model, '--tools', '', '--output-format', 'json',
+    '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}',
+    '--settings', '{"disableAllHooks":true,"env":{"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC":"1"}}',
+    '--effort', 'low', '--system-prompt', SYSTEM, '--json-schema', JSON.stringify(SCHEMA), userText(o)];
+  const env = { ...process.env }; delete env.CLAUDECODE;
+  return new Promise((resolve, reject) => {
+    execFile('claude', args, { env, maxBuffer: 8 * 1024 * 1024, timeout: 180000 }, (err, stdout) => {
+      let d;
+      try { d = JSON.parse(String(stdout).trim().split('\n').filter(l => l.startsWith('{')).pop()); }
+      catch { return reject(new Error('cli: unparseable output' + (err ? ': ' + err.message : ''))); }
+      if (d.is_error) return reject(new Error('cli: ' + (d.result || 'error')));
+      const mu = d.modelUsage || {};
+      const sum = k => Object.values(mu).reduce((a, m) => a + (m[k] || 0), 0);
+      const u = { input_tokens: sum('inputTokens') + sum('cacheReadInputTokens') + sum('cacheCreationInputTokens'), output_tokens: sum('outputTokens') };
+      if (!d.structured_output) return reject(new Error('cli: no structured output'));
+      resolve({ usage: u, content: [{ type: 'text', text: JSON.stringify(d.structured_output) }] });
+    });
+  });
+}
 
 // --- 4. one organisation -----------------------------------------------------
 const usage = { in: 0, out: 0, inHard: 0, outHard: 0 };
 
 async function ask(o, model) {
-  const res = await client.messages.create({
+  const res = BACKEND === 'cli' ? await askCli(o, model) : await client.messages.create({
     model,
     max_tokens: 512,              // §6 says 256; Romanian tokenises worse and a truncated response
                                   // is a wasted call, so the ceiling is raised. Output is ~120.
@@ -307,7 +344,7 @@ function save() {
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify({
     generated: new Date().toISOString().slice(0, 10),
-    model: MODEL, escalation_model: MODEL_HARD,
+    model: MODEL, escalation_model: MODEL_HARD, backend: BACKEND,
     taxonomy: PROGRAMME_TYPES, age_bands: AGE_BANDS,
     source: IN,
     profiles: cache,
@@ -315,7 +352,7 @@ function save() {
 }
 
 (async () => {
-  console.log(`${work.length} candidates · ${Object.keys(cache).length} cached · ${todo.length} to classify on ${MODEL} (concurrency ${CONC})`);
+  console.log(`${work.length} candidates · ${Object.keys(cache).length} cached · ${todo.length} to classify on ${MODEL} via ${BACKEND} (concurrency ${CONC})`);
   let done = 0, failed = 0;
   const queue = todo.slice();
   // Saving every 25 means a Ctrl-C, a rate limit or a flat battery costs at most 25 rows, not the run.
