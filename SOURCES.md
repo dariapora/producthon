@@ -23,7 +23,7 @@ inventory below exists so nobody needs to.
 
 | File | Size | What it is | Source |
 |---|---|---|---|
-| `en_2023.xlsx` … `en_2026.xlsx` | 61 MiB total | One row per Evaluare Națională candidate: `COD SIIIR`, `MEDIU`, `MEDIA`, per-subject grades. **629,616 rows across four years.** EN 2026 published 13 Aug 2026 | data.gov.ro, Ministerul Educației |
+| `en_2023.xlsx` … `en_2026.xlsx` | 61 MiB total | One row per Evaluare Națională candidate: `COD SIIIR`, `MEDIU`, `MEDIA`, per-subject grades. **629,616 rows across four years.** EN 2026 published 13 Aug 2026 | data.gov.ro, Ministerul Educației — one dataset per year: [2023](https://data.gov.ro/dataset/rezultatele-la-evaluarea-nationala-2023) · [2024](https://data.gov.ro/dataset/evaluare_nationala_24) · [2025](https://data.gov.ro/dataset/rezultate_evaluare_2025) · [2026](https://data.gov.ro/dataset/rezultate_evaluare_2026) (note the slugs are inconsistent between years — there is no pattern to guess) |
 
 **Caveats that must travel with it.** The EN files carry **no school name and no county column** —
 those come from the network file, and the county is the first two digits of the SIIIR code (checked
@@ -37,8 +37,8 @@ not a 2026 deterioration).
 
 | File | Size | What it is | Source |
 |---|---|---|---|
-| `retea_scolara_2025_2026.xlsx` | 2.9 MiB | School network: name, locality, SIRUTA, county, type, phone, email. **Header is on row 4, sheet `Export`** | data.gov.ro, Ministerul Educației |
-| `scoli_coordonate_2017.xlsx` | 691 KB | `Cod_SIIIR` + lat/lon for **19,383 schools**, geocoded from postal addresses against the 2016–2017 network | data.gov.ro, Ministerul Educației |
+| `retea_scolara_2025_2026.xlsx` | 2.9 MiB | School network: name, locality, SIRUTA, county, type, phone, email. **Header is on row 4, sheet `Export`** | [data.gov.ro `retea-scolara-2025-2026`](https://data.gov.ro/dataset/retea-scolara-2025-2026), Ministerul Educației |
+| `scoli_coordonate_2017.xlsx` | 691 KB | `Cod_SIIIR` + lat/lon for **19,383 schools**, geocoded from postal addresses against the 2016–2017 network | [data.gov.ro `coordonate-geografice-unitati-de-invatamant-geocodare`](https://data.gov.ro/dataset/coordonate-geografice-unitati-de-invatamant-geocodare). The published file is named `20170327-coordonategps-scoli.xlsx` |
 
 **Caveats.** **277 of 6,335** schools in the EN files are absent from the 2025–2026 network file
 (closed or renumbered) and so have no name or contact. The coordinates are **from 2017 and
@@ -55,7 +55,7 @@ counts are not interchangeable — name the noun.
 
 | File | Size | What it is | Source |
 |---|---|---|---|
-| `siruta_2026.csv` | 893 KB | SIRUTA nomenclator, including `SIRSUP` which walks village → commune | data.gov.ro, dataset "SIRUTA_s1 2026" |
+| `siruta_2026.csv` | 893 KB | SIRUTA nomenclator, including `SIRSUP` which walks village → commune | [data.gov.ro `siruta_s1-2026`](https://data.gov.ro/dataset/siruta_s1-2026), INS. A new dataset is published per year (`siruta-2023`, `siruta-2024`, `siruta-2025`, …) — pin the year, the codes change |
 
 Schools carry a **village** SIRUTA while budgets are per **UAT**, so this file is what makes the
 deprivation join possible: **18,022 / 18,022 school localities resolve to a UAT (100%)**.
@@ -65,7 +65,7 @@ deprivation join possible: **18,022 / 18,022 school localities resolve to a UAT 
 | File | Size | What it is | Source |
 |---|---|---|---|
 | `uat_venituri_2025.xlsx` | 3.4 MiB | Anexa 24, DEC-2025, per-UAT revenue (Sheet2). Budget line **04.02.01 "Cote defalcate din impozitul pe venit"** | https://dpfbl.mdlpa.ro/sit_ven_si_chelt_uat.html |
-| `uat_populatie_2023.xlsx` | 150 KB | Population by domicile per UAT, 1 Jan 2023, keyed by SIRUTA (`PDOM_SIRUTA2023.xlsx`) | DPFBL, INS data |
+| `uat_populatie_2023.xlsx` | 150 KB | Population by domicile per UAT, 1 Jan 2023, keyed by SIRUTA (`PDOM_SIRUTA2023.xlsx`) | INS via DPFBL, alongside the Anexa 24 series at https://dpfbl.mdlpa.ro/sit_ven_si_chelt_uat.html |
 
 **The naming caveat is a hard rule, not a nuance.** This is the share of **wage** income tax ANAF
 returns to the commune of domicile, divided by population. It sees declared wage income only —
@@ -93,7 +93,7 @@ budget file refreshes yearly. Two provenance warnings for this file specifically
 
 | File | Size | What it is | Source |
 |---|---|---|---|
-| `ong_2026.xlsx` | 32 MiB | Registrul Național ONG: `Denumire`, `Judet`, `Localitate`, `Starea actuala`, `HG utilitate publica`, `Scopul initial` + `Modificari ale scopului 1..5` | Ministerul Justiției |
+| `ong_2026.xlsx` | 32 MiB | Registrul Național ONG: `Denumire`, `Judet`, `Localitate`, `Starea actuala`, `HG utilitate publica`, `Scopul initial` + `Modificari ale scopului 1..5` | [data.gov.ro `registrul-national-ong-2026`](https://data.gov.ro/dataset/registrul-national-ong-2026). **Ministerul Justiției is the publisher; data.gov.ro is the distribution** — an earlier draft of this file credited only MJ, which is not a URL anyone can follow. Republished yearly |
 
 **125,840 organisations.** Every denominator drawn from this file is listed in `CLAUDE.md` →
 Claims discipline, and they are not interchangeable: **8,213 dead** (radiată / în lichidare /
@@ -109,9 +109,14 @@ getting it wrong is wrong by 7,451 — an amount nobody sanity-checks mentally. 
 
 | Files | What they are | Source |
 |---|---|---|
-| `data/pnras/elig_r2s{1,2,3}.pdf` | PNRAS **eligible** — the ministry's own high-dropout-risk list with its composite index. **1,201 schools.** This is *not* coverage | Ministerul Educației / PNRR C15 |
+| `data/pnras/elig_r2s{1,2,3}.pdf` | PNRAS **eligible** — the ministry's own high-dropout-risk list with its composite index. **1,201 schools.** This is *not* coverage | Ministerul Educației / PNRR C15, programme page https://pnrr.edu.ro/despre-mate/ — **exact list URLs not recorded, see below** |
 | `data/pnras/benef_r2s{1,2,3}.pdf` | PNRAS **grants admitted** — this *is* coverage; money and a project are running (~€200–300k each). **733 schools, 95.2% matched** | idem |
-| `data/masa/masa_2026.pdf` | **Masă sănătoasă** — free hot meal, 16.5 lei/pupil/day in 2026. **1,386 of 1,424 matched (97.3%)** | Guvernul României |
+| `data/masa/masa_2026.pdf` | **Masă sănătoasă** — free hot meal, 16.5 lei/pupil/day in 2026. **1,386 of 1,424 matched (97.3%)** | Guvernul României — **exact URL not recorded** |
+
+**The one real provenance gap.** The seven coverage PDFs are the only inputs whose download URL
+nobody wrote down. They are genuine ministry publications and the programme page above is the right
+starting point, but reproducing the join means finding them again by hand. Everything else in §1
+resolves to a dataset page you can click.
 
 Each `.pdf` has a sibling `.txt` produced by `npm run extract` (`model/extract_pdfs.py`, the one
 Python step). **Eligible and grant must never be conflated**: being on the eligibility list means
@@ -252,7 +257,42 @@ machine or from a recording.
 
 ---
 
-## 6. Provenance warnings
+## 6. Why the datasets are not in this repo
+
+Considered on 12 Sept and decided against, for one reason that overrides the convenience:
+**`retea_scolara_2025_2026.xlsx` carries the school phone and email columns.** data.gov.ro's own
+dataset description lists email as a field, so the addresses are already public open data — but
+that is the ministry's decision to publish, not a reason for us to re-publish 5,015 addresses
+belonging largely to named head teachers on a hackathon repo. The whole `app/contacts.js` design
+exists to keep them off the public branch, and `test/payload.mjs` asserts it on every run.
+Committing `data/` would have defeated that by a different route. `out/schools_need_index.csv`
+carries the same `email` column and is excluded for the same reason.
+
+So the branch publishes **the result and the recipe, not the ingredients** — and §1 is the recipe.
+Every input resolves to a dataset page, so anyone can reassemble `data/` from the links; what they
+cannot do is get it from us pre-bundled.
+
+The secondary reasons: 128 MiB of XLSX in a git history that can never be pruned, and re-publishing
+a file we fetched with TLS verification disabled (below).
+
+## 7. How the provenance above was established
+
+Not by trusting the docs. `model/README.md` said "all from data.gov.ro" and named no dataset for
+seven of the eleven inputs, so:
+
+- **File metadata.** The three education files share `dc:creator = Apache POI` with the same
+  ministry employee as `cp:lastModifiedBy`, and their internal creation stamps line up with the
+  publication dates the docs claim — `en_2026.xlsx` was created **2026-08-13T06:57:46Z**, against
+  `model/README.md`'s "published 13 Aug 2026". Same producer chain across four years, which is
+  what a genuine official export looks like.
+- **The CKAN API, not a web search.** A plain search for the 2026 exam dataset returned "there
+  isn't a 2026 dataset yet" — wrong, and wrong in the way that matters: it was reasoning from a
+  stale training prior rather than from the catalogue. `data.gov.ro/api/3/action/package_search`
+  returns **`rezultate_evaluare_2026`**. **Query the catalogue, not a search engine**, and note
+  that the per-year slugs are inconsistent (`rezultate_evaluare_2025` vs `evaluare_nationala_24`
+  vs `rezultatele-la-evaluarea-nationala-2023`), so no slug can be guessed from another year's.
+
+## 8. Provenance warnings
 
 **1. `data/` is not in git, so no source file's integrity is version-controlled.** Every figure in
 this project traces to a file whose only copy is on one laptop. The defence is that each layer is
