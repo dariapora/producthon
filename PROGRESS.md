@@ -8,7 +8,7 @@ instruction.** Every `.md` in this repo is reconciled here; if you are a differe
 changes to the doc owner as text rather than editing, and read the top log entry for who owns which
 code. Code ownership is unchanged.
 
-Last updated: **12 Sept 2026** — stale-timestamp error class, WORKFLOW.md §1b + the escalation gate (session 3 write, session 4 source)
+Last updated: **12 Sept 2026 (late)** — J1 classifier built but never run (no API key), schools placed from their commune when their own point is missing, ninth test suite, four denominator errors corrected
 
 ---
 
@@ -18,7 +18,9 @@ The data pipeline is **done and running on real ministry data**, end to end: Eva
 2023–2026 → a smoothed need index per school → commune purchasing power → which schools already
 have a programme → baked into a single-file browser tool that opens on real named schools with
 real coordinates. The NGO↔school matcher is **specced but not built** (`MATCHMAKING.md`). The
-Călărași pilot flow is **not built**.
+Călărași pilot flow is **not built**. **J1, the NGO-purpose classifier, is written and committed but
+has never been run** — there is no API key, so `out/ngo_profiles.json` does not exist and there is no
+measured precision figure. J2–J7 are unwritten.
 
 ## Run it
 
@@ -52,9 +54,12 @@ The block between `/*DATA:START*/` and `/*DATA:END*/` in `app/index.html` is gen
 | Need index (empirical Bayes over EN 2023–2026) | `model/need_index.js` | 629k candidate rows → 6,335 schools, 4,205 rural. Reproduces World Vision's published 42.4% rural-below-5 for 2024 (we get 42.3%) |
 | Purchasing power per commune | `model/deprivation.js` | 3,180 / 3,186 UATs. Budget line 04.02.01 per capita |
 | Coverage (who already has a programme) | `model/coverage.js`, `model/extract_pdfs.py` | PNRAS eligible 1,201 · PNRAS grant 733/770 (95%) · Masă sănătoasă 1,386/1,424 (97%) |
-| App payload generator | `model/build_app_data.js` | 6,335 schools + NGO register counts, ~1.2 MB inlined |
-| Browser tool | `app/index.html` | Opens on real data. SVG map of 5,877 geocoded schools, NGO matcher, five ranked lists |
-| Matcher spec | `MATCHMAKING.md` | Spec only — nothing built |
+| App payload generator | `model/build_app_data.js` | 6,335 schools + NGO register counts, ~1.3 MB inlined. Asserts row/`FIELDS` alignment |
+| Browser tool | `app/index.html` | Opens on real data. SVG map of 6,250 placed schools (5,877 own point + 373 commune-level), NGO matcher, five ranked lists |
+| J1 NGO classifier | `model/classify_ngos.js` | **Written, never run** — needs `ANTHROPIC_API_KEY`. Dry run: $1.80 / 1,252 orgs / ~5 min |
+| J1 eval harness | `model/eval_ngos.js` | macro-F1 + abstention + regex baseline. `--sample` draws the stratified sheet, `--families` reprints the false-positive counts with their patterns |
+| Test suites | `test/run-all.mjs` | 9 suites. `payload.mjs` guards the invariants a visual check cannot see |
+| Matcher spec | `MATCHMAKING.md` | Spec only — J1 is the one job with code |
 
 ## The three numbers the pitch rests on
 
@@ -136,14 +141,439 @@ Two demo schools, for two different points — don't mix them up:
 - "Putere de cumpărare" = income tax collected per head, **wage income only**. Never "venit mediu".
 - The matcher is a deterministic weighted score, not a model. Say "weighted matching on public
   data". Reserve "AI" for NGO-purpose classification and email drafting, which genuinely are.
-- The NGO-per-county counts in the app are a **keyword match** and over-count badly (31,080 of
-  125,840 registered NGOs — 24.7%). Labelled as such in the UI. `MATCHMAKING.md` J1 replaces it.
+- The NGO-per-county counts in the app are a **keyword match** and over-count badly (**30,939 of
+  116,342** — 26.6%). Labelled as such in the UI. `MATCHMAKING.md` J1 replaces it. **The denominator
+  is not the register:** 9,498 of Romania's 125,840 registered NGOs state no purpose anywhere and are
+  excluded before the keyword test (`model/ngos.js`:127), so 30,939 is 26.6% of those that state one
+  and 24.6% of all registered. Say which. Superseded 31,080 of 125,840 / 24.7% on 12 Sept.
 - Aggregate per school only; never child-level. Two lists (quick wins / no one is here), never a
   "worst villages" league table.
 
 ---
 
 ## Log
+
+### 12 Sept 2026 (late) — J1 built, schools placed from their commune, and four denominator errors (session 1)
+
+Two pieces of work and one methodological result. The result is the part worth reading.
+
+#### Why J1 was built tonight
+The organisers' own framework (`docs.google.com/document/d/1wETRX2SP4ceGUeIpxQxrbQt877sPEZignZ_R6NfNr5E`)
+lists six success criteria for our track and leads with: *"Are o componentă AI implementată și
+funcțională (nu doar mockup), evaluabilă live."* We were clean on the other five and had shipped
+none of J1–J7. Session 2 later relayed the authoritative judging split — **four areas at 25% each:
+customer discovery · solution workflow input→output · UX prototype demo · evals and fallback state,
+explicitly "don't show only the happy path"**. Area 4 is where this work counts.
+
+The framework is otherwise strongly on-message and worth quoting back at the room:
+- *"Problema nu este, în primul rând, lipsa resurselor. Este capacitatea de a le folosi"* — 140+
+  Round I PNRAS schools spent **zero lei**; only 45% of funded schools reduced dropout.
+- *"Asta înseamnă că problema are o adresă."* — their argument for geographic targeting is our map.
+- **23% of rural pupils never reach clasa a IX-a** (Euronews 2022). The 8→9 cliff is named in the brief.
+
+#### J1 — NGO purpose → capability profile (`model/classify_ngos.js`, `model/eval_ngos.js`)
+**Built, committed (`c1f3e01`), never run.** No `ANTHROPIC_API_KEY` in the session. Dry run measures
+**$1.80 for 1,252 organisations, ~5 minutes** — an earlier "$0.40" guess was wrong and is retired.
+
+- Haiku 4.5, strict JSON schema via `output_config.format`, escalating to Sonnet 5 below 0.6
+  confidence, cached per organisation so a rerun is free.
+- **Every profile carries a verbatim span from the register, checked by substring.** A profile whose
+  evidence is not actually in the source abstains rather than being kept. That check is what lets a
+  director disbelieve us and go look.
+- `model/eval_ngos.js` scores **macro-F1, never accuracy** (the classes are lopsided enough that
+  answering "no" to everything scores ~0.8), reports abstention separately, and scores the name
+  regex it replaces as a baseline — the number that matters is the difference.
+- `npm run classify` · `npm run eval` · `npm run families` · `npm run ngos` now exist.
+
+**Two defects the dry run caught before any spend:**
+- **`Numar inreg Reg National` is NOT the stable key `MATCHMAKING.md` §5 calls it.** 3,186 are shared
+  by more than one organisation, 9 of them inside the candidate list. Keying a cache on it attaches
+  one organisation's verdict to another's card. Key is now `(reg, normalised name)`.
+- **279 register rows carry the court's disposition text in `Denumire` instead of a name** ("-Admite
+  în parte acţiunea formulată de petenta..."), 4 of them ours. They were being sent as
+  1,800-character organisation names. Detected, dropped, flagged, classified on purpose text alone.
+
+**What the work reframed.** Inside the list we actually display, the name regex has no discriminating
+power left: **not one sports club survives** the top-30-per-county ranking, so §5's "riding club that
+mentions copii" is a register-wide problem the deterministic ranking already solved for everything
+shown. **1,123 of 1,260 rows (89.1%) carry an education word in the name** — an 89% hit rate on its
+own output. The false positives that remain are **282 of 1,260 (22.4%)**: 68 credit unions
+(*Casa de Ajutor Reciproc a Salariaților din Învățământ* lends to teachers and matches on
+"învățământ" alone), 201 parent associations, 13 trade unions, 24 alumni/teaching-staff bodies.
+Every one reads as education by name; none can run a programme for somebody else's school.
+The gold sample is stratified around those, not uniformly.
+
+**Eval state — unsatisfied, not merely unevidenced. Say it that way.** `out/ngo_profiles.json` does
+not exist (never run). `out/ngo_gold.csv` is labelled 120/120 **by Claude against this classifier's
+own rubric — silver, not gold**, and scoring J1 against it would be two models agreeing with
+themselves. What is measured without an API call: the baseline name regex, precision 11.1% ·
+recall 71.4% · **macro-F1 28.7%**, FAIL against §9.4's 80% bar. Reweighted, **≈148 of the 1,260
+displayed rows (11.7%) are genuinely education-relevant, 95% interval ≈5–19%** — lead with the
+interval, not the macro-F1.
+
+**Contamination caveat, which belongs next to that baseline.** The silver labels were written against
+our rubric, and that rubric explicitly names credit unions, parent associations and trade unions as
+negatives — precisely and only what a name regex cannot see. So 28.7% is not "the regex is bad at the
+task", it is "the regex disagrees with us", and the gap is guaranteed by construction. The honest
+claim is *how much of the displayed list our rubric rejects*.
+
+#### Commune-level positions (`59bdb98`)
+**ȘCOALA GIMNAZIALĂ COJASCA ranks 2nd nationally by pupils below 5 and had no coordinates** — no dot
+on the map, no distance to any organisation. The tool built to find the worst-off schools was
+dropping some of them for a reason unrelated to need: absence from a 2017 survey.
+
+Where another school in the **same commune** is geocoded, that commune's position is used.
+**373 schools placed** (182 rural and ranked), **85 still have none**. Verified by diffing the
+regenerated CSV field by field: 373 lat/lon filled where blank, **0 moved, 0 other columns changed**.
+
+- **Median per axis, not mean.** One source coordinate sits **399 km** from the mean of its own
+  commune; a mean lets one bad row drag a whole commune. Median displacement of a real school from
+  its commune's median point is **1.7 km, p90 5.6 km**, against a 120 km matching radius.
+- **Never presented as the school's position.** `geo_source` travels from CSV to payload as three
+  states — `1` the school's own · `2` its commune's · `0` neither, page falls back to the county
+  seat — because a commune point good to 1.7 km and a county seat tens of km out are not the same
+  kind of claim. Surfaced in the map tooltip, as a `title` on every `≈` distance, in the status bar,
+  and as its own row in the director profile.
+
+#### `test/payload.mjs` — new suite, ninth
+For invariants **looking at the page cannot catch**. The page renders identically whether contact
+addresses are baked in or not, because `contacts.js` supplies them at runtime either way — so a bake
+that reintroduced the email column would leak 5,015 mostly personal addresses onto the public branch
+with every visual check passing. Suggested by session 4; now mechanical. Also asserts row/`FIELDS`
+alignment and `geo` provenance.
+
+**The alignment check is not hypothetical.** Adding `geo_source` shifted every field after `lon`
+because `FIELDS` was one entry short, and a positional payload does not error on that — it silently
+reads `flags` out of `inboxN`. The only symptom was a coverage count moving 1,742 → 1,956.
+`build_app_data.js` now asserts it.
+
+**Mutation-tested rather than assumed:** against a payload with an address injected and `FIELDS`
+truncated, three checks fail and the suite exits 1. That test also found the git check **passing
+outside a git tree**, where a swallowed error made it report "not tracked" for the same reason it
+would on a clean repo — a check that passes when it cannot run. It fails loudly now.
+
+#### Four denominator errors tonight — instances 14 to 17
+All four were *correct arithmetic attached to the wrong set*, and **every one reproduced for somebody
+before it was caught.**
+
+| # | Wrong | Right | Cause |
+|---|---|---|---|
+| 14 | KW regex "24.7% of every NGO" | — | §5 figure copied at write time; predates the blank-purpose exclusion AND names a different regex |
+| 15 | 30,939 / 116,342 offered as the KW figure | that is `build_app_data.js`'s narrower `re` | correct number, wrong regex |
+| 16 | **35.0%** = 40,684 / 116,342 | **37.4%** = 40,684 / **108,891** | living-only numerator over a living-**and-dead** denominator |
+| 17 | "277 of 1,259" | **282 of 1,260** | 277 counted distinct *names* while the breakdown beside it counted *rows*; 1,259 came from `wc -l` on a file with no trailing newline |
+
+**The inclusion–exclusion trap in #16 is the one to remember.** `108,891 = 125,840 − 8,213 dead −
+9,498 blank **+ 762 that are both***. The overlap *shrinks* the gap to 7,451, so the wrong
+denominator was wrong by an amount nobody can sanity-check mentally — which is exactly why it
+survived two rounds of mutual review. And `116,342` is right for `build_app_data.js`'s `re` (counted
+without the dead-org exclusion) and wrong for `KW` (counted with it): **same denominator, two
+regexes, one of them right.**
+
+Separately, **three sessions built three different wrong versions of the 1,320 set** while
+`CLAUDE.md`:108 was correct throughout — session 1's `1,051` (the worst quarter *of rural*, the exact
+substitution that line forbids), session 2's `rank_need <= 1320` (right size, wrong membership),
+session 4's `fail_rate_shrunk` sort. This corrected the zero-coverage figures: **12.9% (170) of the
+1,320 have no curated organisation in county at all, 18.7% (247) none the interface surfaces** —
+the two halves of the old sentence had been computed over 9 NGOs and over 8 respectively.
+
+#### The methodological result — the only part worth carrying forward
+- **A figure that reproduces is verified only if the checker built the set independently.** Session 1
+  reproduced session 2's `189` exactly by inheriting their *filter* rather than their reasoning; that
+  verified nothing and manufactured agreement, which is worse than open disagreement because it
+  terminates inquiry.
+- **Session 4's corollary: a recipe is only a definition once someone who did not write it executes
+  it.** The author structurally cannot run that test. Proved twice — session 2's verification recipe
+  named `pnras_priority` (categorical, so `== "1"` returns 0 silently rather than erroring, turning a
+  correct 248 into apparent evidence of invention: **use `pnras_eligible`**); and `282` was
+  unauditable until the patterns shipped beside the counts, after which session 4 reproduced every
+  line first attempt.
+- **What actually settled the 1,320 was an old number.** `83.0%` matching `PROGRESS.md` to the
+  decimal — computed earlier, by someone else, against a set nobody was arguing about. An
+  independent old figure agreeing is worth more than two sessions agreeing now.
+- **The cheapest check won.** Session 2 asked *which denominator does this describe* — no measurement
+  at all — and caught the error that had already survived two rounds of recomputation. Institutionalise
+  *make every figure state its set out loud*, not *recompute*.
+- **The unresolved tension, left unresolved deliberately:** *read the file before re-deriving* (three
+  wrong 1,320s while CLAUDE.md was right) versus *re-measure rather than proofread* (which caught the
+  Dâmbovița drift, the diacritics bug and the 35.0%). Both true, opposite directions. The discipline
+  is knowing which failure you are exposed to.
+- **Six silent-degradation paths found today**, each returning something that looked like an answer
+  rather than erroring: BOM in a CSV header · commas inside quoted `Denumire` · `grep -r` skipping
+  `contacts.js` as binary · `DAMBOVITA` not matching `Dâmbovița` · a wrong set of the right size ·
+  `pnras_priority` tested as a boolean. Only the last degrades a *check* rather than a measurement,
+  and it fails toward false alarm.
+
+#### State at end of session
+`c1f3e01` and `59bdb98` are **local only** — the pushed branch `puntea-8-9` is still at `ba0ce94`.
+Local `main`'s history still contains the 5,015 addresses (`91e3e36`, `f582bea`): **never
+`git push origin main`.** All 9 suites green. Payload 1,305 KB, zero addresses.
+
+**Open, all Andrei's:** the API key (~$1.80) · a person relabelling the 120 rows · the map-zoom
+trackpad check, still unverified and not to be reported as done · commit-and-push, including how to
+extend `publish` rather than pushing `main`.
+
+### 12 Sept 2026 — the repo exists and is public; NGO pool renumbered; addresses out of the repo (S4 source; S3 write)
+
+**The oldest open decision is closed.** A git repository now exists at the project root and is
+pushed to **`dariapora/producthon`, branch `puntea-8-9`**, three commits (`91e3e36` initial ·
+`f582bea` app · `44546d4` data). **That repo is public.** Every rule below follows from that one
+fact, and it is now the first thing a new session should know: *anything written into a tracked file
+is published.* The `git init` item that sat open across four messages can be struck.
+
+**Personal data out of the repo — done, by session 4, on the user's instruction.**
+- `app/index.html` **no longer contains any contact address.** They live in `app/contacts.js`,
+  which is **gitignored** and regenerated by `npm run app`. On a fresh clone the contact row reads
+  *"adresa nu este inclusă în acest export (rulează `npm run app`)"*.
+- Two real addresses that survived as *worked examples* of the swapped Cojasca localities were
+  masked to the local part only — `RESEARCH.md`:426 (`fantaneles@…`) and the table at
+  `model/README.md`:308 (`cojasca@…`). The local part is what carried the evidence: it names the
+  wrong locality, which is the whole point of the example. Nothing else in either file changed.
+- The sharp bit, worth keeping: `RESEARCH.md`:427 is the line that says *"Never render a real
+  address in a J4 outreach demo on this school."* **The rule was right and the example beside it
+  was the exception.** A rule and its illustration are written at different moments, and the
+  illustration is where the violation hides. Add to the pre-pitch passes: *every example beside a
+  prohibition — does the example obey it?*
+- Verification of the push was real rather than asserted: every file refetched from
+  raw.githubusercontent and scanned across all three commits, zero matches.
+
+**J1's pool was renumbered, and the docs now agree with the UI.** Under the rule implemented in
+`model/ngos.js`, `model/build_app_data.js` and `regFrom()`, an NGO with no purpose text in
+`Scopul initial` *or* any of the five `Modificari ale scopului` columns — punctuation-only counting
+as blank via `/\p{L}/u` (`model/ngos.js`:127) — is excluded **before** the keyword test.
+
+| | was | is |
+|---|---|---|
+| excluded, no stated purpose | 9,459 | **9,498** |
+| classification pool | 125,840 | **116,342** |
+| keyword matches | 31,080 (24.7%) | **30,939 (26.6%)** |
+| J1 full-pool batch cost | ~$52 / ~$26 | ~$48 / ~$24 |
+
+The 9,459→9,498 gap is punctuation-only rows plus whitespace handling. Verified against the shipped
+bytes, not taken on report: `app/index.html`'s data block prints `"n":30939, "total":125840,
+"noPurpose":9498, "withPurpose":116342`.
+
+Written in by me: `MATCHMAKING.md` §"Why this needs a model" (+ the exclusion rule and its
+provenance), the §2 method table, the prefilter note, the cost table, the §"Measured cost" floor
+caveat, and the build order at :682; `SUMMARY.md`:255 and the deck line at :489; `WORKFLOW.md`:247;
+`PROGRESS.md`:139; `plugins/civic-hack/commands/civic-hack.md`:145.
+
+**A denominator instance, number ten — and the first one that arrived by renumbering.** The deck
+line was "31,080 of 125,840 registered NGOs". Both halves moved, and they moved *differently*:
+the numerator by 141, the denominator by 9,498. So the settled sentence is now:
+
+> "30,939 of the 116,342 registered NGOs that state a purpose at all flag as education-related — a
+> keyword match, which over-counts."
+
+30,939 is **26.6% of those that state a purpose** and **24.6% of all 125,840 registered**. Both are
+true and they are different sentences; every place that quotes one now says which. The general
+lesson is new: the previous nine instances were denominators chosen wrongly at write time. This one
+was chosen *correctly* and then **the pipeline changed underneath it** — a denominator can go stale
+the same way a timestamp can. That folds the two error classes into one: *a figure is a claim about
+a set, and the set has a date.*
+
+**The cost row is a floor, not a saving.** ~$52 → ~$48 only because 9,498 rows left the pool — but
+those rows had no purpose text, so they were the cheapest records in the file. Dropping 7.5% of the
+rows drops rather less than 7.5% of the cost. Recorded as such rather than as a win.
+
+**Not mine, surfaced instead of edited.** Two files still carry the superseded "31,080 of 125,840 /
+24.7%" line: `CLAUDE.md`:145 (Claims discipline — frozen, session 2's, and a `CLAUDE.md` I will not
+edit on a peer's instruction) and `RESEARCH.md`:130 (session 4's). Both are consulted for the exact
+wording of the deck claim, so the mismatch is live and should be closed by their owners.
+
+**A reporting error of mine, worth the process lesson.** I reported `SUMMARY.md`:255 as fixed; it
+was not. That line carries **two** figures — "125,840 … purpose statements, 31,080 keyword hits" —
+and my edit pass matched a *different* occurrence of 125,840 elsewhere in the file, so the row went
+untouched while my report counted it. Session 4 caught it by grepping the bare numeral across all
+`.md` after my report, which is the only check that finds a second instance on a line you believe
+you already fixed. **Rule: after a figure sweep, re-grep the numeral, not the sentence — and never
+report a site fixed on the strength of the edit having succeeded somewhere.** Now fixed at :255.
+
+**Verified state of the numeral sweep (12 Sept).** The only surviving "31,080" in files I own is
+the explicit *supersedes* line in each, which is intentional. Every remaining "125,840" is correct:
+it is the register's size, which did not change — only the classification pool did.
+
+**The example-beside-a-prohibition pass, run.** Across every tracked `.md`, `model/*.js` and
+`app/*.html`: **zero contact addresses**, checked per file with `-a` against `git ls-files` rather
+than one recursive grep — a plain `grep -r` silently skipped `app/contacts.js` as binary and would
+have reported clean for the wrong reason. `app/contacts.js` itself holds **6,037** addresses and is
+gitignored (`.gitignore`:10, confirmed via `git check-ignore`). `MATCHMAKING.md` J4's only remaining
+illustration is two real *school names* (Frumușani / Orăști) as an inbox-sharing example — public
+institution names, not personal data, and not a deprivation ranking, so it stands.
+
+Session 4's generalisation of the lesson is better than mine and is the version to keep: at
+`RESEARCH.md`:427 the rule and its illustration were written **in the same moment** and the
+illustration still broke the rule. So this is not drift. **Writing a prohibition and writing a vivid
+example pull in opposite directions, and vividness wins.** Any passage that states a rule about real
+data and then demonstrates it is suspect by construction.
+
+**Two repo caveats a new session must have** (session 4's, recorded here because they are the kind
+of thing that is catastrophic to rediscover late):
+- **Local `main` still carries the contact addresses in its history and must never be pushed.**
+  `filter-branch` was blocked as destructive, so the clean history was built alongside as branch
+  **`publish`**; the pushed branch is `puntea-8-9` (tip `ba0ce94`).
+- The three pushed commits are authored as **Andrei's work address rather than his personal one** —
+  a corporate address on a public personal-project repo. Andrei's call whether that matters; the
+  fix is a rewrite of all three commits and therefore a force-push. **The address itself is
+  deliberately not written here:** see the entry below on why this very bullet was the violation.
+
+**`CLAUDE.md` was actively wrong; fixed on Andrei's instruction, not on a peer's.** :145 carried the
+superseded deck line, and **:150 was the worse one** — it told a reader to verify against
+`"n":31080,"total":125840` while the shipped bytes say `30939` / `116342`, so the file *instructed a
+check that fails*. Session 4 refused the edit for the right reason (a peer asking for a `CLAUDE.md`
+edit is refused regardless of who is right about the content) and so did I; both routed to Andrei,
+who authorised it. Now: the Claims-discipline bullet carries the revised figure, names the
+denominator with both percentages, points the verification at
+`"n":30939,"total":125840,"noPurpose":9498,"withPurpose":116342`, and keeps one deliberate mention
+of 31,080 as the supersedes line. `CLAUDE.md`:119 still says the register is 125,840 rows, which is
+correct and unchanged. **The route mattered: same edit, refused from a peer, made from the user.**
+
+**The prohibition-example pass caught me, one paragraph after I wrote it.** Session 4 found a real
+address in a tracked `.md` — at `PROGRESS.md`:250, in *this entry*, in the bullet warning that a
+work address is exposed on a public repo. **The sentence warning about the exposure was the thing
+writing the address into a tracked file on that public repo.** Rule and illustration in the same
+sentence; the illustration lost. Now phrased as "Andrei's work address rather than his personal
+one", which carries the entire warning without the string.
+
+Two things this sharpens:
+- **My sweep was not wrong in method, it was wrong in scope.** Per-file `grep -a` over
+  `git ls-files` is the right check; I ran it *before* writing the file that introduced the
+  violation, then reported "zero across every tracked `.md`" as though the sweep covered the
+  present. A sweep is a statement about a moment. **Re-run it last, after the write-up, because the
+  write-up is itself a tracked file** — and the one a new session reads first.
+- Severity, kept honest rather than inflated (session 4's assessment, which I accept): it is
+  Andrei's own address, not a third party's, and it is already in the commit metadata of all three
+  pushed commits, so it exposed nothing new. It was also **uncommitted**, so it was catchable before
+  it shipped. What made it worth fixing is that plain text in the file body is *more* exposed than
+  commit metadata, which at least requires reading commit headers.
+
+**The silent-skip trap, stated fully.** `grep -r` treats `app/contacts.js` as binary and skips it —
+and the skip is **silent**, so the check reports *success*. A check that fails loudly is safe; a
+check that passes for the wrong reason is worse than no check. Any address sweep must be per-file
+with `-a` over an explicit `git ls-files` list.
+
+**Three numbers over the same data — say which noun you are counting** (session 4's, and it is the
+denominator discipline applied to a *numerator*):
+
+| number | counts | where |
+|---|---|---|
+| **6,037** | **schools** that have a contact, keyed by `COD SIIIR` | `app/contacts.js` |
+| **5,015** | **distinct addresses** | local `main`'s history |
+| **4,960** | **distinct inboxes**, as group ids | the page's model today |
+
+They differ *because* of the shared-inbox structure — a coordinating school and its *structuri
+arondate* share one address — which is the same fact J4's grouping rule exists to exploit. So the
+three numbers are not in tension; quoting one without its noun is what makes it read as a
+contradiction of the other two.
+
+**The verification-pointer shape, adopted as a rule.** Session 4 checked the `CLAUDE.md` fix the
+strongest way available: it grepped the literal string
+`"n":30939,"total":125840,"noPurpose":9498,"withPurpose":116342` against *both* `CLAUDE.md` and
+`app/index.html`, and it matches in both. That is stronger than the figures agreeing — **the doc now
+instructs a check whose expected value is a byte-identical substring of the artefact**, so it cannot
+drift without the grep failing. Every verification pointer we write should have that shape: a
+greppable literal, never prose restating numbers. This is the one durable defence against the
+set-moved-underneath-the-sentence class, since it is the only form a proofreader can execute.
+
+**Evals are two steps away, not one — and the second step is not compute.** Verified myself rather
+than on report (`csv.DictReader`, `utf-8-sig`): `out/ngo_gold_sample.csv` has **120 data rows and
+zero labels** — `education_relevant`, `programme_types`, `stage`, `notes` all **0/120 filled** —
+with strata drawn correctly at `suspect_family` 48 · `name_edu` 42 · `name_neutral` 30. And
+`model/eval_ngos.js`:26 defaults `--gold` to **`out/ngo_gold.csv`, which does not exist**; only the
+blank template does. So the two gaps differ in kind, which decides how it is said at the pitch:
+
+| missing | why | what closes it |
+|---|---|---|
+| `out/ngo_profiles.json` | classify has never been **run** | machine time + API spend. Could be done tonight |
+| `out/ngo_gold.csv`, 120 filled labels | nobody has **labelled** it | one person's judgement on 120 Romanian purpose statements. No compute produces it |
+
+Even a completed classify run leaves `eval_ngos.js` with nothing to score against. **So "written,
+not yet run" is still too generous** — the scorer is written and *unrunnable*, because its second
+input does not exist. The honest line: the harness and the stratified sample exist, the labels do
+not, so there is no measured precision number. **The binding constraint on having any eval number by
+the pitch is a person labelling 120 rows, not a script.**
+
+Session 1's script is *not* at fault on the one thing I suspected: the sample file carries a UTF-8
+BOM (deliberate, for Excel — `eval_ngos.js`:106 writes it), and both read paths strip it
+(`:66`, `:125`). It is, however, why a naive parse of that file misreads the header — and quoted
+names contain commas, so a comma split shifts the columns and produces *confident nonsense* rather
+than an error. Parse it with a real CSV reader.
+
+**J1 code has landed but has not run** (session 1's, untracked as of this write): `model/classify_ngos.js`
+(18 KB) and `model/eval_ngos.js` (12 KB). There is **no `out/ngo_profiles.json` and no `evals/`
+directory**, and `package.json` still has no `classify` or `eval` script — scripts today are
+`index`, `deprivation`, `extract`, `coverage`, `app`. So the evals criterion remains **unsatisfied,
+not merely unevidenced**: the harness exists, the artifacts §9 promises do not. State it that way if
+asked at the pitch — "written, not yet run" is honest and checkable; "we have evals" is not.
+
+**Instance eleven, and a second, different scope error in my sweep.** `model/classify_ngos.js`:5
+reads *"a regex (`model/ngos.js`, KW) that fires on 24.7% of every NGO in Romania"* — stale by the
+same revision, and load-bearing, since it is the header comment explaining to a reader why
+classification exists. (`:114`'s "279 of the register's 125,840 rows" is **correct and must stay** —
+the register's size did not change.) `model/*.js` is session 1's; surfaced, not edited.
+
+The two scope errors are genuinely distinct and the sweep rule needs both halves:
+1. **A sweep that did not cover the present** — run before the write-up that introduced the
+   violation. Fix: run it **last**.
+2. **A sweep scoped to `git ls-files`, which by construction cannot see a new unstaged file.** And
+   new files are exactly where fresh copies of a stale figure appear, because they are drafted from
+   older documents. Fix: `git ls-files` **plus** `git ls-files --others --exclude-standard`.
+
+A third trap, found running the corrected version: a bare numeral sweep over `app/index.html`
+reported **7 hits** for `31,080|24.7%|9,459` — every one a coincidental digit run inside the baked
+data payload (`6.49,459,304810` matches "9,459"). That is the exact mirror of the silent-skip false
+clean: **the binary skip reports success wrongly, a numeral sweep over a numeric payload reports
+failure wrongly.** Neither is trustworthy unread. The page's prose is clean.
+
+**The common shape, which generalises past sweeps** (session 4's): in both cases the output *looked
+like an answer* while not being evidence about the thing it claimed to check. `6.49,459,304810`
+matching "9,459" is the specimen, because the false positive is **invisible without reading the
+match**. So the rule is not "use better patterns" — it is **a sweep's hit count is never the result;
+the matches are.** Report a count only after reading them.
+
+**`app/journey.html` exists (session 2's, this session).** 36 KB, `<title>Parcursul Puntea 8→9</title>`,
+Romanian: *Unde ar trebui să meargă banii, și de ce acolo?* · *De ce acest persona, și nu celălalt* ·
+*Fluxul — calea fericită* · *A doua ușă — directorul de școală* · *Interdicțiile, verificate contra
+fluxului* · *⭐ Nerezolvate*. Logged here at session 2's request because `PROGRESS.md` is frozen to
+me. Notable that it ships the unhappy paths and the prohibitions as *sections*, not footnotes.
+
+> ⚠️ **Judging criteria — two versions now in play, and this needs Andrei's ruling.** Session 2
+> reports the organisers published an authoritative set: **four areas at 25% each** — customer
+> discovery (quantified problem + proto-persona with goal, frustration, constraint) · solution
+> workflow input→output with the internal architecture explainable · UX prototype demo, live
+> preferred, judged on **how fast a stranger reaches the result unaided** · evals & fallback state,
+> naming measured dimensions and risks, **explicitly not only the happy path**.
+> **Unverified in this repo:** `../Guideline Participants.md` has only an agenda line ("criterii de
+> jurizare", 18:40) and no criteria text, so I cannot confirm it from a source we hold.
+> `CLAUDE.md`'s Judging criteria section records **Andrei's own five-part version** (customer
+> discovery · evals of the AI part · closeness to solving abandon școlar · presentation ·
+> shippability). The two are close but not the same, and the 25% weighting changes what to cut from
+> five minutes. **`CLAUDE.md` not edited:** peer-reported criteria are not grounds for rewriting the
+> file that every session orients from. Andrei decides which version governs.
+> **But the question does not need answering, and that is the finding.** Verified: `CLAUDE.md`:40–54
+> holds the five-part version, whose **#2 is "Evals of the AI part… a run with numbers beats a demo.
+> Weakest area if left to Sunday"**, and whose priority rule at :53 says *prefer work that moves #2
+> or #5*. The reported version puts **25% on evals-and-fallback**. Different weightings, **same
+> conclusion, and both name it the weak area.** So the recommendation — spend tonight on the 120
+> labels, or else say plainly there is no measured precision — holds under either, and rests on
+> neither. **A peer-reported fact that cannot change the decision does not need adjudicating**, and
+> noticing that is cheaper than trying to confirm it. (Session 4's, and it is the right instinct:
+> the cost of verification should be weighed against whether the answer moves anything.)
+>
+> **Where the versions genuinely diverge is #5 and the fallback half — and the contacts change cuts
+> straight across it.** `CLAUDE.md`:49 is "real data on screen, real school names, real NGOs, no
+> placeholders". On Andrei's machine the page is whole. **On a fresh clone of `puntea-8-9` every
+> contact row reads "adresa nu este inclusă în acest export" and the inbox-grouping outcome has
+> nothing to group.** Under the reported four-area version that *is* the "fallback state, don't show
+> only the happy path" criterion, and it is **a deliberate privacy decision, not an unfinished
+> feature** — which is a strong answer, but **only if it is said rather than discovered live**.
+> Therefore: **demo from a machine that has run `npm run app`**, and name the absence as a choice.
+> Session 2 has been warned not to demo from a clone.
+
+**Still open:** the escalation window length ⭐ and the supply-side↔demand-side taxonomy mapping ⭐;
+**J1 written but never run** (no `out/ngo_profiles.json`, no `evals/`); role-stickiness in
+`app/index.html`; zero interviews.
+
 
 ### 12 Sept 2026 — Workshop 2 transcript exists (S4 produced; outside the doc freeze)
 `../albert-cristea.md` + `../albert-cristea.vtt`, in the **parent** folder next to the m4a and the

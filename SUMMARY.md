@@ -205,7 +205,7 @@ ask in the Outreach log below. If a judge asks "who have you spoken to", the hon
 | National NGO register | Ministry of Justice → data.gov.ro (2026 dataset exists) | NGO + address + purpose | CSV |
 | cumstam.ro | Ecoteca + BRD + mindit.io | county | proprietary; a partner, not a data source |
 
-**Everything below runs on real ministry data.** The EN 2023–2026 files, the 2025–2026 school network, school coordinates, commune budget data and the PNRAS / Masă sănătoasă coverage lists were all downloaded and joined locally: 629k candidate rows → 6,335 schools, of which 4,205 are rural. **Geocoding is 5,877 of all 6,335 — but only 3,960 of the 4,205 rural.** Never put the 5,877 next to a rural count without that denominator. (An earlier draft of this project ran on synthetic data because the Cowork cloud sandbox couldn't reach evaluare.edu.ro or data.gov.ro; that limitation no longer applies.) The only synthetic path left is `synth()` in `app/index.html`, a labelled fallback that appears solely if the baked payload is missing.
+**Everything below runs on real ministry data.** The EN 2023–2026 files, the 2025–2026 school network, school coordinates, commune budget data and the PNRAS / Masă sănătoasă coverage lists were all downloaded and joined locally: 629k candidate rows → 6,335 schools, of which 4,205 are rural. **Geocoding is 5,877 of all 6,335 — but only 3,960 of the 4,205 rural.** Never put the 5,877 next to a rural count without that denominator. **Since 12 Sept a further 373 schools carry a commune-level position** — taken from another school in the same commune when the 2017 survey has no row for this one — so **6,250 are placed but only 5,877 are geocoded**, and the two words mean different things. It exists because ȘCOALA GIMNAZIALĂ COJASCA, 2nd nationally by need, had no dot on the map; a commune point is good to ~1.7 km (p90 5.6) against a 120 km matching radius, is computed as a median per axis because one source coordinate sits 399 km from its own commune's mean, and is labelled as commune-level everywhere it is shown or measured from. 85 schools still have no position at all. (An earlier draft of this project ran on synthetic data because the Cowork cloud sandbox couldn't reach evaluare.edu.ro or data.gov.ro; that limitation no longer applies.) The only synthetic path left is `synth()` in `app/index.html`, a labelled fallback that appears solely if the baked payload is missing.
 
 ## Deliverables in this folder
 
@@ -252,7 +252,7 @@ is the copy of record for the narrative and the pitch.
 
 | Job | Verdict | Why |
 |---|---|---|
-| **J1** purpose → capability profile | **Keep — this is the AI product** | 125,840 Romanian legal purpose statements, 31,080 keyword hits with bad precision, boilerplate where *educație* appears in passing. No deterministic method touches it, volume rules out humans, $8 and cached |
+| **J1** purpose → capability profile | **Keep — this is the AI product** | 116,342 Romanian legal purpose statements that state a purpose at all (of 125,840 registered; 9,498 state none and are excluded before the keyword test), 30,939 keyword hits with bad precision, boilerplate where *educație* appears in passing. No deterministic method touches it, volume rules out humans, $8 and cached |
 | **J2** service geography | **Keep as specced** | Deterministic SIRUTA match first, LLM only where the text *states* an area, same call, no extra cost. "Never widen a service area by inference" is the best AI decision in the spec |
 | **J3** match explanation | **Cut, or demote to a button** | Six numbers into a Romanian sentence is a template's job — see below |
 | **J4** outreach draft | **Keep — strongest after J1** | Romanian prose per recipient with correct register and real figures. A template reads as mail merge and an NGO notices. The human presses send, so the failure mode is bounded. **Count recipients, not schools:** Călărași rural is 72 schools · 68 with an email · **54 distinct inboxes** · 64 with both email and coordinates → **50 inboxes** for the full pilot flow. J4 groups by inbox and names every unit in one message |
@@ -432,7 +432,7 @@ sănătoasă 1,386 — among the 6,335 ranked schools these are 1,154 / 701 / 1,
 Still open:
 
 1. **The blind spot:** EN only sees students who sat the exam. Add INS grade-8 enrolment by locality to estimate the ~9% who vanish before it.
-2. **The matcher is specced, not built.** `MATCHMAKING.md` is the spec; the NGO register (125,840 rows) is not yet classified or geocoded. This is also what gates the evals criterion — there is nothing to evaluate until J1 runs.
+2. **The matcher is specced, not built.** `MATCHMAKING.md` is the spec; the NGO register (125,840 rows) is geocoded but **not classified**. J1 — the purpose classifier — **is written and committed (`model/classify_ngos.js`) but has never been run**: no API key, so `out/ngo_profiles.json` does not exist. `npm run classify` costs a measured **$1.80 for 1,252 organisations and takes ~5 minutes**. This gates the evals criterion, and gates it twice: even a completed run leaves the eval unrunnable, because `out/ngo_gold.csv`'s 120 labels are **Claude-generated against this classifier's own rubric — silver, not gold**, and scoring J1 on them would be two models agreeing with themselves. **The honest statement is that the evals criterion is *unsatisfied*, not merely unevidenced.** What *is* measured without an API call: the name regex it replaces scores macro-F1 **28.7%** against the 80% bar, and reweighting puts **≈148 of the 1,260 displayed candidates (11.7%, 95% interval ≈5–19%)** in genuine education work. Quote the interval, not the macro-F1 — those silver labels were written against our own rubric, which names credit unions and parent associations as negatives, i.e. exactly and only what a name regex cannot see, so the gap is guaranteed by construction rather than measured.
 3. ~~**One coverage list is an unreadable scan**, so every "not on the ministry list" count is an upper bound.~~ **Closed 12 Sept.** The scan was read with a vision model, a third of it transcribed and resolved, and the eligibility rounds shown to overlap ~92%. **789 is accurate to about 1%, not an upper bound** — see `model/README.md`, "The scanned list — measured, not guessed". The transcription is deliberately *not* joined into the model, because it covers counties AB–CT only and a partial join would bias early-alphabet counties.
 4. **Real voices:** message World Vision's education team ("What limits how many students Vreau în clasa a 9-a can take: money, staff or logistics?"); have a 15-minute call with a Teach for Romania teacher.
 5. **Ethics:** no public "worst villages" ranking; show two lists (quick wins / no one is here); no child-level data.
@@ -484,14 +484,20 @@ Both gaps in that pitch are now closed — 12 Sept:
 - **"matching făcut cu AI"** — specced in `MATCHMAKING.md`. The ranking stays deterministic on
   purpose: an ISJ will ask "why this school and not that one", and a formula you can recompute
   on paper is an answer. AI does the four jobs that are genuinely language problems — classifying
-  125,840 NGO purpose statements, extracting service geography, explaining a match, drafting the
+  116,342 NGO purpose statements, extracting service geography, explaining a match, drafting the
   email. ~$8 in batch, cached.
-  **The NGO count, as settled for the deck:** "31,080 of 125,840 registered NGOs flag as
-  education-related — a keyword match, which over-counts." Always our figure, always with the
-  caveat, and never alongside a hartaedu figure. State the over-count unprompted: it is the reason
-  J1 classification exists, so the caveat sets up the AI half of the pitch instead of undercutting
-  the data half. (31,080 is what `app/index.html`'s baked data actually reports; the 30,632 / 24.3%
-  in `MATCHMAKING.md` is from an earlier run and is stale.)
+  **The NGO count, as settled for the deck — revised 12 Sept:** "**30,939** of the **116,342**
+  registered NGOs that state a purpose at all flag as education-related — a keyword match, which
+  over-counts." Always our figure, always with the caveat, and never alongside a hartaedu figure.
+  State the over-count unprompted: it is the reason J1 classification exists, so the caveat sets up
+  the AI half of the pitch instead of undercutting the data half.
+
+  **Mind the denominator.** The register holds 125,840, but 9,498 of those state no purpose in any
+  of the six purpose columns and are now excluded before the keyword test (`model/ngos.js`:127,
+  punctuation-only counting as blank). So 30,939 is **26.6% of the 116,342 that state a purpose**
+  and **24.6% of all 125,840 registered** — both true, different sentences. Say which one you mean.
+  This supersedes the earlier deck line "31,080 of 125,840 … 24.7%", and 30,939 / 116,342 / 9,498
+  are what the shipped `app/index.html` data block prints today.
 
 Ask The Social Incubator and ATSI the questions the data cannot answer: what makes a
 school say yes to a programme, who actually signs off in a rural school, and what killed

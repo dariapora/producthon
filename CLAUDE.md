@@ -89,6 +89,14 @@ ministry-data model; #4 is a Sunday-morning task, not a Saturday one.
   geocoding is 5,877 of 6,335 (**only 3,960 of the 4,205 rural**), and 6,058 of 6,335 carry
   name + locality + phone + email. Never print 5,877 or 6,058 next to a rural figure without
   its denominator — that exact comma-list shape has already produced two errors.
+- **Position has three states, not two (12 Sept).** `geo_source` in the CSV, `geo` in the payload:
+  **1** = the school's own surveyed point (5,877) · **2** = its commune's, taken from another school
+  there because the 2017 survey has no row for this one (**373**) · **0** = neither, and the page
+  falls back to the county seat (85). So **6,250 of 6,335 are placed but only 5,877 are geocoded** —
+  those are different words and the status bar says both. Never collapse them: a commune point is
+  good to ~1.7 km (p90 5.6), a county seat can be tens of km out. Median per axis, not mean — one
+  source coordinate sits 399 km from its own commune's mean. Exists because **ȘCOALA GIMNAZIALĂ
+  COJASCA, 2nd nationally by need, had no dot on our map.**
 - The model reproduces World Vision's published 42.4% rural-below-5 for 2024 (we get 42.3%).
 - Deprivation layer live: 3,180/3,186 UATs, 4,088/4,205 rural schools scored. Proxy is budget
   line 04.02.01 (cote defalcate din impozitul pe venit) per capita. **It explains only ~2.6% of
@@ -109,6 +117,19 @@ ministry-data model; #4 is a Sunday-morning task, not a Saturday one.
   all 6,331 schools, urban included, so the rural slice is **1,320 of 4,202 = 31%**, not 25%. State
   the 31% inline — it is the stronger framing: nearly a third of rural schools sit in the national
   worst quartile.
+  **Three sessions built three different wrong versions of this set on 12 Sept while this line was
+  right the whole time.** The definition is executable and nothing else counts: `rank_rate <= 6335/4`
+  → 1,583 national rows, urban included, then `mediu = rural` → **1,320 = 31.4% of 4,205**. The
+  wrong ones were `1,051` (the worst quarter *of rural* — the substitution this bullet forbids),
+  `rank_need <= 1320` (right size, wrong membership) and a `fail_rate_shrunk` sort. **1,320 was
+  never a quarter of anything**, so the ×4 reflex invents a 5,280-row population that does not exist.
+  Inside it: zero curated NGO in county **170 = 12.9%** (all nine) or **247 = 18.7%** (excluding the
+  one rated `rel:"low"`, which is what the interface surfaces) · fewer than 3 in county **1,096 =
+  83.0%** · no coordinates **71** · `pnras_eligible` **248 = 19%** · `pnras_grant` 147 = 11% ·
+  masă sănătoasă 380 = 29%. Quoting "83% / 19.5%" together was two NGO sets in one sentence.
+  **Trap for any check you write here:** `pnras_eligible == 1` and `pnras_priority` non-blank are
+  co-extensive on all 6,335 rows, but `pnras_priority` is categorical (blank 5,181 · MEDIUM 1,033 ·
+  HIGH 121), so testing it for `"1"` returns 0 **silently** rather than erroring. Use `pnras_eligible`.
 - **Archetype counts changed 12 Sept** after a reproducibility fix (app and model were computing
   different numbers; the exported CSV rounded threshold columns at 3dp). Canonical: money-bound
   **349**, school-bound **132**, no one is here **789**, quick wins **106**, ministry flagged
@@ -116,7 +137,7 @@ ministry-data model; #4 is a Sunday-morning task, not a Saturday one.
 
 ## Next tasks
 1. ~~Feed the real schools into `app/index.html`~~ **done**. 6,335 schools baked in, real lat/lon for matcher distances, commune income as the second axis, and five lists: most children / most concentrated / money is the constraint / money is not / no one is here. Rebuild with `npm run index && npm run app`.
-2. Load the Registrul Național ONG (`data/ong_2026.xlsx`, 125,840 rows); geocode NGOs; classify each NGO's field from its stated purpose. **Follow `MATCHMAKING.md`** — build order there puts the deterministic work first.
+2. ~~Load the Registrul Național ONG; geocode NGOs~~ **done** (`model/ngos.js`, 1,260 candidates). **Classify each NGO's purpose — written, never run.** `npm run classify` needs `ANTHROPIC_API_KEY`; the dry run measures **$1.80 for 1,252 organisations, ~5 min**, and writes `out/ngo_profiles.json`, after which `npm run app` changes the director cards. Then `npm run eval` — but it needs `out/ngo_gold.csv` **relabelled by a person**: the 120 rows there now are Claude-labelled against this classifier's own rubric (silver, not gold), so scoring J1 on them is two models agreeing with themselves. **Two unblockers, different in kind: machine time for the profiles, human judgement for the labels. Only the second changes the figures' status.**
 3. ~~Add PNRAS and Masă sănătoasă school lists as coverage layers~~ **done**. Remaining: OCR `data/pnras/elig_r2s2.pdf` (scanned, ~900 eligible schools missing) — needs `tesseract`, not installed.
 4. Add INS TEMPO SCL103D grade-8 enrolment by locality to estimate the ~9% missing before the exam.
 5. Build the Călărași pilot flow end to end (72 rural schools · 68 with an email · 68 geocoded ·
@@ -142,12 +163,58 @@ ministry-data model; #4 is a Sunday-morning task, not a Saturday one.
 - `RESEARCH.md` §1 lists claims currently made in this repo that are **wrong or unsafe as worded**
   (the Ghigiu quote, "1 in 5 never reach grade 9", the novelty claim, the supply/demand labels).
   Fix them there before they reach a slide.
-- **NGO counts (decided 12 Sept):** quote **our** figure, always with the caveat — "31,080 of
-  125,840 registered NGOs flag as education-related, a **keyword match which over-counts**".
+- **NGO counts (decided 12 Sept, revised same day):** quote **our** figure, always with the caveat
+  — "**30,939** of the **116,342** registered NGOs **that state a purpose at all** flag as
+  education-related, a **keyword match which over-counts**".
   Never a hartaedu figure alongside it; they count different things. State the over-count
   unprompted: it is the reason J1 classification exists, so the caveat sets up the AI half of the
-  pitch instead of undercutting the data half. (Verified against the baked payload:
-  `"n":31080,"total":125840` = 24.7%.)
+  pitch instead of undercutting the data half.
+  **Name the denominator.** The register holds 125,840, but **9,498** state no purpose in any of the
+  six purpose columns (`Scopul initial` + `Modificari 1..5`, punctuation-only counting as blank) and
+  are excluded before the keyword test — `model/ngos.js`:127. So 30,939 is **26.6% of the 116,342
+  that state a purpose** and **24.6% of all 125,840 registered**: both true, different sentences,
+  say which. (Verify against the baked payload, not against this paragraph:
+  `"n":30939,"total":125840,"noPurpose":9498,"withPurpose":116342`.)
+  Supersedes "31,080 of 125,840 / 24.7%", which was **correctly computed against the pool as it
+  stood** and went stale when the exclusion landed — the denominator was never wrong, the set moved.
+  Proofreading cannot catch that class; only re-checking against the shipped bytes can.
+- **The NGO denominators, all verified 12 Sept. Recount before quoting: `node model/ngos.js`.**
+  Register: 125,840 organisations · 8,213 dead · 9,498 no purpose text · **762 BOTH** · **108,891
+  alive WITH a purpose** · 116,342 with a purpose including the dead. The overlap is why
+  `125,840 − 8,213 − 9,498` is not the answer, and why a wrong denominator here is wrong by 7,451 —
+  an amount nobody sanity-checks mentally.
+  - `model/ngos.js` **KW** (adds `copii|tineri`): **40,684 = 37.4% of 108,891** — counted *after* the
+    dead-org exclusion, so 108,891 is its only matching denominator.
+  - `model/build_app_data.js` **`re`** (narrower): 31,523 = 27.1% of 116,342 — counted *without* the
+    dead-org exclusion, so 116,342 is right for this one and wrong for KW. **Same denominator, two
+    regexes, one of them right.**
+  - App status line / baked payload: **30,939 of 116,342 = 26.6%**, and 24.6% of 125,840.
+  - **Retired, do not reuse:** 31,080 / 125,840 / 24.7%, and 35.0%.
+- **Candidate-list denominators (`out/ngo_candidates.csv`):** **1,260 data rows** as displayed (30 per
+  county) · **1,252** distinct `(reg, normalised name)`, which is what `classify_ngos.js` bills for ·
+  1,251 distinct `reg` — **never quote the last as an organisation count**, 9 registration numbers
+  are shared. `wc -l` says 1,260 too, but only by luck: the file has no trailing newline so it
+  undercounts by one and agrees by accident.
+- **The false-positive families: 282 of 1,260 = 22.4%.** 68 credit unions · 201 parent associations ·
+  13 trade unions · 24 alumni/teaching-staff bodies · **0 sports clubs** (the top-30-per-county
+  ranking already removed them, so §5's "riding club" example is register-wide, not displayed).
+  **1,123 of 1,260 = 89.1% carry an education word in the name** — an 89% hit rate on its own output,
+  which is why the name filter has no discriminating power left and every unmailable row hides inside
+  it. **A family count is a measurement relative to a pattern: run `npm run families`, which prints
+  each regex beside its count, rather than quoting these numbers bare.** Parish/Christian names are
+  deliberately NOT a family — that was retracted as an indefensible category, not corrected as a
+  count, because many real Romanian after-school programmes are parish-run.
+- **Contacts — three counts that are not interchangeable.** 6,037 schools have an address · 4,960
+  distinct inboxes · 5,015 distinct addresses in local `main`'s history. Name the noun.
+- **Two rules that outrank recomputation, learned the hard way on 12 Sept:**
+  1. **A figure that reproduces is verified only if the checker built the set independently.** One
+     session reproduced another's number exactly by inheriting its *filter* rather than its
+     reasoning. That verified nothing and manufactured agreement, which is worse than open
+     disagreement because it stops the inquiry.
+  2. **A recipe is only a definition once someone who did not write it executes it.** The author
+     structurally cannot run that test. The cheapest check that worked all day was simply asking
+     *"which set does this number describe?"* — no measurement at all — and it caught the error that
+     had already survived two rounds of recomputation.
 - "Putere de cumpărare" = income tax collected per capita, wage income only. Never "venit mediu".
 - The matcher is a deterministic weighted score, not a model. Say "weighted matching on public
   data". Reserve "AI" for NGO-purpose classification and email drafting, which genuinely are.

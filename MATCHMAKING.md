@@ -28,7 +28,7 @@ with the only authority that matters (the ISJ).
 | Deprivation per UAT | Budget line 04.02.01 per capita | Already built. Arithmetic on a published file |
 | Constraint archetype | Thresholds on the two above | Derivable. No model needed — see §4 |
 | Candidate filtering + ranking | Weighted score, fixed formula | **Must stay deterministic.** An ISJ will ask "why this school and not that one". A number you can recompute on paper is an answer; an LLM ranking is not |
-| NGO purpose → capability profile | **LLM**, batch, cached | 125,840 free-text Romanian purpose statements. Genuinely a language problem |
+| NGO purpose → capability profile | **LLM**, batch, cached | 116,342 free-text Romanian purpose statements (of 125,840 registered; 9,498 state no purpose anywhere and are excluded before the model sees them). Genuinely a language problem |
 | NGO service geography | **LLM**, batch, cached | Registered address ≠ where they work |
 | Match explanation | **LLM**, on demand | Turning six numbers into a sentence a human will act on |
 | Outreach email draft | **LLM**, on demand | Romanian, per school, naming real figures |
@@ -113,7 +113,7 @@ Target schema, one record per organisation, built once and cached:
 
 ```jsonc
 {
-  "cui": "1039/A/2023",            // Numar inreg Reg National — the stable key
+  "cui": "1039/A/2023",            // Numar inreg Reg National — NOT a stable key, see below
   "name": "ASOCIAȚIA ...",
   "county": "CONSTANTA",           // registered seat, from the register
   "locality": "CONSTANTA",
@@ -133,6 +133,17 @@ Target schema, one record per organisation, built once and cached:
 }
 ```
 
+> **CORRECTION (12 Sept, found by the J1 dry run before any spend).** `Numar inreg Reg National` is
+> **not** a stable key: **3,186 are shared by more than one organisation**, 9 of those inside our
+> 1,260-row candidate list. Keying a cache or a join on it attaches one organisation's verdict to
+> another's card. `model/classify_ngos.js` and `model/build_app_data.js` both key on
+> **`(reg, normalised name)`** and must stay in step.
+>
+> Second defect in the same file: **279 of the 125,840 rows carry the court's disposition text in
+> `Denumire` instead of a name** ("-Admite în parte acţiunea formulată de petenta…"), 4 of them in
+> our candidate list. They were being passed to the model as 1,800-character organisation names.
+> `classify_ngos.js` detects, drops and flags them (`name_suspect`), classifying on purpose alone.
+
 `programme_types` taxonomy, fixed and closed (an open taxonomy makes the matcher unscorable):
 `mentoring`, `tutoring_remedial`, `scholarship_cash`, `transport`, `meals`, `career_guidance`,
 `dual_vocational`, `parent_family`, `school_infrastructure`, `teacher_training`,
@@ -143,8 +154,35 @@ Target schema, one record per organisation, built once and cached:
 `app/index.html` currently filters the register with
 `/educa|scoal|elev|abandon|invatam|meditat|after school|tutor/`. Measured against the real file:
 
-- register: **125,840 organisations**, 9,459 with no purpose text at all
-- regex matches: **31,080 (24.7%)** — the figure the page itself shows
+- register: **125,840 organisations**, of which **9,498 state no purpose anywhere** —
+  `Scopul initial` plus all five `Modificari ale scopului` columns empty, punctuation-only counting
+  as blank (`/\p{L}/u`, `model/ngos.js`:127). They are excluded before the keyword test, so
+  **the classification pool is 116,342**, not 125,840.
+- keyword matches: **30,939 of 116,342 (26.6%)** — the figure the page itself shows
+
+> The exclusion rule is implemented, not proposed: `model/ngos.js`, `model/build_app_data.js` and
+> `regFrom()`. The earlier figure in this document was 9,459 with a pool of 125,840; the difference
+> is the punctuation-only rows plus whitespace handling, and **9,498 / 116,342 / 30,939 are what the
+> shipped page prints** (verified in the `app/index.html` data block: `"n":30939, "total":125840,
+> "noPurpose":9498, "withPurpose":116342`).
+
+> **Which regex, though (added 12 Sept).** There are two and they give different answers, so a
+> denominator that fits one is wrong for the other. `build_app_data.js`'s `re` — the one above, and
+> what the page prints — gives 30,939 / 116,342 = 26.6%, counted **without** the dead-org exclusion.
+> `model/ngos.js`'s `KW`, which adds `copii|tineri` and is what actually **selects the candidates**,
+> gives **40,684 = 37.4% of the 108,891 that are alive AND state a purpose** (125,840 − 8,213 dead −
+> 9,498 blank **+ 762 that are both**). Over a third of the living sector. Recount with
+> `node model/ngos.js`; do not copy a literal out of this paragraph. Retired: 24.7%, and 35.0%
+> (which divided the living-only 40,684 by the living-and-dead 116,342).
+>
+> **The problem is also narrower than this section implies for everything we display.**
+> `model/ngos.js` sorts sports clubs last and cuts at 30 per county, so **not one survives into the
+> 1,260 shown candidates** — the "riding club that mentions copii" is a register-wide problem the
+> deterministic ranking already solved. 1,123 of 1,260 (89.1%) carry an education word in the name,
+> an 89% hit rate on its own output. What remains is **282 of 1,260 (22.4%)**: 68 credit unions
+> (*Casa de Ajutor Reciproc a Salariaților din Învățământ* lends to teachers and matches on
+> "învățământ" alone), 201 parent associations, 13 trade unions, 24 alumni bodies. `npm run families`
+> prints every pattern beside its count — quote it from there, not from here.
 
 Nearly a quarter of every NGO in Romania is not an education NGO. The regex is firing on boilerplate
 purpose statements that mention *educație* in passing ("educarea publicului", "activități
@@ -161,7 +199,22 @@ precisely so that data is never stored, and it is the only job permitted to see 
 output is cached to disk keyed by `cui` so a rerun costs nothing; every job degrades to a
 deterministic fallback (§8).
 
-### J1 — Purpose → capability profile *(batch, offline)*
+### J1 — Purpose → capability profile *(batch, offline)* — **BUILT, NEVER RUN**
+
+> `model/classify_ngos.js` implements this section (`c1f3e01`). It has **never been executed**: no
+> `ANTHROPIC_API_KEY` was available, so `out/ngo_profiles.json` does not exist and **there is no J1
+> accuracy figure of any kind.** Dry run measures **$1.80 for 1,252 organisations, ~5 min** — the
+> §6 cost table below is for the full 31,080 pool; the shipped job classifies only the 1,260
+> displayed candidates, which is what the page actually uses.
+>
+> Deviations from this spec, each deliberate: **`max_tokens` 512, not 256** (Romanian tokenises worse
+> and a truncated response is a wasted call); **key is `(reg, normalised name)`**, per the §5
+> correction; **plain parallel requests, not the Batch API** — at 1,252 rows the 50% saving is ~$0.90
+> and batch latency of up to 24h is a real risk the night before a pitch.
+>
+> With the file absent the page builds and behaves exactly as before, labelled *"scopul nu e
+> verificat"*. §8's degraded mode is the state the pipeline is already in, not a banner added
+> afterwards — deleting `out/ngo_profiles.json` and rebuilding demonstrates it live.
 
 - **Input:** `Denumire`, `Judet`, `Localitate`, and `Scopul initial` + `Modificari ale scopului 1..5`
   concatenated. Mean 759 chars for the prefiltered set.
@@ -175,17 +228,21 @@ deterministic fallback (§8).
 - **Surface:** Message Batches (`client.messages.batches.create`), 50% cheaper, results keyed by
   `custom_id = cui`. Results arrive in **any order** — key by `custom_id`, never position.
 - **Prefilter first.** Run the regex as a *recall* filter (cheap, keep it generous), then let the
-  model do precision. Running the model on all 125,840 costs ~3× more for no gain.
+  model do precision. Running the model on all 116,342 with a stated purpose costs ~3× more for no gain.
 
 **Measured cost** (chars/3.5 ≈ tokens, ~60 output tokens/record, current list prices):
 
 | Scope | Model | Est. cost | With Batch API |
 |---|---|---|---|
-| Prefiltered (31,080) | Haiku 4.5 | ~$16 | **~$8** |
-| Prefiltered (31,080) | Sonnet 5 | ~$32 | ~$16 |
-| All 125,840 | Haiku 4.5 | ~$52 | ~$26 |
+| Prefiltered (30,939) | Haiku 4.5 | ~$16 | **~$8** |
+| Prefiltered (30,939) | Sonnet 5 | ~$32 | ~$16 |
+| All 116,342 with a stated purpose | Haiku 4.5 | ~$48 | ~$24 |
 
 Eight dollars, once, cached. Cost is not the constraint here — precision is.
+
+The full-pool row fell from ~$52 because 9,498 rows left the pool, but **read that as a floor, not
+a saving**: the excluded rows are the ones with no purpose text, so they were the cheapest records
+in the file. Dropping 7.5% of the rows drops rather less than 7.5% of the cost.
 
 ### J2 — Service geography *(batch, offline)*
 
@@ -246,6 +303,15 @@ itself a point.
 - **Input:** the inbox group (one or more school rows), NGO profile (or funder), archetype, ISJ framing.
 - **Output:** a Romanian email — subject, 120–160 words, one concrete ask, real figures.
 - **Model:** `claude-opus-5`, adaptive thinking, `effort: "medium"`.
+> ⚠️ **The addresses are no longer in the page.** `app/index.html` contains **no contact address**;
+> they live in `app/contacts.js`, which is **gitignored and regenerated by `npm run app`**. Any part
+> of this spec that assumed the page carried them is void. On a fresh clone the contact row reads
+> *"adresa nu este inclusă în acest export (rulează `npm run app`)"* rather than showing anything —
+> so **J4 on a clone drafts to a named school with no recipient**, and the inbox-grouping step above
+> has nothing to group until the generator has run. Demo from a machine that has run it, or demo the
+> grouping on the counts alone and say why the addresses are absent. The absence is the feature:
+> `RESEARCH.md`:427 already says never render a real address in a J4 demo.
+
 - **Never sends.** Renders into a copyable box; the human presses send. The Călărași pilot
   (72 rural schools · 68 with an email · 68 geocoded · **64 with both** → **50 distinct inboxes**; the two 68s are different sets) simulates the send — see `CLAUDE.md` task 5.
 
@@ -534,6 +600,28 @@ no child-level information in any tip, and tips are never published as a "worst 
 
 ## 9. Done-when
 
+> **STATE, 12 Sept.** §9 is **unsatisfied**, not merely unevidenced — say it that way.
+> `out/ngo_profiles.json` does not exist (J1 never run), so there is no J1 metric of any kind.
+> `out/ngo_gold.csv` holds 120 labels, drawn by `node model/eval_ngos.js --sample 120` and stratified
+> **48 suspect_family / 42 name_edu / 30 name_neutral** — but labelled by Claude against
+> `classify_ngos.js`'s own rubric. That is **silver, not gold**; scoring J1 on it is self-evaluation
+> and must not be reported. §9.2's inter-annotator κ is therefore also unmeasured.
+>
+> What is measured, no API call needed: the **baseline** name regex this replaces —
+> precision 11.1% · recall 71.4% · **macro-F1 28.7%**, FAIL against §9.4's 80% bar. It says yes to 90
+> of 120 and is right about 10; per stratum it fires 48/48, 42/42, 0/30 — inside its own output it is
+> nearly a constant function. Reweighted to the real strata: **≈148 of 1,260 displayed rows (11.7%)
+> genuinely education-relevant, 95% interval ≈5–19% on n=120.**
+>
+> **Caveat that must travel with that baseline:** the silver labels were written against our rubric,
+> and our rubric explicitly names credit unions, parent associations and trade unions as negatives —
+> precisely and only what a name regex cannot see. So 28.7% is not "the regex is bad at the task", it
+> is "the regex disagrees with us", and the gap is guaranteed before any measurement. The defensible
+> claim is *how much of the displayed list our rubric rejects*. **Lead with the interval.**
+>
+> Two unblockers, different in kind: **machine time plus a key** for the profiles, **a person's
+> judgement** for the labels. Only the second changes the figures' status.
+
 Machine-checkable, in order. Metric choices follow `RESEARCH.md` §5; the whole plan is ~3–4 hours
 and well under $1 of inference. **Say the cost and the confidence interval unprompted** — that is
 what separates a team that ran an eval from a team that ran a demo.
@@ -657,7 +745,7 @@ a stated CI.
 3. Freeze label definitions (§9.0), dedupe by 5-gram hash, then hand-label the gold set — 120 J1 /
    60 J2 / 30 J3 / 30 J4, with 40 J1 rows double-labelled for κ (§9.1–9.2). Before writing a single
    prompt. The held-out geography test (§9.5) needs no labelling — build it here, first
-4. J1 on the prefiltered 31,080 via Batch, cache to `out/ngo_profiles.json`
+4. J1 on the prefiltered 30,939 via Batch, cache to `out/ngo_profiles.json`
 5. Deterministic filters + score + sliders in `app/index.html`
 6. J3, then J4
 7. Călărași pilot end to end, simulated send
