@@ -69,7 +69,8 @@ function assertColumns(rows, columns, fileName) {
 
 function number(value, label) {
   const parsed = Number(value);
-  if (!Number.isFinite(parsed)) throw new Error(`Valoare numerică invalidă pentru ${label}: ${value}`);
+  if (!Number.isFinite(parsed))
+    throw new Error(`Valoare numerică invalidă pentru ${label}: ${value}`);
   return parsed;
 }
 
@@ -78,12 +79,13 @@ function line(value) {
 }
 
 const schoolColumns = [
+  "An",
   "Judet",
   "Scoala",
-  "Medie_Generala_2026",
-  "Medie_Romana_2026",
-  "Medie_Matematica_2026",
-  "Numar_Elevi_2026",
+  "Medie_Generala",
+  "Medie_Romana",
+  "Medie_Matematica",
+  "Numar_Elevi",
 ];
 const ngoColumns = [
   "Nr. Crt.",
@@ -99,28 +101,37 @@ const ngoColumns = [
   "Tip intervenție",
 ];
 
-const schoolRows = parseCsv(await readFile(resolve(root, "data/rezultate_en.csv"), "utf8"));
-assertColumns(schoolRows, schoolColumns, "rezultate_en.csv");
+const schoolFileName = "rezultate_en_25_26.csv";
+const schoolRows = parseCsv(await readFile(resolve(root, `data/${schoolFileName}`), "utf8"));
+assertColumns(schoolRows, schoolColumns, schoolFileName);
 const schools = schoolRows.map((row, index) => ({
+  An: number(row.An, `an, rând ${index + 2}`),
   Judet: row.Judet.trim(),
   Scoala: row.Scoala.trim(),
-  Medie_Generala_2026: number(row.Medie_Generala_2026, `media generală, rând ${index + 2}`),
-  Medie_Romana_2026: number(row.Medie_Romana_2026, `media română, rând ${index + 2}`),
-  Medie_Matematica_2026: number(row.Medie_Matematica_2026, `media matematică, rând ${index + 2}`),
-  Numar_Elevi_2026: number(row.Numar_Elevi_2026, `număr elevi, rând ${index + 2}`),
+  Medie_Generala: number(row.Medie_Generala, `media generală, rând ${index + 2}`),
+  Medie_Romana: number(row.Medie_Romana, `media română, rând ${index + 2}`),
+  Medie_Matematica: number(row.Medie_Matematica, `media matematică, rând ${index + 2}`),
+  Numar_Elevi: number(row.Numar_Elevi, `număr elevi, rând ${index + 2}`),
 }));
 
-const schoolOutput = `/** Generat automat din data/rezultate_en.csv. Rulează \`npm run data:import\` după actualizarea CSV-ului. */
-export type ImportedSchool2026Row = {
+for (const school of schools) {
+  if (school.An !== 2025 && school.An !== 2026) {
+    throw new Error(`${schoolFileName}: an nesuportat „${school.An}”`);
+  }
+}
+
+const schoolOutput = `/** Generat automat din data/${schoolFileName}. Rulează \`npm run data:import\` după actualizarea CSV-ului. */
+export type ImportedSchoolRow = {
+  An: 2025 | 2026;
   Judet: string;
   Scoala: string;
-  Medie_Generala_2026: number;
-  Medie_Romana_2026: number;
-  Medie_Matematica_2026: number;
-  Numar_Elevi_2026: number;
+  Medie_Generala: number;
+  Medie_Romana: number;
+  Medie_Matematica: number;
+  Numar_Elevi: number;
 };
 
-export const schools2026Imported: ImportedSchool2026Row[] = [
+export const schoolsImported: ImportedSchoolRow[] = [
 ${schools.map(line).join("\n")}
 ];
 `;
@@ -166,4 +177,7 @@ await Promise.all([
   writeFile(resolve(root, "src/data/raw/ngosImported.ts"), ngoOutput),
 ]);
 
-console.log(`Import finalizat: ${schools.length} școli și ${ngos.length} ONG-uri.`);
+const schoolCounts = Object.groupBy(schools, (school) => school.An);
+console.log(
+  `Import finalizat: ${schoolCounts[2025]?.length ?? 0} școli din 2025, ${schoolCounts[2026]?.length ?? 0} școli din 2026 și ${ngos.length} ONG-uri.`,
+);

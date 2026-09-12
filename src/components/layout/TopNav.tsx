@@ -1,9 +1,10 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useRouter, useRouterState } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
 import { BrandLogo } from "@/components/layout/BrandLogo";
 
 export function TopNav() {
+  const router = useRouter();
   const location = useRouterState({ select: (state) => state.location });
   const search = location.search as Record<string, unknown>;
   const hasActiveChoice = location.pathname !== "/" || search.journey === "school";
@@ -13,15 +14,20 @@ export function TopNav() {
       <div className="mx-auto flex min-h-[72px] max-w-[1320px] items-center justify-between gap-4 px-4 py-2 sm:px-6">
         <BrandLogo />
         {hasActiveChoice ? (
-          <Link
-            to="/"
-            search={{}}
-            className="inline-flex min-h-11 items-center gap-2 rounded-md border-2 border-brand bg-card px-3 py-2 text-sm font-semibold text-brand sm:px-4 sm:text-base"
+          <button
+            type="button"
+            onClick={() => {
+              if (router.history.canGoBack()) {
+                router.history.back();
+                return;
+              }
+              void router.navigate({ to: "/", search: {} });
+            }}
+            className="inline-flex min-h-11 items-center gap-2 rounded-md border-2 border-sub bg-card px-3 py-2 text-sm font-semibold text-brand sm:px-4 sm:text-base"
           >
             <ArrowLeft size={21} aria-hidden />
-            <span className="hidden sm:inline">Revino la meniul principal</span>
-            <span className="sm:hidden">Meniu</span>
-          </Link>
+            <span>Înapoi</span>
+          </button>
         ) : null}
       </div>
     </header>

@@ -13,7 +13,7 @@ export function MapZoomControls({
 }) {
   return (
     <div
-      className="absolute right-3 top-3 z-20 flex items-center gap-1 rounded-md bg-card p-1.5 shadow-lg ring-1 ring-ink/10"
+      className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-md bg-card p-1.5 shadow-lg ring-1 ring-ink/10"
       aria-label="Comenzi zoom hartă"
     >
       <button

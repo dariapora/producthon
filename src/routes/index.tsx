@@ -47,7 +47,7 @@ function HomePage() {
             <Link
               key={item.key}
               to={item.to}
-              className="group flex min-h-[220px] flex-col rounded-md border-2 border-line bg-card p-5 transition-colors hover:border-brand sm:p-6"
+              className="group flex min-h-[220px] flex-col rounded-md border-2 border-line bg-card p-5 transition-colors hover:border-sub sm:p-6"
             >
               <span className="min-w-0 flex-1">
                 <span className="block text-[18px] font-bold leading-snug sm:whitespace-nowrap sm:text-[20px] lg:text-[22px]">

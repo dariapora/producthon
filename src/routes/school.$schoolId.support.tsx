@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
-import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { Breadcrumb, NAV_LABELS } from "@/components/layout/Breadcrumb";
+import { NgoRecommendationMap } from "@/components/NgoRecommendationMap";
+import { RecommendationScoreBadge } from "@/components/RecommendationScoreBadge";
 import { getSchoolById } from "@/lib/dataset";
 import { formatKm } from "@/lib/distance";
 import {
@@ -51,6 +53,7 @@ function SchoolSupport() {
   const [supportType, setSupportType] = useState<string>("Toate");
   const [sort, setSort] = useState<SortMode>("recomandate");
   const [showAll, setShowAll] = useState(false);
+  const [view, setView] = useState<"list" | "map">("map");
 
   const filtered = useMemo(() => {
     const list = result.recommendations.filter((item) => {
@@ -68,17 +71,32 @@ function SchoolSupport() {
     <main className="mx-auto max-w-[1080px] px-6 py-8">
       <Breadcrumb
         items={[
-          { label: "Acasă", to: "/" },
-          { label: "Vreau să ajut", to: "/support" },
-          { label: "Organizații potrivite" },
+          { label: NAV_LABELS.home, to: "/" },
+          { label: NAV_LABELS.findSchool, to: "/find-school" },
+          {
+            label: school.schoolName,
+            to: "/school/$schoolId",
+            params: { schoolId: school.id },
+          },
+          { label: NAV_LABELS.recommendations },
         ]}
       />
       <section className="mt-6">
-        <div className="flex flex-wrap items-baseline justify-between gap-3 border-b-4 border-ink pb-5">
+        <div className="flex flex-wrap items-end justify-between gap-3 border-sub pb-5">
           <h1 className="text-[34px] font-bold leading-tight sm:text-[40px]">
             Organizații potrivite
           </h1>
-          <p className="font-semibold text-sub">{filtered.length} organizații</p>
+          <div className="flex flex-wrap items-end gap-5">
+            <p className="pb-2 font-semibold text-sub">{filtered.length} organizații</p>
+            <div className="flex border-b border-line" role="group" aria-label="Mod de afișare">
+              <ViewButton active={view === "list"} onClick={() => setView("list")}>
+                Listă
+              </ViewButton>
+              <ViewButton active={view === "map"} onClick={() => setView("map")}>
+                Hartă
+              </ViewButton>
+            </div>
+          </div>
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -86,7 +104,7 @@ function SchoolSupport() {
             <select
               value={supportType}
               onChange={(event) => setSupportType(event.target.value)}
-              className="min-h-14 w-full rounded-md border-2 border-line bg-card px-4 py-3 text-base font-semibold focus:border-brand"
+              className="min-h-14 w-full rounded-md border-2 border-line bg-card px-4 py-3 text-base font-semibold focus:border-sub"
             >
               <option value="Toate">Toate</option>
               {INTERVENTION_TYPES.map((type) => (
@@ -100,7 +118,7 @@ function SchoolSupport() {
             <select
               value={sort}
               onChange={(event) => setSort(event.target.value as SortMode)}
-              className="min-h-14 w-full rounded-md border-2 border-line bg-card px-4 py-3 text-base font-semibold focus:border-brand"
+              className="min-h-14 w-full rounded-md border-2 border-line bg-card px-4 py-3 text-base font-semibold focus:border-sub"
             >
               <option value="recomandate">Recomandate</option>
               <option value="apropiate">Mai aproape</option>
@@ -110,16 +128,26 @@ function SchoolSupport() {
         </div>
 
         {result.expandedBeyondCounty && (
-          <p className="mt-5 border-l-4 border-brand pl-4 text-sm text-sub">
+          <p className="mt-5 border-l-4 border-sub pl-4 text-sm text-sub">
             Am extins căutarea în afara județului pentru a găsi mai multe organizații relevante.
           </p>
         )}
 
-        <div className="mt-6 border-y-2 border-line">
-          {visible.map((item) => (
-            <RecommendationRow key={item.ngo.id} item={item} schoolId={school.id} />
-          ))}
-        </div>
+        {view === "map" && filtered.length > 0 ? (
+          <div className="mt-6">
+            <NgoRecommendationMap
+              recommendations={filtered}
+              school={school}
+              showNational={result.expandedBeyondCounty}
+            />
+          </div>
+        ) : (
+          <div className="mt-6 border-y-2 border-line">
+            {visible.map((item) => (
+              <RecommendationRow key={item.ngo.id} item={item} schoolId={school.id} />
+            ))}
+          </div>
+        )}
 
         {filtered.length === 0 && (
           <div className="border-b-2 border-line py-10">
@@ -132,18 +160,18 @@ function SchoolSupport() {
                 setSupportType("Toate");
                 setShowAll(true);
               }}
-              className="mt-4 min-h-12 border-2 border-brand px-5 font-semibold text-brand"
+              className="mt-4 min-h-12 border-2 border-sub px-5 font-semibold text-brand"
             >
               Vezi toate ONG-urile relevante din România
             </button>
           </div>
         )}
 
-        {filtered.length > 5 && !showAll && (
+        {view === "list" && filtered.length > 5 && !showAll && (
           <button
             type="button"
             onClick={() => setShowAll(true)}
-            className="mt-5 min-h-12 border-2 border-brand bg-card px-5 py-3 text-base font-semibold text-brand"
+            className="mt-5 min-h-12 rounded-md border-2 border-sub bg-card px-5 py-3 text-base font-semibold text-brand"
           >
             Vezi încă {filtered.length - 5} organizații
           </button>
@@ -163,6 +191,29 @@ function SchoolSupport() {
   );
 }
 
+function ViewButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`min-h-11 px-4 font-semibold ${
+        active ? "border-b-4 border-sub text-brand" : "text-sub hover:text-ink"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
@@ -178,7 +229,7 @@ function RecommendationRow({ item, schoolId }: { item: NgoRecommendation; school
     <article className="border-b border-line py-6 last:border-b-0 sm:px-2">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <h3 className="font-display text-xl font-bold tracking-tight">{ngo.name}</h3>
-        <span className="text-sm font-semibold text-brand">{item.label}</span>
+        <RecommendationScoreBadge score={item.score} label={item.label} />
       </div>
 
       <p className="mt-2 text-sub">
@@ -188,6 +239,12 @@ function RecommendationRow({ item, schoolId }: { item: NgoRecommendation; school
           <>{locationFallback(ngo)} · </>
         )}
         {ngo.locality}, {ngo.county}
+      </p>
+
+      <p className="mt-2 text-sm font-medium text-sub">
+        Domeniu {item.scoreBreakdown.activity}/50 · Proximitate {item.scoreBreakdown.proximity}/30 ·
+        Relevanță {item.scoreBreakdown.relevance}/20
+        {item.sameLocality ? " · aceeași localitate" : item.sameCounty ? " · același județ" : ""}
       </p>
 
       <p className="mt-3 text-base">

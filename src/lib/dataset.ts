@@ -4,12 +4,12 @@
  * Combină fișierele generate din CSV cu stratul de coordonate disponibil și
  * expune modelul intern din src/lib/model.ts.
  */
-import { schools2025 } from "@/data/raw/schools2025";
-import { schools2026Imported } from "@/data/raw/schools2026Imported";
+import { schoolsImported } from "@/data/raw/schools2026Imported";
 import type { RawSchoolRow } from "@/data/raw/schools2026";
 import { ngosImported } from "@/data/raw/ngosImported";
 import { schoolEnrichment } from "@/data/enrichment/schoolEnrichment";
 import { getLocalityCoordinates, normalizeKey } from "@/data/enrichment/localityCoordinates";
+import { getMockNgoCoordinates, getMockSchoolCoordinates } from "@/data/enrichment/ngoCoordinates";
 import { romaniaCountyShapes } from "@/data/geo/romaniaCounties";
 import type {
   CountyStats,
@@ -31,7 +31,10 @@ export function slugify(value: string): string {
   return value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[ăâîșşţț]/gi, (c) => ({ ă: "a", â: "a", î: "i", ș: "s", ş: "s", ţ: "t", ț: "t" })[c.toLowerCase()] ?? c)
+    .replace(
+      /[ăâîșşţț]/gi,
+      (c) => ({ ă: "a", â: "a", î: "i", ș: "s", ş: "s", ţ: "t", ț: "t" })[c.toLowerCase()] ?? c,
+    )
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
@@ -50,7 +53,10 @@ function localityFromName(schoolName: string): string | null {
  * Gimnazială Săceni” → „Săceni”) față de tabelul demo de coordonate.
  */
 function localityFromNameTail(schoolName: string): string | null {
-  const words = schoolName.replace(/[.\-–]/g, " ").split(/\s+/).filter(Boolean);
+  const words = schoolName
+    .replace(/[.\-–]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
   for (const size of [2, 1]) {
     if (words.length < size) continue;
     const candidate = words.slice(words.length - size).join(" ");
@@ -62,10 +68,19 @@ function localityFromNameTail(schoolName: string): string | null {
 function normalizeSchool(row: RawSchoolRow, year: SchoolYear): School {
   const extra = schoolEnrichment[row["nume scoala"]] ?? null;
   const locality =
-    extra?.locality ?? localityFromName(row["nume scoala"]) ?? localityFromNameTail(row["nume scoala"]);
-  const coords = getLocalityCoordinates(locality);
+    extra?.locality ??
+    localityFromName(row["nume scoala"]) ??
+    localityFromNameTail(row["nume scoala"]);
+  const id = `${slugify(row.Judet)}-${slugify(row["nume scoala"])}-${year}`;
+  const coordinates =
+    extra ??
+    getMockSchoolCoordinates({
+      id,
+      locality: locality ?? "",
+      county: row.Judet,
+    });
   return {
-    id: `${slugify(row.Judet)}-${slugify(row["nume scoala"])}-${year}`,
+    id,
     county: row.Judet,
     schoolName: row["nume scoala"],
     enAverage: row["medie en"],
@@ -73,28 +88,31 @@ function normalizeSchool(row: RawSchoolRow, year: SchoolYear): School {
     romanianAverage: row["medie romana"],
     graduates: row["nr absolventi"],
     locality,
-    latitude: extra?.latitude ?? coords?.latitude ?? null,
-    longitude: extra?.longitude ?? coords?.longitude ?? null,
+    latitude: coordinates?.latitude ?? null,
+    longitude: coordinates?.longitude ?? null,
     year,
   };
 }
 
 export const schools: School[] = [
-  ...schools2026Imported.map((row) =>
+  ...schoolsImported.map((row) =>
     normalizeSchool(
       {
         Judet: row.Judet,
         "nume scoala": row.Scoala,
-        "medie en": row.Medie_Generala_2026,
-        "medie mate": row.Medie_Matematica_2026,
-        "medie romana": row.Medie_Romana_2026,
-        "nr absolventi": row.Numar_Elevi_2026,
+        "medie en": row.Medie_Generala,
+        "medie mate": row.Medie_Matematica,
+        "medie romana": row.Medie_Romana,
+        "nr absolventi": row.Numar_Elevi,
       },
-      2026,
+      row.An,
     ),
   ),
-  ...schools2025.map((r) => normalizeSchool(r, 2025)),
 ];
+
+export const schoolCounties = Array.from(
+  new Set(schools.filter((school) => school.year === CURRENT_YEAR).map((school) => school.county)),
+).sort((left, right) => left.localeCompare(right, "ro"));
 
 /** Uniformizează majusculele, diacriticele și separatorii dintre cele două CSV-uri. */
 export function normalizeCountyName(value: string): string {
@@ -105,13 +123,15 @@ export function normalizeCountyName(value: string): string {
 
 export const ngos: Ngo[] = ngosImported.map((row) => {
   const locality = row.Localitate || "Nedeterminată";
-  const coordinates = getLocalityCoordinates(row.Localitate || null);
+  const county = normalizeCountyName(row.Judet);
+  const id = `${slugify(row["Denumire ONG"])}-${row["Nr. Crt."]}`;
+  const coordinates = getMockNgoCoordinates({ id, locality, county });
   return {
-    id: `${slugify(row["Denumire ONG"])}-${row["Nr. Crt."]}`,
+    id,
     name: row["Denumire ONG"],
     registrationNumber: row["Numar Registru"],
     locality,
-    county: normalizeCountyName(row.Judet),
+    county,
     status: row.Status,
     legalCategory: row["Categorie Personalitate Juridica"],
     publicUtility: row["Are Utilitate Publica"].trim().toLowerCase() === "da",
@@ -163,8 +183,13 @@ function weightedAverage(values: { value: number; weight: number }[]): number {
   return 0;
 }
 
-export function getCountyStats(county: string, year: SchoolYear = CURRENT_YEAR): CountyStats | null {
-  const list = getSchoolsByYear(year).filter((s) => s.county.toLowerCase() === county.toLowerCase());
+export function getCountyStats(
+  county: string,
+  year: SchoolYear = CURRENT_YEAR,
+): CountyStats | null {
+  const list = getSchoolsByYear(year).filter(
+    (s) => s.county.toLowerCase() === county.toLowerCase(),
+  );
   const first = list[0];
   if (!first) return null;
   return {
@@ -173,7 +198,9 @@ export function getCountyStats(county: string, year: SchoolYear = CURRENT_YEAR):
     year,
     enAverage: weightedAverage(list.map((s) => ({ value: s.enAverage, weight: s.graduates }))),
     mathAverage: weightedAverage(list.map((s) => ({ value: s.mathAverage, weight: s.graduates }))),
-    romanianAverage: weightedAverage(list.map((s) => ({ value: s.romanianAverage, weight: s.graduates }))),
+    romanianAverage: weightedAverage(
+      list.map((s) => ({ value: s.romanianAverage, weight: s.graduates })),
+    ),
     schoolCount: list.length,
     graduates: list.reduce((sum, s) => sum + s.graduates, 0),
   };
@@ -256,7 +283,9 @@ export function searchSchoolsInCounty(
       return { school, score, index: index === -1 ? localityIndex : index };
     })
     .filter((item): item is { school: School; score: number; index: number } => item !== null)
-    .sort((a, b) => a.score - b.score || a.index - b.index || b.school.enAverage - a.school.enAverage);
+    .sort(
+      (a, b) => a.score - b.score || a.index - b.index || b.school.enAverage - a.school.enAverage,
+    );
   return scored.slice(0, limit).map((item) => item.school);
 }
 
@@ -280,13 +309,21 @@ export function searchSchools(query: string, limit = 8): School[] {
       return { school, score, index };
     })
     .filter((item): item is { school: School; score: number; index: number } => item !== null)
-    .sort((a, b) => a.score - b.score || a.index - b.index || a.school.schoolName.localeCompare(b.school.schoolName, "ro"))
+    .sort(
+      (a, b) =>
+        a.score - b.score ||
+        a.index - b.index ||
+        a.school.schoolName.localeCompare(b.school.schoolName, "ro"),
+    )
     .slice(0, limit)
     .map((item) => item.school);
 }
 
 /** Școlile cu coordonate cunoscute, pentru harta județului. */
-export function getMappableSchoolsInCounty(county: string, year: SchoolYear = CURRENT_YEAR): School[] {
+export function getMappableSchoolsInCounty(
+  county: string,
+  year: SchoolYear = CURRENT_YEAR,
+): School[] {
   return getSchoolsInCounty(county, year).filter(
     (s) => s.latitude !== null && s.longitude !== null,
   );

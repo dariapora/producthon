@@ -12,6 +12,22 @@ export type PrioritySchool = {
   urgency: number;
 };
 
+const locatableNgos = ngos.filter(
+  (ngo) => isEligible(ngo) && normalizeKey(ngo.county) !== "nedeterminat",
+);
+
+const locatableNgosByCounty = new Map<string, Ngo[]>();
+locatableNgos.forEach((ngo) => {
+  const key = normalizeKey(ngo.county);
+  const countyNgos = locatableNgosByCounty.get(key) ?? [];
+  countyNgos.push(ngo);
+  locatableNgosByCounty.set(key, countyNgos);
+});
+
+export const locatableNgoCounties = Array.from(
+  new Set(locatableNgos.map((ngo) => ngo.county)),
+).sort((left, right) => left.localeCompare(right, "ro"));
+
 function urgencyRank(value: string): number {
   const normalized = normalizeKey(value);
   if (normalized.includes("foarte urgent")) return 4;
@@ -21,12 +37,15 @@ function urgencyRank(value: string): number {
   return 0;
 }
 
-export function searchLocatableNgos(query: string, limit = 8): Ngo[] {
+export function searchLocatableNgos(query: string, county?: string, limit = 8): Ngo[] {
   const term = normalizeKey(query);
   if (term.length < 2) return [];
 
-  return ngos
-    .filter((ngo) => isEligible(ngo) && normalizeKey(ngo.county) !== "nedeterminat")
+  const candidates = county
+    ? (locatableNgosByCounty.get(normalizeKey(county)) ?? [])
+    : locatableNgos;
+
+  return candidates
     .map((ngo) => {
       const name = normalizeKey(ngo.name);
       const locality = normalizeKey(ngo.locality);

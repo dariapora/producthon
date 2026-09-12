@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { Breadcrumb, NAV_LABELS } from "@/components/layout/Breadcrumb";
 import { RomaniaCountyMap } from "@/components/RomaniaCountyMap";
 import { CountyPerformanceLegend } from "@/components/RiskBadge";
 import { Panel, PanelTitle, StatCard } from "@/components/ui/Panel";
@@ -45,7 +45,9 @@ function NationalDashboard() {
     <main className="mx-auto max-w-[1320px] px-6 py-8">
       <div className="rise flex flex-wrap items-end justify-between gap-4">
         <div>
-          <Breadcrumb items={[{ label: "Acasă", to: "/" }, { label: "România" }]} />
+          <Breadcrumb
+            items={[{ label: NAV_LABELS.home, to: "/" }, { label: NAV_LABELS.national }]}
+          />
           <h1 className="mt-3 text-balance font-display text-[44px] font-extrabold leading-none tracking-tight">
             Situația națională {CURRENT_YEAR}
           </h1>

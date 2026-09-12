@@ -96,7 +96,7 @@ export function HartaEduReportDialog({ school }: { school: School }) {
                     name="category"
                     required
                     defaultValue=""
-                    className="min-h-12 w-full rounded-md border-2 border-line bg-card px-3 py-2 outline-none focus:border-brand"
+                    className="min-h-12 w-full rounded-md border-2 border-line bg-card px-3 py-2 outline-none focus:border-sub"
                   >
                     <option value="" disabled>
                       Alege categoria
@@ -115,7 +115,7 @@ export function HartaEduReportDialog({ school }: { school: School }) {
                     name="urgency"
                     required
                     defaultValue=""
-                    className="min-h-12 w-full rounded-md border-2 border-line bg-card px-3 py-2 outline-none focus:border-brand"
+                    className="min-h-12 w-full rounded-md border-2 border-line bg-card px-3 py-2 outline-none focus:border-sub"
                   >
                     <option value="" disabled>
                       Alege urgența
@@ -137,7 +137,7 @@ export function HartaEduReportDialog({ school }: { school: School }) {
                   inputMode="numeric"
                   required
                   placeholder="Exemplu: 120"
-                  className="min-h-12 w-full rounded-md border-2 border-line bg-card px-3 py-2 outline-none placeholder:text-sub focus:border-brand"
+                  className="min-h-12 w-full rounded-md border-2 border-line bg-card px-3 py-2 outline-none placeholder:text-sub focus:border-sub"
                 />
               </FormField>
 
@@ -149,7 +149,7 @@ export function HartaEduReportDialog({ school }: { school: School }) {
                   minLength={20}
                   rows={4}
                   placeholder="Ce lipsește, cine este afectat și ce fel de ajutor ar rezolva problema?"
-                  className="w-full resize-y rounded-md border-2 border-line bg-card px-3 py-3 outline-none placeholder:text-sub focus:border-brand"
+                  className="w-full resize-y rounded-md border-2 border-line bg-card px-3 py-3 outline-none placeholder:text-sub focus:border-sub"
                 />
               </FormField>
 

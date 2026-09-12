@@ -2,8 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { Breadcrumb } from "@/components/layout/Breadcrumb";
-import { CountySchoolMap } from "@/components/CountySchoolMap";
+import { Breadcrumb, NAV_LABELS } from "@/components/layout/Breadcrumb";
 import {
   CountyPerformanceLegend,
   PerformanceBadge,
@@ -24,7 +23,7 @@ import {
 } from "@/lib/dataset";
 import { hasHartaEduAlerts } from "@/lib/hartaedu";
 import type { School } from "@/lib/model";
-import { formatCount, formatDelta, formatGrade } from "@/lib/risk";
+import { formatCount, formatDelta, formatGrade, getCountyPerformanceColor } from "@/lib/risk";
 
 const SCHOOLS_PER_PAGE = 10;
 
@@ -68,6 +67,8 @@ function CountyDashboard() {
 
   const delta = stats && prev ? stats.enAverage - prev.enAverage : null;
   const vsNational = stats ? stats.enAverage - national.enAverage : null;
+  const countyPerformance = getCountyPerformanceColor(stats?.enAverage);
+  const nationalPerformance = getCountyPerformanceColor(national.enAverage);
   const mappable = getMappableSchoolsInCounty(county, CURRENT_YEAR);
   const previousAverages = Object.fromEntries(
     mappable.map((s) => [s.id, getPreviousYearAverage(s)]),
@@ -80,8 +81,8 @@ function CountyDashboard() {
         <div>
           <Breadcrumb
             items={[
-              { label: "Acasă", to: "/" },
-              { label: "Situația națională", to: "/national" },
+              { label: NAV_LABELS.home, to: "/" },
+              { label: NAV_LABELS.national, to: "/national" },
               { label: `Județul ${county}` },
             ]}
           />
@@ -99,39 +100,66 @@ function CountyDashboard() {
         <StatCard
           label={`Media EN · ${county}`}
           value={formatGrade(stats?.enAverage)}
-          hint={`față de ${PREVIOUS_YEAR}: ${formatDelta(delta)}`}
+          className={countyPerformance?.bgClass}
+          labelClassName={countyPerformance?.textClass}
+          valueClassName={countyPerformance?.textClass}
+          hint={
+            <span
+              className={`font-semibold ${
+                delta === null ? "text-risk-yel" : delta >= 0 ? "text-risk-grn" : "text-risk-red"
+              }`}
+            >
+              față de {PREVIOUS_YEAR}: {formatDelta(delta)}
+            </span>
+          }
         />
         <StatCard
           label="Media EN · România"
           value={formatGrade(national.enAverage)}
+          className={nationalPerformance?.bgClass}
+          labelClassName={nationalPerformance?.textClass}
+          valueClassName={nationalPerformance?.textClass}
           hint={
-            vsNational !== null && vsNational >= 0
-              ? "județul este peste media națională"
-              : "județul este sub media națională"
+            <span
+              className={`font-semibold ${
+                vsNational === null
+                  ? "text-risk-yel"
+                  : vsNational >= 0
+                    ? "text-risk-grn"
+                    : "text-risk-red"
+              }`}
+            >
+              {vsNational === null
+                ? "comparație indisponibilă"
+                : vsNational >= 0
+                  ? "județul este peste media națională"
+                  : "județul este sub media națională"}
+            </span>
           }
         />
-        <StatCard label="Școli" value={formatCount(schools.length)} hint="cu rezultate raportate" />
+        <StatCard
+          label="Școli"
+          value={formatCount(schools.length)}
+          className="border-risk-grn bg-risk-grn-bg"
+          labelClassName="text-risk-grn"
+          valueClassName="text-risk-grn"
+          hint={<span className="font-semibold text-risk-grn">cu rezultate raportate</span>}
+        />
         <StatCard
           label="Absolvenți"
           value={formatCount(stats?.graduates ?? 0)}
-          hint={`evaluați în ${CURRENT_YEAR}`}
+          className="border-risk-grn bg-risk-grn-bg"
+          labelClassName="text-risk-grn"
+          valueClassName="text-risk-grn"
+          hint={<span className="font-semibold text-risk-grn">evaluați în {CURRENT_YEAR}</span>}
         />
       </section>
 
       <section className="mt-5 grid grid-cols-12 gap-5">
-        <Panel className={`col-span-12 ${county === "Buzău" ? "" : "lg:col-span-4"}`}>
+        <Panel className={`col-span-12`}>
           <PanelTitle>Găsește-ți școala</PanelTitle>
           <div className="mt-4">
             <SchoolSearch county={county} />
-          </div>
-          <div className="mt-5 flex flex-wrap gap-6 text-base text-sub">
-            <span>
-              Matematică <b className="font-medium text-ink">{formatGrade(stats?.mathAverage)}</b>
-            </span>
-            <span>
-              Limba română{" "}
-              <b className="font-medium text-ink">{formatGrade(stats?.romanianAverage)}</b>
-            </span>
           </div>
           <div className="mt-5 flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-brand" />
@@ -140,24 +168,6 @@ function CountyDashboard() {
             </p>
           </div>
         </Panel>
-
-        {county !== "Buzău" ? (
-          <Panel className="col-span-12 lg:col-span-8">
-            <PanelTitle meta={`Media EN · ${CURRENT_YEAR}`}>Harta școlilor</PanelTitle>
-            <div className="mt-3">
-              <SchoolPerformanceLegend />
-            </div>
-            <div className="mt-4">
-              <CountySchoolMap
-                county={county}
-                schools={mappable}
-                countyAverage={stats?.enAverage ?? null}
-                previousAverages={previousAverages}
-                totalSchools={schools.length}
-              />
-            </div>
-          </Panel>
-        ) : null}
       </section>
 
       <section className="mt-5 grid grid-cols-12 items-start gap-5">
@@ -179,7 +189,7 @@ function CountyDashboard() {
                   <Link
                     to="/ngo/$ngoId"
                     params={{ ngoId: n.id }}
-                    className="block min-h-14 rounded-md border border-line bg-paper px-4 py-3 hover:border-brand"
+                    className="block min-h-14 rounded-md border border-line bg-paper px-4 py-3 hover:border-sub"
                   >
                     <p className="font-semibold">{n.name}</p>
                     <p className="mt-1 text-sm text-sub">
@@ -205,10 +215,7 @@ function CountyDashboard() {
 function SchoolListPanel({ schools }: { schools: School[] }) {
   const [page, setPage] = useState(0);
   const pageCount = Math.max(1, Math.ceil(schools.length / SCHOOLS_PER_PAGE));
-  const visibleSchools = schools.slice(
-    page * SCHOOLS_PER_PAGE,
-    (page + 1) * SCHOOLS_PER_PAGE,
-  );
+  const visibleSchools = schools.slice(page * SCHOOLS_PER_PAGE, (page + 1) * SCHOOLS_PER_PAGE);
 
   return (
     <Panel className="col-span-12 lg:col-span-8">
@@ -247,7 +254,7 @@ function SchoolListPanel({ schools }: { schools: School[] }) {
             aria-label="Pagina anterioară"
             disabled={page === 0}
             onClick={() => setPage((currentPage) => Math.max(0, currentPage - 1))}
-            className="grid size-11 place-items-center rounded-md border-2 border-line text-brand transition-colors hover:border-brand disabled:cursor-not-allowed disabled:opacity-35"
+            className="grid size-11 place-items-center rounded-md border-2 border-line text-brand transition-colors hover:border-sub disabled:cursor-not-allowed disabled:opacity-35"
           >
             <ChevronLeft size={22} aria-hidden />
           </button>
@@ -259,7 +266,7 @@ function SchoolListPanel({ schools }: { schools: School[] }) {
             aria-label="Pagina următoare"
             disabled={page === pageCount - 1}
             onClick={() => setPage((currentPage) => Math.min(pageCount - 1, currentPage + 1))}
-            className="grid size-11 place-items-center rounded-md border-2 border-line text-brand transition-colors hover:border-brand disabled:cursor-not-allowed disabled:opacity-35"
+            className="grid size-11 place-items-center rounded-md border-2 border-line text-brand transition-colors hover:border-sub disabled:cursor-not-allowed disabled:opacity-35"
           >
             <ChevronRight size={22} aria-hidden />
           </button>

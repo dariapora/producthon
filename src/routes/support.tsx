@@ -4,27 +4,27 @@ import { useMemo, useState } from "react";
 
 import { PerformanceBadge } from "@/components/RiskBadge";
 import { SupportSchoolMap } from "@/components/SupportSchoolMap";
-import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { Breadcrumb, NAV_LABELS } from "@/components/layout/Breadcrumb";
 import { EmptyState } from "@/components/ui/Panel";
 import { normalizeKey } from "@/data/enrichment/localityCoordinates";
-import { CURRENT_YEAR, getNgoById } from "@/lib/dataset";
+import { getNgoById } from "@/lib/dataset";
 import { getHartaEduUrgencyTone } from "@/lib/hartaedu";
 import type { Ngo } from "@/lib/model";
 import { formatCount, formatGrade } from "@/lib/risk";
 import { buildNgoToSchoolEmailDraft } from "@/lib/schoolEmail";
 import {
   getRankedSchoolsForNgo,
+  locatableNgoCounties,
   searchLocatableNgos,
   type PrioritySchool,
   type SupportScope,
 } from "@/lib/schoolSupport";
 
-type SupportSearch = { ngoId?: string; scope?: SupportScope };
+type SupportSearch = { ngoId?: string };
 
 export const Route = createFileRoute("/support")({
   validateSearch: (search: Record<string, unknown>): SupportSearch => ({
     ...(typeof search.ngoId === "string" && search.ngoId.length > 0 ? { ngoId: search.ngoId } : {}),
-    ...(search.scope === "county" || search.scope === "national" ? { scope: search.scope } : {}),
   }),
   head: () => ({
     meta: [
@@ -41,10 +41,11 @@ export const Route = createFileRoute("/support")({
 function SupportOverview() {
   const navigate = useNavigate();
   const search = Route.useSearch();
-  const scope = search.scope ?? "county";
+  const scope = "county";
   const selectedNgo = search.ngoId ? getNgoById(search.ngoId) : null;
   const ngo = selectedNgo?.county !== "Nedeterminat" ? selectedNgo : null;
   const [schoolQuery, setSchoolQuery] = useState("");
+  const [schoolSearchOpen, setSchoolSearchOpen] = useState(false);
   const [view, setView] = useState<"list" | "map">("map");
   const [visibleCount, setVisibleCount] = useState(24);
 
@@ -52,136 +53,147 @@ function SupportOverview() {
     () => (ngo ? getRankedSchoolsForNgo(ngo, scope) : []),
     [ngo, scope],
   );
+  const areaSchools = scopedSchools;
   const filteredSchools = useMemo(() => {
     const term = normalizeKey(schoolQuery);
-    if (!term) return scopedSchools;
-    return scopedSchools.filter(({ school }) =>
+    if (!term) return areaSchools;
+    return areaSchools.filter(({ school }) =>
       normalizeKey(`${school.schoolName} ${school.locality ?? ""}`).includes(term),
     );
-  }, [schoolQuery, scopedSchools]);
-  const reportedSchools = scopedSchools.filter(({ alerts }) => alerts.length > 0);
+  }, [areaSchools, schoolQuery]);
+  const suggestedSchools = filteredSchools.slice(0, 8);
+  const reportedSchools = areaSchools.filter(({ alerts }) => alerts.length > 0);
   const impactedStudents = reportedSchools.reduce(
     (total, { alerts }) =>
       total + alerts.reduce((subtotal, alert) => subtotal + alert.impactedStudents, 0),
     0,
   );
 
-  function updateSelection(nextNgoId?: string, nextScope?: SupportScope) {
+  function updateSelection(nextNgoId?: string) {
     setSchoolQuery("");
+    setView("map");
     setVisibleCount(24);
     void navigate({
       to: "/support",
-      search: nextNgoId ? { ngoId: nextNgoId, scope: nextScope ?? "county" } : {},
+      search: nextNgoId ? { ngoId: nextNgoId } : {},
     });
   }
 
   return (
     <main className="mx-auto max-w-[1180px] px-4 py-7 sm:px-6 sm:py-10">
       <header>
-        <Breadcrumb items={[{ label: "Acasă", to: "/" }, { label: "Reprezint un ONG" }]} />
-        <div className="mt-6 max-w-[780px]">
-          <h1 className="text-balance text-[36px] font-bold leading-[1.08] sm:text-[46px]">
-            Găsește școli pe care organizația ta le poate sprijini
-          </h1>
-          <p className="mt-3 max-w-[64ch] text-lg leading-relaxed text-sub">
-            Selectează ONG-ul, explorează situația școlilor din zona sa și contactează direct
-            școala.
-          </p>
+        <Breadcrumb
+          items={[{ label: NAV_LABELS.home, to: "/" }, { label: NAV_LABELS.ngoSupport }]}
+        />
+        <div className="mt-6 grid items-start gap-6 lg:grid-cols-2 lg:gap-10">
+          <div className="max-w-[720px]">
+            <h1 className="text-balance text-[36px] font-bold leading-[1.08] sm:text-[46px]">
+              Găsește școli care au nevoie de ajutor
+            </h1>
+          </div>
+
+          {ngo ? (
+            <section className="rounded-md border border-line bg-card p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-md bg-paper text-brand">
+                    <Building2 size={18} aria-hidden />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-sub">
+                      Organizația selectată
+                    </p>
+                    <p className="truncate font-bold">{ngo.name}</p>
+                    <p className="truncate text-xs text-sub">
+                      {ngo.locality}, {ngo.county} · {ngo.interventionType}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => updateSelection()}
+                  className="min-h-10 shrink-0 text-sm font-semibold text-brand underline decoration-2 underline-offset-4"
+                >
+                  Schimbă
+                </button>
+              </div>
+            </section>
+          ) : (
+            <section className="rounded-md border-2 border-sub bg-card p-5">
+              <h2 className="text-xl font-bold">Selectează organizația</h2>
+              <NgoSelector onSelect={(selected) => updateSelection(selected.id)} />
+            </section>
+          )}
         </div>
       </header>
 
-      <section className="mt-8 rounded-md border-2 border-brand bg-card p-5 sm:p-7">
-        <h2 className="text-[22px] font-bold">1. Selectează organizația</h2>
-        {ngo ? (
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-5 rounded-md bg-paper px-5 py-4">
-            <div>
-              <p className="font-bold">{ngo.name}</p>
-              <p className="mt-1 text-sm text-sub">
-                {ngo.locality}, județul {ngo.county} · {ngo.interventionType}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => updateSelection()}
-              className="min-h-11 font-semibold text-brand underline decoration-2 underline-offset-4"
-            >
-              Schimbă ONG-ul
-            </button>
-          </div>
-        ) : (
-          <NgoSelector onSelect={(selected) => updateSelection(selected.id, "county")} />
-        )}
-      </section>
-
       {ngo ? (
         <>
-          <section
-            aria-label="Rezumat pentru aria selectată"
-            className="mt-7 grid border-y-2 border-line sm:grid-cols-3"
-          >
-            <SummaryStat value={formatCount(reportedSchools.length)} label="școli cu raportări" />
-            <SummaryStat value={formatCount(impactedStudents)} label="elevi impactați" />
-            <SummaryStat
-              value={formatCount(scopedSchools.length)}
-              label={scope === "county" ? `școli în ${ngo.county}` : "școli în România"}
-            />
-          </section>
+  
 
-          {reportedSchools.length > 0 ? (
-            <HartaEduHighlights schools={reportedSchools} ngo={ngo} scope={scope} />
-          ) : null}
-
-          <section id="scoli" className="mt-10 scroll-mt-24 border-t-4 border-ink pt-6">
+          <section id="scoli" className="mt-10 scroll-mt-24 border-sub pt-2">
             <div className="flex flex-wrap items-end justify-between gap-5">
               <div>
-                <h2 className="text-[28px] font-bold">
-                  2.{" "}
-                  {scope === "county"
-                    ? `Situația școlilor din ${ngo.county}`
-                    : "Situația școlilor din România"}
-                </h2>
-                <p className="mt-2 max-w-[68ch] text-base text-sub">
-                  Școlile sunt mapate pe localități și colorate după rezultatele la Evaluarea
-                  Națională. Raportările HartaEdu sunt marcate separat.
-                </p>
+                <h2 className="text-[28px] font-bold">Situația școlilor din {ngo.county}</h2>
               </div>
               <div
                 className="flex gap-5 border-b border-line"
                 role="group"
                 aria-label="Mod de afișare"
               >
-                <ViewButton active={view === "list"} onClick={() => setView("list")}>
-                  Listă
-                </ViewButton>
                 <ViewButton active={view === "map"} onClick={() => setView("map")}>
                   Hartă
+                </ViewButton>
+                <ViewButton active={view === "list"} onClick={() => setView("list")}>
+                  Listă
                 </ViewButton>
               </div>
             </div>
 
-            <div className="mt-6 flex flex-wrap items-end gap-4">
+            <div className="mt-6 grid items-end gap-4 ">
               <label className="min-w-[260px] flex-1">
                 <span className="mb-1.5 block text-sm font-semibold">Școală sau localitate</span>
-                <input
-                  type="search"
-                  value={schoolQuery}
-                  onChange={(event) => {
-                    setSchoolQuery(event.target.value);
-                    setVisibleCount(24);
-                  }}
-                  placeholder="Scrie un nume"
-                  className="min-h-12 w-full rounded-md border border-line bg-card px-4 py-3 outline-none focus:border-brand"
-                />
+                <div className="relative">
+                  <input
+                    type="search"
+                    value={schoolQuery}
+                    onFocus={() => setSchoolSearchOpen(true)}
+                    onBlur={() => window.setTimeout(() => setSchoolSearchOpen(false), 150)}
+                    onChange={(event) => {
+                      setSchoolQuery(event.target.value);
+                      setVisibleCount(24);
+                      setSchoolSearchOpen(true);
+                    }}
+                    placeholder="Scrie un nume"
+                    className="min-h-12 w-full rounded-md border border-line bg-card px-4 py-3 outline-none focus:border-sub"
+                  />
+                  {schoolSearchOpen && suggestedSchools.length > 0 ? (
+                    <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-md border-2 border-sub bg-card shadow-lg">
+                      <ul aria-label="Sugestii școli">
+                        {suggestedSchools.map(({ school }) => (
+                          <li key={school.id} className="border-b border-line last:border-b-0">
+                            <button
+                              type="button"
+                              onMouseDown={(event) => event.preventDefault()}
+                              onClick={() => {
+                                setSchoolQuery(school.schoolName);
+                                setSchoolSearchOpen(false);
+                                setVisibleCount(24);
+                              }}
+                              className="w-full px-4 py-3 text-left hover:bg-paper"
+                            >
+                              <span className="block font-semibold">{school.schoolName}</span>
+                              <span className="block text-sm text-sub">
+                                {school.locality ?? school.county}, {school.county}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
               </label>
-              <button
-                type="button"
-                onClick={() => updateSelection(ngo.id, scope === "county" ? "national" : "county")}
-                className="min-h-12 border-2 border-brand px-5 py-2 font-semibold text-brand hover:bg-card"
-              >
-                {scope === "county"
-                  ? "Extinde căutarea în toată țara"
-                  : `Revino la județul ${ngo.county}`}
-              </button>
             </div>
 
             <p className="mt-5 border-b-2 border-line pb-4 text-sm font-semibold text-sub">
@@ -195,7 +207,15 @@ function SupportOverview() {
               </div>
             ) : view === "map" ? (
               <div className="mt-6">
-                <SupportSchoolMap schools={filteredSchools} ngo={ngo} scope={scope} />
+                <SupportSchoolMap
+                  key={`${ngo.id}-${scope}`}
+                  schools={filteredSchools}
+                  ngo={ngo}
+                  scope={scope}
+                />
+                {reportedSchools.length > 0 ? (
+                  <HartaEduHighlights schools={reportedSchools} ngo={ngo} scope={scope} />
+                ) : null}
               </div>
             ) : (
               <SchoolList
@@ -209,7 +229,7 @@ function SupportOverview() {
               <button
                 type="button"
                 onClick={() => setVisibleCount((count) => count + 24)}
-                className="mt-6 min-h-12 border-2 border-brand px-5 py-2 font-semibold text-brand hover:bg-card"
+                className="mt-6 min-h-12 border-2 border-sub px-5 py-2 font-semibold text-brand hover:bg-card"
               >
                 Arată următoarele 24
               </button>
@@ -230,20 +250,18 @@ function HartaEduHighlights({
   ngo: Ngo;
   scope: SupportScope;
 }) {
+  const reportedNeeds = schools.reduce((total, { alerts }) => total + alerts.length, 0);
+
   return (
-    <section className="mt-10 border-t-4 border-risk-yel pt-6" aria-labelledby="hartaedu-title">
+    <section className="mt-10" aria-labelledby="hartaedu-title">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 id="hartaedu-title" className="text-[26px] font-bold">
-            Nevoi raportate prin HartaEdu
-          </h2>
-          <p className="mt-2 max-w-[68ch] text-base text-sub">
-            Cazuri concrete de la care poți începe.
-          </p>
+          {reportedNeeds > 0 ? (
+            <h2 id="hartaedu-title" className="text-[26px] font-bold">
+              {formatCount(reportedNeeds)} nevoi raportate prin HartaEdu
+            </h2>
+          ) : null}
         </div>
-        <span className="text-sm font-semibold text-sub">
-          {scope === "county" ? `Județul ${ngo.county}` : "Toată țara"}
-        </span>
       </div>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -295,28 +313,50 @@ function HartaEduHighlights({
     </section>
   );
 }
-
 function NgoSelector({ onSelect }: { onSelect: (ngo: Ngo) => void }) {
+  const [county, setCounty] = useState("");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const results = useMemo(() => searchLocatableNgos(query), [query]);
-  const showResults = open && query.trim().length >= 2;
+  const results = useMemo(() => searchLocatableNgos(query, county), [county, query]);
+  const showResults = open && county.length > 0 && query.trim().length >= 2;
 
   return (
     <div className="relative mt-4">
-      <label htmlFor="ngo-search" className="text-base font-semibold">
-        Numele ONG-ului
+      <label htmlFor="ngo-county" className="text-sm font-semibold">
+        1. Județul
       </label>
-      <div className="relative mt-2">
+      <select
+        id="ngo-county"
+        value={county}
+        onChange={(event) => {
+          setCounty(event.target.value);
+          setQuery("");
+          setOpen(false);
+        }}
+        className="mt-1.5 min-h-12 w-full rounded-md border-2 border-line bg-white px-3 py-2 outline-none focus:border-sub"
+      >
+        <option value="">Alege județul</option>
+        {locatableNgoCounties.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+
+      <label htmlFor="ngo-search" className="mt-3 block text-sm font-semibold">
+        2. Numele ONG-ului
+      </label>
+      <div className="relative mt-1.5">
         <Search
-          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-brand"
-          size={24}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brand"
+          size={20}
           aria-hidden
         />
         <input
           id="ngo-search"
           type="search"
           autoComplete="off"
+          disabled={!county}
           value={query}
           onChange={(event) => {
             setQuery(event.target.value);
@@ -324,12 +364,12 @@ function NgoSelector({ onSelect }: { onSelect: (ngo: Ngo) => void }) {
           }}
           onFocus={() => setOpen(true)}
           onBlur={() => window.setTimeout(() => setOpen(false), 150)}
-          placeholder="Exemplu: asociație, fundație, localitate"
-          className="min-h-16 w-full rounded-md border-2 border-line bg-white py-3 pl-14 pr-4 text-lg outline-none placeholder:text-sub focus:border-brand"
+          placeholder={county ? "Asociație sau fundație" : "Alege mai întâi județul"}
+          className="min-h-12 w-full rounded-md border-2 border-line bg-white py-2 pl-11 pr-3 outline-none placeholder:text-sub focus:border-sub disabled:cursor-not-allowed disabled:bg-paper"
         />
       </div>
       {showResults ? (
-        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-md border-2 border-brand bg-card shadow-lg">
+        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-md border-2 border-sub bg-card shadow-lg">
           {results.length === 0 ? (
             <p className="px-5 py-5 text-sub">
               Nu am găsit un ONG cu județ cunoscut pentru „{query}”.
@@ -361,13 +401,14 @@ function NgoSelector({ onSelect }: { onSelect: (ngo: Ngo) => void }) {
         </div>
       ) : (
         <p className="mt-2 text-sm text-sub">
-          Introdu cel puțin două caractere. ONG-urile fără județ cunoscut nu sunt afișate.
+          {county
+            ? "Introdu cel puțin două caractere."
+            : "Selectează județul pentru a activa căutarea."}
         </p>
       )}
     </div>
   );
 }
-
 function SchoolList({
   schools,
   ngo,
@@ -395,8 +436,7 @@ function SchoolList({
                 </p>
                 {alerts.length > 0 ? (
                   <p className="mt-2 text-sm font-semibold text-brand">
-                    {alerts.length} {alerts.length === 1 ? "nevoie raportată" : "nevoi raportate"}{" "}
-                    pe HartaEdu
+                    {formatCount(alerts.length)} nevoi raportate prin HartaEdu
                   </p>
                 ) : (
                   <p className="mt-2 text-sm text-sub">Fără nevoi raportate în HartaEdu</p>
@@ -452,7 +492,7 @@ function ViewButton({
       onClick={onClick}
       aria-pressed={active}
       className={`min-h-11 border-b-3 px-1 text-sm font-semibold ${
-        active ? "border-brand text-brand" : "border-transparent text-sub hover:text-ink"
+        active ? "border-sub text-brand" : "border-transparent text-sub hover:text-ink"
       }`}
     >
       {children}

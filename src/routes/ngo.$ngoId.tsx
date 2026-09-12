@@ -1,10 +1,10 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Send } from "lucide-react";
 
-import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { Breadcrumb, NAV_LABELS } from "@/components/layout/Breadcrumb";
 import { EmptyState, Panel, PanelTitle } from "@/components/ui/Panel";
 import { getMockNgoEmail } from "@/data/enrichment/ngoContactEnrichment";
-import { getNgoById, getSchoolComparison, slugify } from "@/lib/dataset";
+import { getNgoById, getSchoolComparison } from "@/lib/dataset";
 import { formatKm, haversineKm } from "@/lib/distance";
 import { getHartaEduAlerts } from "@/lib/hartaedu";
 import { buildGenericEmailDraft, buildSchoolEmailDraft } from "@/lib/ngoEmail";
@@ -95,29 +95,25 @@ function NgoDetail() {
     <main className="mx-auto max-w-[1080px] px-6 py-8">
       <Breadcrumb
         items={[
-          { label: "Acasă", to: "/" },
+          { label: NAV_LABELS.home, to: "/" },
           ...(school
             ? ([
                 {
-                  label: school.county,
-                  to: "/county/$county" as const,
-                  params: { county: slugify(school.county) },
+                  label: NAV_LABELS.findSchool,
+                  to: "/find-school" as const,
                 },
                 {
                   label: school.schoolName,
                   to: "/school/$schoolId" as const,
                   params: { schoolId: school.id },
                 },
+                {
+                  label: NAV_LABELS.recommendations,
+                  to: "/school/$schoolId/support" as const,
+                  params: { schoolId: school.id },
+                },
               ] as const)
-            : ngo.county !== "Nedeterminat"
-              ? ([
-                  {
-                    label: ngo.county,
-                    to: "/county/$county" as const,
-                    params: { county: slugify(ngo.county) },
-                  },
-                ] as const)
-              : []),
+            : ([{ label: NAV_LABELS.ngoSupport, to: "/support" as const }] as const)),
           { label: ngo.name },
         ]}
       />
@@ -186,10 +182,6 @@ function NgoDetail() {
             <p className="mt-2 max-w-[58ch] text-sub">
               Cere direct sprijinul organizației printr-un email precompletat
               {school ? ` cu situația școlii ${school.schoolName}` : ""}.
-            </p>
-            <p className="mt-2 text-sm text-sub/80">
-              Flux demonstrativ: adresa destinatarului este fictivă și nu reprezintă datele reale
-              ale ONG-ului.
             </p>
           </div>
           <a

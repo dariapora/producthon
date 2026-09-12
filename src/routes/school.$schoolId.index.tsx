@@ -1,11 +1,11 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ChevronDown, Send } from "lucide-react";
 
-import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { Breadcrumb, NAV_LABELS } from "@/components/layout/Breadcrumb";
 import { HartaEduReportDialog } from "@/components/HartaEduReportDialog";
 import { PerformanceBadge } from "@/components/RiskBadge";
 import { Panel, PanelTitle } from "@/components/ui/Panel";
-import { getNgoById, getSchoolComparison, slugify } from "@/lib/dataset";
+import { getNgoById, getSchoolComparison } from "@/lib/dataset";
 import {
   HARTAEDU_EMPTY_MESSAGE,
   HARTAEDU_EMPTY_NOTE,
@@ -98,22 +98,17 @@ function SchoolDetail() {
           items={
             ngo
               ? [
-                  { label: "Acasă", to: "/" },
+                  { label: NAV_LABELS.home, to: "/" },
                   {
-                    label: "Reprezint un ONG",
+                    label: NAV_LABELS.ngoSupport,
                     to: "/support",
                     search: { ngoId: ngo.id, scope: supportScope },
                   },
                   { label: school.schoolName },
                 ]
               : [
-                  { label: "Acasă", to: "/" },
-                  { label: "Situația națională", to: "/national" },
-                  {
-                    label: school.county,
-                    to: "/county/$county",
-                    params: { county: slugify(school.county) },
-                  },
+                  { label: NAV_LABELS.home, to: "/" },
+                  { label: NAV_LABELS.findSchool, to: "/find-school" },
                   { label: school.schoolName },
                 ]
           }
@@ -126,9 +121,6 @@ function SchoolDetail() {
             <p className="mt-2 text-lg text-sub">
               {school.locality ? `${school.locality}, ` : ""}județul {school.county}
             </p>
-            {ngo ? (
-              <p className="mt-2 text-sm font-semibold text-brand">Vizualizare pentru {ngo.name}</p>
-            ) : null}
           </div>
           <PerformanceBadge average={school.enAverage} scale="school" />
         </div>
@@ -180,7 +172,11 @@ function SchoolDetail() {
                   <h3 className="text-lg font-bold">Comparație</h3>
                   <ul className="mt-4 space-y-4">
                     {[
-                      { label: "Școala ta", value: school.enAverage, highlight: true },
+                      {
+                        label: ngo ? "Școala selectată" : "Școala ta",
+                        value: school.enAverage,
+                        highlight: true,
+                      },
                       {
                         label: `Județul ${school.county}`,
                         value: county?.enAverage ?? null,
@@ -252,8 +248,49 @@ function SchoolDetail() {
         </Panel>
       </section>
 
+      {/* 7 · Pasul următor */}
+      <section className="mt-8">
+        {ngo && schoolEmailDraft ? (
+          <Panel className="flex flex-wrap items-center justify-between gap-6">
+            <div>
+              <h2 className="font-display text-[28px] font-extrabold tracking-tight">
+                Contactează școala
+              </h2>
+              <p className="mt-1 max-w-[56ch] text-base text-sub">
+                Trimite din partea {ngo.name} un email precompletat cu nevoile și propunerea de
+                colaborare.
+              </p>
+            </div>
+            <a
+              href={schoolEmailDraft.mailtoUrl}
+              className="inline-flex min-h-14 items-center gap-2 rounded-md bg-brand px-7 py-4 text-lg font-semibold text-card"
+            >
+              <Send size={20} aria-hidden /> Contactează prin email
+            </a>
+          </Panel>
+        ) : (
+          <Panel className="flex flex-wrap items-center justify-between gap-6 border-sub! bg-brand! text-card">
+            <div>
+              <h2 className="font-display text-[28px] font-extrabold tracking-tight">
+                Găsește sprijin pentru școala ta
+              </h2>
+              <p className="mt-1 max-w-[52ch] text-base text-card/90">
+                Descoperă organizații care pot oferi sprijin educațional școlii tale.
+              </p>
+            </div>
+            <Link
+              to="/school/$schoolId/support"
+              params={{ schoolId: school.id }}
+              className="inline-flex min-h-14 items-center rounded-md bg-card px-7 py-4 text-lg font-bold text-brand"
+            >
+              Găsește ONG-uri
+            </Link>
+          </Panel>
+        )}
+      </section>
+
       {/* 6 · HartaEdu — context separat de rezultatele EN */}
-      <section id="hartaedu" className="mt-8 scroll-mt-6 border-t-4 border-line pt-8">
+      <section id="hartaedu" className="mt-8 scroll-mt-6 border-t-2 border-line pt-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="font-display text-[28px] font-extrabold tracking-tight">
@@ -279,51 +316,6 @@ function SchoolDetail() {
             </div>
             <HartaEduReportDialog school={school} />
           </div>
-        )}
-      </section>
-
-      {/* 7 · Pasul următor */}
-      <section className="mt-8">
-        {ngo && schoolEmailDraft ? (
-          <Panel className="flex flex-wrap items-center justify-between gap-6">
-            <div>
-              <h2 className="font-display text-[28px] font-extrabold tracking-tight">
-                Contactează școala
-              </h2>
-              <p className="mt-1 max-w-[56ch] text-base text-sub">
-                Trimite din partea {ngo.name} un email precompletat cu nevoile și propunerea de
-                colaborare.
-              </p>
-              <p className="mt-2 text-sm text-sub/80">
-                Flux demonstrativ: adresa școlii este fictivă și nu reprezintă date reale de
-                contact.
-              </p>
-            </div>
-            <a
-              href={schoolEmailDraft.mailtoUrl}
-              className="inline-flex min-h-14 items-center gap-2 rounded-md bg-brand px-7 py-4 text-lg font-semibold text-card"
-            >
-              <Send size={20} aria-hidden /> Contactează prin email
-            </a>
-          </Panel>
-        ) : (
-          <Panel className="flex flex-wrap items-center justify-between gap-6 border-brand! bg-brand! text-card">
-            <div>
-              <h2 className="font-display text-[28px] font-extrabold tracking-tight">
-                Găsește sprijin pentru școala ta
-              </h2>
-              <p className="mt-1 max-w-[52ch] text-base text-card/90">
-                Descoperă organizații care pot oferi sprijin educațional școlii tale.
-              </p>
-            </div>
-            <Link
-              to="/school/$schoolId/support"
-              params={{ schoolId: school.id }}
-              className="inline-flex min-h-14 items-center rounded-md bg-card px-7 py-4 text-lg font-bold text-brand"
-            >
-              Găsește ONG-uri
-            </Link>
-          </Panel>
         )}
       </section>
     </main>

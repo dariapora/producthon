@@ -6,7 +6,7 @@
  *    („Categorii relevante”, „Tip intervenție”, „Motiv relevanță”);
  *  - nevoile HartaEdu doar prioritizează tipul de intervenție, nu garantează
  *    că organizația oferă exact resursa cerută;
- *  - scorul rămâne explicabil: nevoie (50) + proximitate (30) + relevanță
+ *  - scorul rămâne explicabil: domeniu/nevoi (50) + proximitate (30) + relevanță
  *    generală pentru educație/copii (20).
  */
 import { ngos } from "@/lib/dataset";
@@ -30,7 +30,13 @@ export type NgoRecommendation = {
   label: RecommendationLabel;
   distanceKm: number | null;
   sameCounty: boolean;
+  sameLocality: boolean;
   matchedNeeds: InterventionType[];
+  scoreBreakdown: {
+    activity: number;
+    proximity: number;
+    relevance: number;
+  };
 };
 
 export type RecommendationResult = {
@@ -48,6 +54,22 @@ function normalize(text: string): string {
     .toLowerCase();
 }
 
+function sameLocality(ngo: Ngo, school: School): boolean {
+  if (!school.locality) return false;
+  const ngoLocality = normalize(ngo.locality)
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+  const schoolLocality = normalize(school.locality)
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+  if (!ngoLocality || !schoolLocality) return false;
+  return (
+    ngoLocality === schoolLocality ||
+    ngoLocality.startsWith(`${schoolLocality} `) ||
+    ngoLocality.endsWith(` ${schoolLocality}`)
+  );
+}
+
 /** Statusuri considerate potrivite pentru recomandare. */
 export function isEligible(ngo: Ngo): boolean {
   const status = normalize(ngo.status).trim();
@@ -57,15 +79,39 @@ export function isEligible(ngo: Ngo): boolean {
 const NEED_RULES: { type: InterventionType; keywords: string[] }[] = [
   {
     type: "Educație/meditații",
-    keywords: ["educat", "meditat", "remedial", "remedier", "sprijin scolar", "invat", "scolar", "digitaliz"],
+    keywords: [
+      "educat",
+      "meditat",
+      "remedial",
+      "remedier",
+      "sprijin scolar",
+      "invat",
+      "scolar",
+      "digitaliz",
+    ],
   },
   {
     type: "Consiliere copii",
-    keywords: ["consiliere", "suport emotional", "emotional", "psiholog", "copii vulnerabili", "abandon"],
+    keywords: [
+      "consiliere",
+      "suport emotional",
+      "emotional",
+      "psiholog",
+      "copii vulnerabili",
+      "abandon",
+    ],
   },
   {
     type: "Sprijin financiar/material rural",
-    keywords: ["sprijin financiar", "material", "dotar", "echipament", "rural", "mobilier", "reabilitare"],
+    keywords: [
+      "sprijin financiar",
+      "material",
+      "dotar",
+      "echipament",
+      "rural",
+      "mobilier",
+      "reabilitare",
+    ],
   },
 ];
 
@@ -87,8 +133,13 @@ function labelFor(score: number): RecommendationLabel {
   return "Alternativă";
 }
 
-function proximityPoints(distanceKm: number | null, sameCounty: boolean): number {
-  if (distanceKm === null) return sameCounty ? 15 : 5;
+function proximityPoints(
+  distanceKm: number | null,
+  sameCounty: boolean,
+  isSameLocality: boolean,
+): number {
+  if (isSameLocality) return 30;
+  if (distanceKm === null) return sameCounty ? 18 : 5;
   if (distanceKm <= 25) return 30;
   if (distanceKm <= 50) return 24;
   if (distanceKm <= 100) return 18;
@@ -108,6 +159,7 @@ export function getSchoolRecommendations(school: School): RecommendationResult {
 
   const scored = ngos.filter(isEligible).map<NgoRecommendation>((ngo) => {
     const sameCounty = normalize(ngo.county) === normalize(school.county);
+    const isSameLocality = sameLocality(ngo, school);
     const distanceKm =
       schoolPoint && ngo.latitude !== null && ngo.longitude !== null
         ? haversineKm(schoolPoint, { latitude: ngo.latitude, longitude: ngo.longitude })
@@ -134,12 +186,24 @@ export function getSchoolRecommendations(school: School): RecommendationResult {
       ? 20
       : 8;
 
-    const score = Math.min(
-      100,
-      needPoints + proximityPoints(distanceKm, sameCounty) + generalPoints,
-    );
+    const proximity = proximityPoints(distanceKm, sameCounty, isSameLocality);
+    const scoreBreakdown = {
+      activity: needPoints,
+      proximity,
+      relevance: generalPoints,
+    };
+    const score = Math.min(100, needPoints + proximity + generalPoints);
 
-    return { ngo, score, label: labelFor(score), distanceKm, sameCounty, matchedNeeds };
+    return {
+      ngo,
+      score,
+      label: labelFor(score),
+      distanceKm,
+      sameCounty,
+      sameLocality: isSameLocality,
+      matchedNeeds,
+      scoreBreakdown,
+    };
   });
 
   const sorted = sortRecommendations(scored, "recomandate");
@@ -162,11 +226,14 @@ export function sortRecommendations(
   }
   if (mode === "apropiate") {
     return list.sort(
-      (a, b) => (a.distanceKm ?? Number.MAX_SAFE_INTEGER) - (b.distanceKm ?? Number.MAX_SAFE_INTEGER),
+      (a, b) =>
+        (a.distanceKm ?? Number.MAX_SAFE_INTEGER) - (b.distanceKm ?? Number.MAX_SAFE_INTEGER),
     );
   }
   return list.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
+    if (a.sameLocality !== b.sameLocality) return a.sameLocality ? -1 : 1;
+    if (a.sameCounty !== b.sameCounty) return a.sameCounty ? -1 : 1;
     return (a.distanceKm ?? Number.MAX_SAFE_INTEGER) - (b.distanceKm ?? Number.MAX_SAFE_INTEGER);
   });
 }

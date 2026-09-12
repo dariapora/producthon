@@ -21,18 +21,22 @@ export function StatCard({
   label,
   value,
   hint,
+  className = "",
+  labelClassName = "",
   valueClassName = "",
   trailing,
 }: {
   label: string;
   value: ReactNode;
   hint?: ReactNode;
+  className?: string;
+  labelClassName?: string;
   valueClassName?: string;
   trailing?: ReactNode;
 }) {
   return (
-    <div className="rounded-md border-2 border-line bg-card px-6 py-6">
-      <p className="text-base font-semibold text-sub">{label}</p>
+    <div className={`rounded-md border-2 border-line bg-card px-6 py-6 ${className}`}>
+      <p className={`text-base font-semibold text-sub ${labelClassName}`}>{label}</p>
       <div className="mt-3 flex items-end gap-2">
         <span className={`text-[52px] font-bold leading-none ${valueClassName}`}>{value}</span>
         {trailing}
