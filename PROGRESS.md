@@ -8,7 +8,7 @@ instruction.** Every `.md` in this repo is reconciled here; if you are a differe
 changes to the doc owner as text rather than editing, and read the top log entry for who owns which
 code. Code ownership is unchanged.
 
-Last updated: **12 Sept 2026 (late)** — SOURCES.md written; census deprivation basis landed (opt-in, `income` still default); BRAND.md applied to app/index.html; J1 classifier built but never run (no API key); schools placed from their commune when their own point is missing; tenth test suite; five denominator errors corrected and the Călărași pilot figures re-measured
+Last updated: **13 Sept 2026 (early)** — pitch page rebuilt in the EDUconnect visual system and re-ordered insight-led (evals 0:15 → 0:35, an ask section that did not exist); J1 classifier gained a `--backend cli` path and is running without an API key; the 120 gold rows carry a second independent rater; `evals/error-categories.md` added (15-category failure taxonomy, all unmeasured and marked so); SOURCES.md written; census deprivation basis landed (opt-in, `income` still default); BRAND.md applied to app/index.html; schools placed from their commune when their own point is missing; tenth test suite; five denominator errors corrected and the Călărași pilot figures re-measured
 
 ---
 
@@ -153,6 +153,100 @@ Two demo schools, for two different points — don't mix them up:
 ---
 
 ## Log
+
+### 13 Sept 2026 — the pitch moves to the EDUconnect UI, and is re-ordered to lead with the finding
+
+**A second codebase now exists and it is the one the jury will see.** `origin/main` carries a
+Lovable-generated TanStack/React app called **EDUconnect** (`9d2cf5e`), with its own EN 2026 CSV and
+NGO CSV. It is a different product surface from this repo's single-file tool. `app/pitch.html` was
+rebuilt in **its** visual system — Montserrat, near-black brand, 2px borders, 0.75rem radius, the
+tri-colour wordmark, and the three performance colours used only as status with a dot and a label —
+so the deck and the app read as one product. Light theme only and a fixed 1160px desktop layout, both
+on Andrei's instruction: it is presented on a projector, not browsed on a phone.
+
+**The re-ordering is the substantive change, not the repaint.** The team doc ordered the pitch
+discovery → persona → workflow → demo → evals, which buried the strongest material at minute 2:25 and
+gave **0:15 to evals — 5% of the time for 25% of the score**. Re-ordered insight-led: what we do (0:30,
+two sentences plus Cojasca by name) → the finding (0:40) → who is stuck (0:30) → how it works (0:45) →
+demo (1:50) → evals (0:35) → **the ask (0:10), which did not exist at all**. The section timings sum to
+exactly 300 s, asserted in the browser rather than added up by hand.
+
+**Every figure on the page was recomputed from `out/schools_need_index.csv` rather than copied**, and
+all of them reproduce: 6,335 / 4,205 rural / 1,320 in the national worst quartile (31.4%) / 789 nothing
+at all / 65 listed-but-nothing / 466 served / 1,459 rural with a grant or a meal. The coverage bar's
+three segment widths *are* 789 / 65 / 466, and the cohort grids are 20 and 3 dots of 100.
+
+**J1 can now run without an API key.** `model/classify_ngos.js` takes `--backend cli`, which shells out
+to the local `claude` binary in print mode with `--json-schema`, the same SYSTEM prompt and the same two
+models. MCP servers, hooks, tools and session persistence are all switched off in the child (the user's
+MCP tool lists alone were ~60k tokens of system prompt per call). `CLAUDECODE` is unset so a nested run
+is not refused. The full run over 1,252 organisations was still in flight at the time of writing.
+
+**The classifier prompt gained the rule the gold sheet was going to be labelled against, *before* the
+run** — an association of parents/pupils/teachers of one school is not a supplier another school can
+write to; nor is an organisation whose purpose is to found its own school. That ordering is deliberate
+and it is also a circularity to declare out loud: classifier and gold now share a rule by construction,
+so a good score on it is weaker evidence than it looks.
+
+**The 120 gold rows have a second, independent rater** (blind, no sight of the first labels). The two
+raters agree on 110 of 120, **Cohen's κ = 0.41**, and they disagree in one direction only: the first
+rater called 14 rows education-relevant, the second 4. All ten disagreements are own-school-only bodies,
+founders of their own school, preschool-only or arts-only. `out/ngo_gold.opus.csv` preserves the first
+rater's sheet. **Both raters are models: this is still silver, not gold**, and the ten disagreements are
+exactly the rows a person should adjudicate first. Note that `out/` is gitignored, so none of this is
+pushed — it lives only on Andrei's machine.
+
+**The claim that needs a human decision before the pitch.** The team doc's pitch tab says *5 interviews
+(2 NGOs, 2 teachers, 1 director)*; the Interview Outcomes tab in the same document describes **3**, run
+for the earlier food-redistribution idea; this repo has always recorded that none were conducted for the
+product that shipped. The page now states no count at all — it says the interviews are why the team
+pivoted, which is both true and the stronger discovery story. **Whoever presents has to settle the
+number before a juror asks for names.**
+
+`educonnect/pitch-5min.md` (the spoken script, Romanian, with staging notes and a Q&A table) and
+`educonnect/pitch-scorecard.md` (54/80 against the framework's rubric, with the three weak dimensions
+named: business model 4, team 3, traction 6) are the companions to the page.
+
+
+### 12 Sept 2026 — `evals/error-categories.md`: the failure taxonomy, with honest blanks
+
+Andrei photographed a **Lovelaice** eval dashboard on the projector at the Saturday workshop
+(experiment **LCA-9**, `lovelaice_json`, "Sanity check on just 2 test cases") and asked for it to be
+adapted to us. The run itself scores an agent that retrieves LinkedIn profiles and writes product
+reports — **no subject overlap with this project**, so nothing from it is citable as our result.
+What was worth taking was the table shape and one warning.
+
+**The warning is the reason the file exists.** Every row on that screen read **0/360 (0%), severity
+Low, first-seen empty**, under a header saying *Evaluation in Progress* — while the description of
+the first category asserted it "was the most frequently observed failure". Named, severity-tagged,
+apparently-measured categories with nothing measured behind them. A dashboard of zeros reads as a
+clean bill of health when it is an empty one.
+
+`evals/error-categories.md` is the adaptation: **15 categories**, one per way an output can be wrong,
+each tied to a job and to the §9 check that would catch it. Four are adapted from theirs (truncated
+structured output · unsolicited commentary · over-length · irrelevant match); the other eleven come
+from `MATCHMAKING.md` §6/§9 — invented numerals, child data reaching storage, commitments invented on
+an NGO's behalf, `stage: running` for a 2013 intent that died, silent geographic widening,
+non-verbatim evidence spans, two drafts sharing a recipient.
+
+Three deliberate departures from the source:
+
+- **`–/N`, never `0/N`.** `0` means observed-and-absent; `–` means nobody looked. Fourteen rows are
+  `–`, which is the true state and the whole point of the convention.
+- **Severity is argued from who pays**, not defaulted to Low: Critical only where a child's data or
+  the ISJ relationship is at stake, and those rows get a structural guard rather than a threshold.
+- **Denominators are §9.1's gold sizes** (J1 120 · J2 60 · J3 30 · J4 30 · J5 40, plus the 50-sample
+  §9.6.2 groundedness gate), so every row is countable the moment its check runs.
+
+**Nothing measured, and it says so.** The file states its own state in `Status` and defers to
+`results.md` for the one number we hold (baseline name regex, macro-F1 **28.7%**, FAIL against the
+80% bar). No spec changed; `MATCHMAKING.md` §9 is untouched and remains the source of truth.
+
+**Next, and it is cheap.** Rows 4, 5, 10 and 14 — wrong school/județ · invented commitment · shared
+recipient · over-length — are **four binary checks over 30 J4 drafts, no API key and no
+hand-labelling**. Then §9.5, the held-out geography test against World Vision / Teach for Romania /
+Junior Achievement's published county lists, which also needs no labels. Neither is blocked on the
+thing everything else is blocked on.
 
 ### 12 Sept 2026 — census deprivation basis landed, and the pilot figures my own fix had moved
 
