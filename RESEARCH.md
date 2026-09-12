@@ -423,8 +423,8 @@ Verified against `out/schools_need_index.csv`, 12 Sept:
 - **It has no coordinates** — one of 458 ungeocoded schools. Fine as an illustration; never tie it
   to the map, a distance, or the matcher, or it silently falls back to the county seat.
 - **The two Cojasca units have swapped emails in the ministry file.** Școala Gimnazială Cojasca
-  (locality COJASCA) carries ``; Liceul Tehnologic Cojasca (locality
-  FÂNTÂNELE) carries ``. **Never render a real address in a J4 outreach demo on
+  (locality COJASCA) carries `fantaneles@…`; Liceul Tehnologic Cojasca (locality
+  FÂNTÂNELE) carries `cojasca@…`. **Never render a real address in a J4 outreach demo on
   this school** — use a redacted placeholder on stage.
 - **The commune is the better story than the school.** UAT Cojasca, 9,406 people: *two* schools in
   the national worst 4% — the gimnaziu at 71% pooled / media 4,15, and Liceul Tehnologic Cojasca at

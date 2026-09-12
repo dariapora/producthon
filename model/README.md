@@ -305,8 +305,8 @@ schools' emails swapped —
 
 | school | locality | email in the file |
 |---|---|---|
-| Școala Gimnazială Cojasca | COJASCA | `` |
-| Liceul Tehnologic Cojasca | FÂNTÂNELE | `` |
+| Școala Gimnazială Cojasca | COJASCA | `fantaneles@…` |
+| Liceul Tehnologic Cojasca | FÂNTÂNELE | `cojasca@…` |
 
 Both are in the worst quartile with no coverage, so both are exactly what the matcher surfaces.
 **Render a redacted address in any live drafting demo** — a draft addressed to the wrong school on

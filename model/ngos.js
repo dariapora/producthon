@@ -9,11 +9,14 @@
 //                    infer — for the dead-or-alive half of it, it is simply a column.
 //   HG utilitate publica  558 orgs carry government-recognised public-utility status. Free, strong
 //                    credibility signal for deciding which of thousands to surface.
+//   Scopul initial   must be non-empty. An org with no stated purpose anywhere in the register
+//                    (initial scope plus all five modification columns) is excluded before the
+//                    keyword filter, so nothing enters on its name alone.
 //   Judet/Localitate geocoded against the SIRUTA nomenclator we already load, so proximity is real
 //                    distance rather than "same county".
 //
 // What this does NOT give us is scope precision. The keyword filter is a deliberate over-count
-// (43,472 orgs; a riding club that mentions "copii" is in it), so everything this emits must be
+// (39,957 orgs; a riding club that mentions "copii" is in it), so everything this emits must be
 // labelled "purpose not verified" in the UI until MATCHMAKING.md J1 classifies it.
 //
 // Usage:  node model/ngos.js --out out        (npm run ngos)
@@ -110,13 +113,18 @@ const iJud = ix('Judet'), iLoc = ix('Localitate'), iUtil = ix('HG utilitate publ
 const scopeCols = H.map((h, i) => /^Scopul initial$|^Modificari ale scopului/.test(h) ? i : -1).filter(i => i >= 0);
 
 const byCounty = new Map();
-let total = 0, dead = 0, kept = 0, geo = 0;
+let total = 0, dead = 0, noPurpose = 0, kept = 0, geo = 0;
 for (const r of rows.slice(1)) {
   const name = String(r[iName]).replace(/\s+/g, ' ').trim();
   if (!name) continue;
   total++;
   if (String(r[iState]).trim()) { dead++; continue; }              // radiata / in lichidare / dizolvata
-  const purpose = scopeCols.map(i => r[i]).join(' ');
+  const purpose = scopeCols.map(i => String(r[i]).trim()).filter(Boolean).join(' ').trim();
+  // No stated purpose, no candidate. A blank `Scopul initial` (and blank modifications) leaves
+  // nothing for J1 to classify and nothing to show a director as a reason, so the org can only
+  // ever enter on its name — which is the weakest evidence we have. A purpose of punctuation
+  // only ("-") counts as blank.
+  if (!/\p{L}/u.test(purpose)) { noPurpose++; continue; }
   const blob = `${name} ${purpose}`;
   if (!KW.test(strip(blob))) continue;
   const jud = String(r[iJud]).trim().toUpperCase();
@@ -160,7 +168,8 @@ fs.writeFileSync(path.join(outDir, 'ngo_candidates.csv'),
 
 const counts = [...byCounty.values()].map(l => l.length).sort((a, b) => a - b);
 console.log(`register: ${total.toLocaleString('en')} orgs · ${dead.toLocaleString('en')} dead (radiata/lichidare/dizolvata) excluded`);
-console.log(`alive + education keyword: ${kept.toLocaleString('en')} in ${byCounty.size} counties (min ${counts[0]}, median ${counts[counts.length >> 1]})`);
+console.log(`alive but no stated purpose: ${noPurpose.toLocaleString('en')} excluded`);
+console.log(`alive + stated purpose + education keyword: ${kept.toLocaleString('en')} in ${byCounty.size} counties (min ${counts[0]}, median ${counts[counts.length >> 1]})`);
 console.log(`geocoded to a locality centroid: ${geo.toLocaleString('en')} (${(100 * geo / kept).toFixed(0)}%)`);
 console.log(`kept top ${TOP_PER_COUNTY} per county -> ${pick.length} rows · ${pick.filter(r => r.util).length} public-utility · ${pick.filter(r => r.strong).length} education in the name · ${pick.filter(r => r.lat).length} geocoded · ${pick.filter(r => r.sport).length} sports clubs still in`);
 console.log(`wrote ${path.join(outDir, 'ngo_candidates.csv')}`);
