@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>
+<html lang="ro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Puntea 8→9</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,650&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;display=swap">
 <style>
 :root{
   --ground:#F3F5F8; --surface:#FFFFFF; --sunk:#E8ECF2; --ink:#172033; --muted:#5A6477; --line:#D5DBE4;
@@ -51,8 +51,6 @@ h2{font-size:24px;margin-top:2px}
 h3{font-size:16px;font-family:var(--sans);font-weight:600;letter-spacing:0}
 p{margin:0;max-width:66ch}
 .label{font:500 11px/1.35 var(--mono);text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
-header{display:grid;grid-template-columns:1.4fr 1fr;gap:28px;align-items:end;border-bottom:1px solid var(--line);padding-bottom:24px}
-header .lede{font-size:17px;color:var(--muted);margin-top:12px}
 .five{font-family:var(--serif);color:var(--red);font-style:italic;font-size:1.15em}
 .north{border-left:2px solid var(--red);padding-left:16px;font-family:var(--serif);font-size:19px;line-height:1.4}
 .north small{display:block;font:12px/1.45 var(--sans);color:var(--muted);margin-top:8px}
@@ -160,7 +158,7 @@ a{color:var(--accent)}
 .rel.low{background:var(--sunk);color:var(--muted)}
 .reg{font:12px var(--mono);color:var(--muted)}
 .matcher{display:grid;gap:18px}
-.mgrid{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start}
+.mgrid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}
 .mctl{display:grid;gap:14px}
 .mctl label{display:grid;gap:6px;font-size:13px;color:var(--muted)}
 .mctl select{width:100%}
@@ -170,7 +168,24 @@ a{color:var(--accent)}
 .ends{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
 .mctl label.check{display:flex;color:var(--ink);font-size:14px;align-items:flex-start}
 .mctl label.check input{margin-top:3px}
+.filter-more{border-top:1px solid var(--line);padding-top:12px}
+.filter-more>summary{cursor:pointer;color:var(--accent);font-weight:700;min-height:44px;display:flex;align-items:center}
+.filter-more-body{display:grid;gap:14px;padding-top:10px}
+.balance{border:0;padding:0;margin:0;display:grid;gap:8px}
+.balance legend{font-size:13px;color:var(--muted);margin-bottom:4px}
+.balance-options{display:grid;grid-template-columns:1fr;gap:6px}
+.balance-options input{position:absolute;opacity:0;pointer-events:none}
+.balance-options label{display:block!important;border:1px solid var(--line);border-radius:9px;padding:9px 10px!important;color:var(--ink)!important;cursor:pointer;text-align:center;font-size:13px!important}
+.balance-options input:checked+label{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+.balance-options input:focus-visible+label{outline:2px solid var(--accent);outline-offset:2px}
+.decision-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.95fr);grid-template-areas:"map results";gap:18px;align-items:start}
 .mapwrap{position:relative;background:var(--ground);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.decision-grid .mapwrap{grid-area:map}
+.results-panel{grid-area:results;display:grid;gap:14px;align-content:start;max-height:720px;overflow:auto;padding-right:4px}
+.results-head{position:sticky;top:0;z-index:3;display:flex;justify-content:space-between;align-items:start;gap:12px;padding:2px 0 10px;background:var(--surface)}
+.results-head h3{font-size:19px;margin-bottom:3px}
+.results-head .mout{font-size:13px;margin:0;color:var(--muted)}
+.btn.secondary{min-height:42px;padding:8px 11px;background:transparent;color:var(--accent);border:1px solid var(--line);white-space:nowrap}
 .zoomui{position:absolute;top:8px;right:8px;z-index:2;display:flex;gap:4px;align-items:center;
   background:color-mix(in srgb,var(--surface) 88%,transparent);border:1px solid var(--line);
   border-radius:5px;padding:3px;backdrop-filter:blur(6px)}
@@ -191,8 +206,9 @@ a{color:var(--accent)}
    apart. At 1x they were a single smear, which is what made the old map unreadable. */
 #map{--lod:0}
 #counties .cty{stroke:var(--surface);stroke-width:1;vector-effect:non-scaling-stroke;
-  fill-opacity:calc(1 - .6*var(--lod));transition:fill-opacity .3s var(--ease-out,ease)}
-#dots{opacity:var(--lod);transition:opacity .3s var(--ease-out,ease)}
+  fill:var(--sunk)!important;fill-opacity:.82;transition:fill-opacity .3s var(--ease-out,ease)}
+#hatches{display:none}
+#dots{opacity:1;transition:opacity .3s var(--ease-out,ease)}
 #map.countryview #dots{pointer-events:none}
 #map.countryview .seat{opacity:0}
 #map:not(.countryview) .cty{stroke-opacity:.55}
@@ -225,31 +241,49 @@ a{color:var(--accent)}
 .dot{stroke:none;vector-effect:non-scaling-stroke;transition:opacity .35s cubic-bezier(.23,1,.32,1)}
 .dot.covered{fill:none!important;stroke:var(--red);stroke-width:1.25;opacity:.6}
 .dot.pick{stroke:var(--ink);stroke-width:2;opacity:1}
-.dot.out{opacity:.14}
+.dot.out{opacity:0;pointer-events:none}
 .picknum{font-family:var(--mono);font-weight:600;fill:var(--ink);pointer-events:none}
-.hit{fill:transparent;cursor:pointer}
+.hit{cursor:pointer;pointer-events:all}
 .tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:8px 10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.12);max-width:240px;opacity:0;transition:opacity .12s}
 .tip b{display:block;font-weight:600;margin-bottom:2px}
-.maplegend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);padding:8px 12px;border-top:1px solid var(--line);background:var(--surface)}
+.maplegend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted);padding:9px 12px;border-top:1px solid var(--line);background:var(--surface)}
 .maplegend i{display:inline-block;vertical-align:middle;margin-right:6px;border-radius:50%}
-.matches{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;counter-reset:m}
-.match{border:1px solid var(--line);border-radius:6px;padding:14px;display:grid;gap:10px;background:var(--surface);animation:rise .4s both}
+.map-help{margin-left:auto;position:relative}
+.map-help summary{cursor:pointer;color:var(--accent);font-weight:700;list-style:none}
+.map-help summary::-webkit-details-marker{display:none}
+.map-help p{position:absolute;right:0;bottom:calc(100% + 8px);z-index:4;width:min(290px,70vw);padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:0 8px 24px rgba(0,0,0,.14);font-size:12px;color:var(--muted)}
+.matches{display:grid;grid-template-columns:1fr;gap:10px;counter-reset:m}
+.match{border:1px solid var(--line);border-radius:14px;padding:15px;display:grid;gap:11px;background:var(--surface);animation:rise .4s both}
+.match.best{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.best-label{font-size:12px;font-weight:700;color:var(--accent)}
 .match .hd{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:start}
 .match .no{font:600 13px var(--mono);width:26px;height:26px;border-radius:50%;border:1.5px solid var(--ink);display:grid;place-items:center}
 .match .km{font:500 13px var(--mono);color:var(--muted);white-space:nowrap}
-.score{display:grid;gap:4px}
-.sbar{display:flex;height:8px;border-radius:2px;overflow:hidden;background:var(--sunk);gap:2px}
-.sbar .sv{background:var(--red)}
-.sbar .px{background:var(--accent)}
-.score .lg{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--muted)}
-.why{font-size:13px;color:var(--muted)}
+.match-score{font-size:18px;font-weight:700;letter-spacing:-.01em}
+.match-chips{display:flex;gap:6px;flex-wrap:wrap}
+.match-chip{padding:5px 8px;border-radius:999px;background:var(--sunk);color:var(--muted);font-size:12px;font-weight:600}
+.match-chip.need{background:var(--red-soft);color:var(--red)}
+.match-signal{font-size:14px;color:var(--ink)}
+.match-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.contact-school{display:inline-flex;align-items:center;min-height:42px;padding:8px 12px;border-radius:10px;background:var(--accent);color:var(--surface);font-size:13px;font-weight:700;text-decoration:none}
+.contact-school:visited{color:var(--surface)}
+.contact-school.unavailable{background:var(--sunk);color:var(--muted)}
+.match-explain{font-size:13px;color:var(--muted)}
+.match-explain summary{cursor:pointer;color:var(--accent);font-weight:700;list-style:none}
+.match-explain summary::-webkit-details-marker{display:none}
+.match-explain summary::after{content:" →"}
+.match-explain[open] summary::after{content:" ↑"}
+.match-explain p{margin-top:10px;color:var(--muted)}
+.contact-chip{display:inline-flex;margin-top:8px;padding:5px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:700}
+.match-more{justify-self:start;min-height:44px;padding:8px 13px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--accent);font:700 13px var(--sans);cursor:pointer}
 .mfoot{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .btn{font:inherit;font-size:13px;color:var(--surface);background:var(--ink);border:0;border-radius:4px;padding:8px 14px;cursor:pointer}
 @keyframes rise{from{opacity:.001;transform:translateY(6px)}to{opacity:1;transform:none}}
 tbody.swap tr{animation:rise var(--dur-swap) var(--ease-out) both}
 @media (prefers-reduced-motion:reduce){.match{animation:none}.ring,.dot,.base{transition:none}}
+@media (max-width:1050px){.decision-grid{grid-template-columns:1fr;grid-template-areas:"results" "map"}.results-panel{max-height:none}}
 @media (max-width:900px){.mgrid{grid-template-columns:1fr}}
-@media (max-width:900px){header,.grid2,.notes{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:900px){.grid2,.notes{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
 /* ---- role chooser + director path ---------------------------------------- */
@@ -279,15 +313,47 @@ tbody.swap tr{animation:rise var(--dur-swap) var(--ease-out) both}
 .hits li:last-child{border-bottom:0}
 .hits li:hover,.hits li[aria-selected="true"]{background:var(--sunk)}
 .hits .sub{font-size:12px}
-.profile{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px 22px;
-  border:1px solid var(--line);border-radius:6px;padding:16px 18px;background:var(--surface)}
-.pf{display:grid;gap:3px;min-width:0}
-.pf .k{font:500 10px/1.35 var(--mono);text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
-.pf .v{font-size:15px;font-variant-numeric:tabular-nums}
-.pf .src{font-size:11px;color:var(--muted)}
-.tier{display:grid;gap:8px}
-.tier h4{margin:0;font:600 13px var(--sans)}
-.tierlab{font-size:12px;color:var(--muted)}
+.school-head{display:grid;gap:7px;padding-bottom:4px}
+.school-head h3{font-size:clamp(22px,3vw,30px);line-height:1.2}
+.school-summary{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:15px;color:var(--muted)}
+.school-summary strong{color:var(--ink)}
+.profile{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.pf{position:relative;display:grid;align-content:start;gap:8px;min-width:0;min-height:170px;padding:18px;
+  border:2px solid var(--line);border-radius:15px;background:var(--surface);overflow:hidden}
+.pf::before{content:"";position:absolute;inset:0 auto 0 0;width:7px;background:var(--line)}
+.pf .k{font:700 12px/1.35 var(--sans);letter-spacing:.02em;color:var(--muted);padding-left:3px}
+.pf .v{font:700 clamp(27px,4vw,38px)/1.05 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:-.03em;padding-left:3px}
+.pf .compare{font-size:14px;font-weight:700;line-height:1.35;padding-left:3px}
+.pf .src{font-size:12px;line-height:1.45;color:var(--muted);padding-left:3px}
+.pf.compact .v{font-size:clamp(21px,3vw,29px);line-height:1.18;letter-spacing:-.02em}
+.pf.bad{border-color:color-mix(in srgb,var(--red) 48%,var(--line));background:color-mix(in srgb,var(--red-soft) 62%,var(--surface))}
+.pf.bad::before{background:var(--red)}.pf.bad .v,.pf.bad .compare{color:var(--red)}
+.pf.good{border-color:color-mix(in srgb,var(--sem-g) 48%,var(--line));background:color-mix(in srgb,var(--accent-soft) 52%,var(--surface))}
+.pf.good::before{background:var(--sem-g)}.pf.good .v,.pf.good .compare{color:var(--sem-g)}
+.pf.warn{border-color:color-mix(in srgb,var(--money) 48%,var(--line));background:color-mix(in srgb,var(--sem-y) 12%,var(--surface))}
+.pf.warn::before{background:var(--money)}.pf.warn .v,.pf.warn .compare{color:var(--money)}
+.profile-key{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.profile-key span{display:inline-flex;align-items:center;gap:6px}.profile-key i{width:12px;height:12px;border-radius:4px}
+.tier{display:grid;gap:14px}
+.tier h4{margin:0;font:700 clamp(20px,3vw,26px)/1.25 var(--sans)}
+.tierlab{font-size:14px;line-height:1.5;color:var(--muted)}
+.org-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.org-card{border:2px solid var(--line);border-radius:15px;background:var(--surface);overflow:hidden;
+  box-shadow:0 7px 20px color-mix(in srgb,var(--ink) 8%,transparent);transition:transform 160ms var(--ease-out),border-color 160ms var(--ease-out),box-shadow 160ms var(--ease-out)}
+.org-card.verified{border-color:color-mix(in srgb,var(--accent) 68%,var(--line));background:color-mix(in srgb,var(--accent-soft) 30%,var(--surface))}
+@media(hover:hover) and (pointer:fine){.org-card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 12px 26px color-mix(in srgb,var(--ink) 13%,transparent)}}
+.org-card[open]{border-color:var(--accent);box-shadow:0 12px 28px color-mix(in srgb,var(--ink) 15%,transparent)}
+.org-card summary{position:relative;list-style:none;cursor:pointer;display:grid;gap:8px;min-height:146px;padding:18px 48px 18px 18px}
+.org-card summary::-webkit-details-marker{display:none}
+.org-card summary::after{content:"+";position:absolute;right:17px;top:17px;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--surface);display:grid;place-items:center;font-size:22px;font-weight:500;line-height:1}
+.org-card[open] summary::after{content:"−"}
+.org-name{font-size:18px;font-weight:700;line-height:1.3;color:var(--ink)}
+.org-preview{font-size:14px;line-height:1.45;color:var(--muted)}
+.org-meta{display:flex;gap:7px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.org-detail{display:grid;gap:12px;padding:16px 18px 18px;border-top:1px solid var(--line);font-size:14px}
+.org-detail p{color:var(--ink)}
+.org-action{justify-self:start;display:inline-flex;align-items:center;gap:7px;min-height:48px;padding:10px 15px;border-radius:12px;background:var(--accent);color:var(--surface);font-weight:700;text-decoration:none}
+.org-action:visited{color:var(--surface)}
 .ngorow{display:flex;gap:10px;align-items:baseline;justify-content:space-between;
   border:1px solid var(--line);border-radius:5px;padding:10px 12px;background:var(--surface)}
 .ngorow .nm{font-size:14px}
@@ -295,55 +361,106 @@ tbody.swap tr{animation:rise var(--dur-swap) var(--ease-out) both}
 .badge2{font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:2px 5px;
   border-radius:3px;border:1px solid var(--line);color:var(--muted);margin-left:6px}
 .alone{border:1px solid var(--red);border-radius:6px;padding:14px 16px;background:var(--red-soft)}
+
+/* Low-literacy interaction layer: recognition, voice, direct touch, one clear question. */
+:root{
+  --ground:#f4f8ef;--surface:#fff;--sunk:#edf3e7;--ink:#11170d;--muted:#58634f;--line:#d8e2cf;
+  --accent:#3f5b1e;--accent-soft:#e7f5d6;--red:#9d2e2e;--red-soft:#fae9e7;
+  --sem-g:#5d812e;--sem-y:#e5bd36;--sem-r:#9d2e2e;--money:#8a4b00;
+  --serif:"Montserrat",sans-serif;--sans:"Montserrat",sans-serif;--mono:"Montserrat",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#151b11;--surface:#20281a;--sunk:#2a3422;--ink:#f7faF3;--muted:#c2cbb9;--line:#435039;
+  --accent:#b8dc88;--accent-soft:#304421;--red:#ff9d95;--red-soft:#492b28;--sem-g:#a9ce78;--sem-y:#f0d35e;--sem-r:#ff9d95;--money:#efbd62;
+}}
+:root[data-theme="dark"]{--ground:#151b11;--surface:#20281a;--sunk:#2a3422;--ink:#f7faf3;--muted:#c2cbb9;--line:#435039;--accent:#b8dc88;--accent-soft:#304421;--red:#ff9d95;--red-soft:#492b28;--sem-g:#a9ce78;--sem-y:#f0d35e;--sem-r:#ff9d95;--money:#efbd62}
+body{margin:0;padding:0 20px 64px;font-size:16px;line-height:1.55}
+.wrap{max-width:1120px;gap:24px}
+.hero{display:grid;gap:24px;padding-top:clamp(36px,8vh,80px)}
+body[data-role] .hero{display:none}
+.five{font-style:normal;color:inherit}
+.role-intro{text-align:center;display:grid;justify-items:center;gap:10px}
+.role-intro h2{font-size:22px}
+.roleswitch{display:grid;grid-template-columns:repeat(2,minmax(240px,1fr));gap:16px;width:100%;max-width:760px;margin:0 auto}
+.roleswitch .rl{grid-column:1/-1;text-align:center;font:500 15px var(--sans);letter-spacing:0;text-transform:none;color:var(--muted)}
+.rsw{min-height:150px;border:2px solid var(--line);border-radius:16px;padding:20px;background:var(--surface);color:var(--ink);display:grid;justify-items:center;align-content:center;gap:8px;font-size:17px;text-align:center;white-space:normal}
+.rsw::before{font-size:48px;line-height:1}
+#roleNgo::before{content:"🤝"}#roleDir::before{content:"🏫"}
+.rsw[aria-selected="true"]{border:3px solid var(--accent);background:var(--accent-soft);box-shadow:0 0 0 3px var(--surface) inset}
+.rsw[aria-selected="true"]::after{content:"✓  Ales";font-size:14px;color:var(--accent);font-weight:700}
+.panel{border-radius:16px;padding:22px}
+.data-tools{display:none}
+.data-tools summary{min-height:48px;display:flex;align-items:center;font-weight:600;color:var(--accent)}
+.controls :is(select,input[type=search]){min-height:52px;border-radius:12px;padding:10px 14px}
+.check{min-height:48px}.check input{width:24px;height:24px}
+.matcher>div:first-child{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+.matcher h2,#dirPanel h2{font-size:24px}
+.tabnote,.lede{font-size:16px;line-height:1.6}
+.mctl{gap:16px}.mctl label{font-size:16px;font-weight:600}.mctl select{min-height:52px;border-radius:12px;font-size:16px}
+input[type=range]{min-height:48px}
+.btn,.more{min-height:56px;border-radius:14px;padding:12px 20px;font-size:16px;font-weight:700;background:var(--accent);color:var(--surface)}
+.zoomui button{min-width:48px;height:48px;border-radius:10px}.zoomui select{min-height:48px}
+.app-content{display:grid;gap:24px}
+body:not([data-role]) .app-content{display:none!important}
+.flow-actions{display:flex;justify-content:flex-start;padding-top:18px}
+.change-role{min-height:44px;padding:8px 0;border:0;background:transparent;color:var(--accent);font:700 14px var(--sans);cursor:pointer}
+.change-role:hover{text-decoration:underline;text-underline-offset:3px}
+.advanced{border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+.advanced>summary{min-height:64px;padding:12px 20px;display:flex;align-items:center;color:var(--accent);font-weight:700;cursor:pointer}
+.advanced-body{display:grid;gap:24px;padding:0 16px 16px}
+body[data-role="dir"] .ngo-only{display:none!important}
+@media(max-width:700px){
+  .roleswitch{grid-template-columns:1fr}.rsw{min-height:132px}
+  .matcher>div:first-child{grid-template-columns:1fr}
+  body{padding-inline:14px}
+}
 </style>
+</head><body>
 
 <div class="wrap">
-  <header>
-    <div>
-      <div class="label">Civic Producthon 2026 · Educație — abandonul școlar</div>
-      <h1>Puntea 8→9</h1>
-      <p class="lede">Which village schools send the most children into grade 9 already failing. Built from Evaluarea Națională results and smoothed, so a 12-pupil school doesn't read as noise. The line that matters is the <span class="five">5</span>.</p>
-    </div>
-    <div class="north">Don't tell them what to do. Give them a taste for the sea — and make sure there's room in the boat.
-      <small>North star, after Saint-Exupéry, <i>Citadelle</i> (1948). Positioning: we're not a new NGO — we're the infrastructure for programmes that already run.</small>
-    </div>
-  </header>
+  <section class="hero" aria-label="Alegerea modului de folosire">
+  <div class="role-intro">
+    <h2>Ce vrei să faci?</h2>
+  </div>
+  <div class="roleswitch" role="tablist" aria-label="Cine sunteți">
+    <span class="rl">Atinge o imagine</span>
+    <button class="rsw" id="roleDir" type="button" role="tab" aria-selected="false">Școala mea caută ajutor</button>
+    <button class="rsw" id="roleNgo" type="button" role="tab" aria-selected="false">Vreau să ajut școli</button>
+  </div>
+  </section>
 
-  <section class="panel" aria-label="Data">
+  <div class="app-content" id="appContent">
+  <div class="flow-actions"><button class="change-role" id="goHome" type="button">← Schimbă rolul</button></div>
+  <section class="panel data-tools" aria-label="Date și filtre">
+    <details>
+    <summary>⚙️ Filtre și date</summary>
     <div class="controls">
       <details class="newer">
-        <summary>Use newer data</summary>
+        <summary>Folosește date mai noi</summary>
         <div class="controls">
           <label class="drop" id="drop" for="file">
             <input type="file" id="file" accept=".csv,text/csv" multiple>
-            <b>Newer EN result CSVs</b><br><span>The page already has Evaluarea Națională 2023–2026 from data.gov.ro. Drop later years here to replace them. Files are read in your browser and never uploaded.</span>
+            <b>Rezultate EN mai noi</b><br><span>Platforma conține deja rezultatele Evaluării Naționale 2023–2026. Fișierele sunt citite doar în browser și nu sunt încărcate pe internet.</span>
           </label>
           <label class="drop" id="drop2" for="regfile">
             <input type="file" id="regfile" accept=".csv,text/csv">
-            <b>Newer NGO register</b><br><span>Registrul Național ONG 2026 is already loaded. Drop a newer export to replace the per-county counts.</span>
+            <b>Registru ONG mai nou</b><br><span>Registrul Național ONG 2026 este deja încărcat. Alege un export mai nou pentru a-l înlocui.</span>
           </label>
         </div>
       </details>
-      <label class="check" for="rural"><input type="checkbox" id="rural"> Rural schools only</label>
-      <label class="check" for="county">County <select id="county"><option value="">All</option></select></label>
-      <input type="search" id="q" placeholder="Search school, village, commune or county" aria-label="Search school, village, commune or county">
+      <label class="check" for="rural"><input type="checkbox" id="rural"> Doar școli din sate</label>
+      <label class="check" for="county">Județ <select id="county"><option value="">Toate</option></select></label>
+      <input type="search" id="q" placeholder="Caută școala, satul, comuna sau județul" aria-label="Caută școala, satul, comuna sau județul">
     </div>
-    <div class="status"><span id="badge" class="badge">Synthetic example data</span><span id="statusText">Made-up schools for demonstration only. Add the real CSVs to replace them.</span><span id="regStatus"></span><span id="err" class="err"></span></div>
+    <div class="status"><span id="badge" class="badge">Date demonstrative</span><span id="statusText">Exemple inventate pentru demonstrație.</span><span id="regStatus"></span><span id="err" class="err"></span></div>
+    </details>
   </section>
-
-
-  <div class="roleswitch" role="tablist" aria-label="Cine sunteți">
-    <span class="rl">Sunt</span>
-    <button class="rsw" id="roleNgo" type="button" role="tab" aria-selected="true">ONG sau finanțator</button>
-    <button class="rsw" id="roleDir" type="button" role="tab" aria-selected="false">director de școală</button>
-  </div>
 
   <section class="panel" id="dirPanel" hidden aria-label="Director">
     <div class="dirwrap">
       <div>
         <h2>Școala dumneavoastră</h2>
-        <p class="lede">Tastați numele școlii, al satului sau al comunei. Datele de mai jos sunt publice
-          — Evaluarea Națională 2023–2026, bugetele locale și listele de programe ale ministerului.
+        <p class="lede">Tastați numele școlii, al satului sau al comunei de care aparțineți.
 </p>
         <div class="picker">
           <input type="search" id="dirQ" placeholder="ex. Gălbinași, Cojasca, Vaslui" aria-label="Căutați școala">
@@ -353,90 +470,121 @@ tbody.swap tr{animation:rise var(--dur-swap) var(--ease-out) both}
       <div id="dirOut"></div>
     </div>
   </section>
-  <section class="panel matcher" aria-label="Match schools to a programme">
+  <section class="panel matcher" aria-label="Potrivește școlile cu un program">
     <div>
-      <h2>Match schools to your programme</h2>
-      <p class="tabnote">Pick your organisation, then <b>drag the blue pin</b> — or click anywhere on the map — to set where you work from. Slide between "close to us" and "most in need" and the shortlist re-ranks. Schools that already run a PNRAS project or a meal programme are skipped unless you untick it.</p>
+      <div><h2>Găsește școli pe care le poți ajuta</h2>
+      <p class="tabnote">Alege organizația și distanța. Vei primi o listă scurtă de școli.</p></div>
     </div>
     <div class="mgrid">
       <div class="mctl">
-        <label for="mOrg">Your organisation<select id="mOrg"></select></label>
-        <label for="mBase">Working from<select id="mBase"></select></label>
-        <label for="mRad"><span class="row"><span>How far you can travel</span><output id="oRad">120 km</output></span><input type="range" id="mRad" min="25" max="400" step="5" value="120"></label>
-        <label for="mW"><span class="row"><span>What matters more</span><output id="oW">60% need</output></span><input type="range" id="mW" min="0" max="100" step="5" value="60"><span class="ends"><span>Close to us</span><span>Most in need</span></span></label>
-        <label for="mMetric">Need means<select id="mMetric"><option value="need">Most pupils below 5 each year</option><option value="rate">Highest share below 5</option></select></label>
-        <label for="mCap">Schools you can take on<select id="mCap"><option>3</option><option selected>6</option><option>10</option><option>20</option></select></label>
-        <label class="check" for="mSkip"><input type="checkbox" id="mSkip" checked> Skip schools that already have a programme (PNRAS grant, Masă sănătoasă, or another mapped NGO)</label>
-        <label class="check" for="mRural"><input type="checkbox" id="mRural" checked> Rural schools only</label>
+        <label for="mBase">De unde pornești<select id="mBase"></select></label>
+        <label for="mRad"><span class="row"><span>Distanță maximă</span><output id="oRad">120 km</output></span><input type="range" id="mRad" min="25" max="400" step="5" value="120"></label>
+        <label for="mMetric">Ce tip de nevoie cauți?<select id="mMetric"><option value="need">Mai mulți elevi care au nevoie de sprijin</option><option value="rate">Proporție mai mare de rezultate sub 5</option></select></label>
+        <details class="filter-more">
+          <summary>Filtre avansate</summary>
+          <div class="filter-more-body">
+            <label for="mOrg">Organizația ta<select id="mOrg"></select></label>
+            <fieldset class="balance">
+              <legend>Prioritatea recomandărilor</legend>
+              <div class="balance-options">
+                <input type="radio" id="priorityNear" name="priority" value="25"><label for="priorityNear">Mai aproape</label>
+                <input type="radio" id="priorityBalanced" name="priority" value="55" checked><label for="priorityBalanced">Echilibrat</label>
+                <input type="radio" id="priorityNeed" name="priority" value="80"><label for="priorityNeed">Nevoie mai mare</label>
+              </div>
+              <input type="hidden" id="mW" value="55">
+              <output id="oW" hidden>55% nevoie</output>
+            </fieldset>
+            <label for="mCap">Câte școli poți ajuta?<select id="mCap"><option>3</option><option selected>6</option><option>10</option><option>20</option></select></label>
+            <label class="check" for="mSkip"><input type="checkbox" id="mSkip" checked> Fără alt program activ</label>
+            <label class="check" for="mRural"><input type="checkbox" id="mRural" checked> Doar școli din sate</label>
+          </div>
+        </details>
       </div>
+      <div class="decision-grid">
+      <aside class="results-panel" aria-label="Școli recomandate">
+        <div class="results-head">
+          <div><h3>Școli recomandate</h3><p class="mout" id="mOut"></p></div>
+          <button class="btn secondary" id="mCopy">Copiază lista</button>
+        </div>
+        <div class="matches" id="matches"></div>
+        <button class="match-more" id="matchMore" type="button" hidden>Vezi încă 3</button>
+        <div class="mfoot"><span id="mMsg" aria-live="polite"></span></div>
+      </aside>
       <div class="mapwrap" id="mapwrap">
         <div class="zoomui">
-          <button type="button" id="zIn" aria-label="Zoom in">+</button>
-          <button type="button" id="zOut" aria-label="Zoom out">−</button>
-          <button type="button" id="zRst" aria-label="Reset the map view">Reset</button>
-          <select id="zCty" aria-label="Zoom to a county"><option value="">Whole country</option></select>
+          <button type="button" id="zIn" aria-label="Mărește harta">+</button>
+          <button type="button" id="zOut" aria-label="Micșorează harta">−</button>
+          <button type="button" id="zRst" aria-label="Arată toată harta">Toată harta</button>
+          <select id="zCty" aria-label="Arată un județ"><option value="">Toată țara</option></select>
           <span class="zlvl" id="zLvl" aria-live="polite">1.0×</span>
         </div>
-        <svg id="map" viewBox="0 0 640 420" role="img" aria-label="Map of schools around your base. Scroll to zoom, drag to pan, drag the pin to move your base."></svg>
+        <svg id="map" viewBox="0 0 640 420" role="img" aria-label="Harta școlilor din apropiere. Folosește butoanele pentru a mări sau micșora harta."></svg>
         <div class="tip" id="tip"></div>
-        <div class="maplegend"><span class="semkey">county — share of its rural schools with nothing:<i style="width:10px;height:10px;background:color-mix(in srgb,var(--sem-g) 62%,var(--surface))"></i>under 10%<i style="width:10px;height:10px;background:color-mix(in srgb,var(--sem-y) 62%,var(--surface))"></i>10–25%<i style="width:10px;height:10px;background:repeating-linear-gradient(45deg,var(--sem-r) 0 1.6px,color-mix(in srgb,var(--sem-r) 62%,var(--surface)) 1.6px 7px)"></i>over 25% (hatched)</span><span><i style="width:10px;height:10px;background:var(--red)"></i><span id="mapLg">school: darker = more pupils below 5 each year — zoom in to see them</span></span><span><i style="width:10px;height:10px;border:1.5px solid var(--red)"></i>has a programme</span><span><i style="width:10px;height:10px;border:2px solid var(--ink)"></i>on your shortlist</span><span><i style="width:10px;height:10px;background:var(--accent)"></i>your base and range</span><span class="maphint">⌘/Ctrl + scroll or double-click to zoom · drag to pan</span></div>
+        <div class="maplegend">
+          <span><i style="width:10px;height:10px;background:var(--red);border:2px solid var(--ink)"></i>Școli recomandate</span>
+          <span><i style="width:10px;height:10px;border:1.5px solid var(--red)"></i>Școli cu program existent</span>
+          <details class="map-help"><summary>Cum citim harta?</summary><p>Județele sunt păstrate neutre. Cercul verde arată distanța aleasă, iar numerele corespund recomandărilor din listă. <span id="mapLg">Culoarea punctelor indică nivelul nevoii.</span></p></details>
+        </div>
+      </div>
       </div>
     </div>
-    <p class="mout" id="mOut"></p>
-    <div class="matches" id="matches"></div>
-    <div class="mfoot"><button class="btn" id="mCopy">Copy shortlist</button><span id="mMsg"></span></div>
   </section>
 
-  <section class="stats" aria-label="Summary">
-    <div class="stat"><span class="label">Schools</span><span class="v" id="sSchools">–</span></div>
-    <div class="stat"><span class="label">Candidates / year</span><span class="v" id="sCand">–</span></div>
-    <div class="stat"><span class="label">Below 5 / year (est.)</span><span class="v red" id="sNeed">–</span></div>
-    <div class="stat"><span class="label">Schools ≥ 50% below 5</span><span class="v red" id="sHot">–</span></div>
+  <details class="advanced ngo-only">
+    <summary>📊 Vezi datele detaliate</summary>
+    <div class="advanced-body">
+  <section class="stats" aria-label="Rezumat">
+    <div class="stat"><span class="label">Școli</span><span class="v" id="sSchools">–</span></div>
+    <div class="stat"><span class="label">Candidați pe an</span><span class="v" id="sCand">–</span></div>
+    <div class="stat"><span class="label">Sub nota 5 pe an</span><span class="v red" id="sNeed">–</span></div>
+    <div class="stat"><span class="label">Școli cu cel puțin 50% sub 5</span><span class="v red" id="sHot">–</span></div>
   </section>
 
   <section class="grid2">
     <div class="panel">
-      <h2>Counties</h2>
-      <p class="tabnote">Estimated pupils below 5 each year. Click a county to filter.</p>
+      <h2>Județe</h2>
+      <p class="tabnote">Elevi estimați sub nota 5 în fiecare an. Atinge un județ pentru filtrare.</p>
       <div class="counties" id="counties"></div>
     </div>
     <div class="panel">
       <div class="tabs" role="tablist">
-        <button class="tab" role="tab" id="tabNeed" aria-selected="true">Where the most children are</button>
-        <button class="tab" role="tab" id="tabRate" aria-selected="false">Where it's most concentrated</button>
-        <button class="tab" role="tab" id="tabMoney" aria-selected="false">Money is the constraint</button>
-        <button class="tab" role="tab" id="tabSchool" aria-selected="false">Money is not</button>
-        <button class="tab" role="tab" id="tabAlone" aria-selected="false">No one is here</button>
+        <button class="tab" role="tab" id="tabNeed" aria-selected="true">Cei mai mulți copii</button>
+        <button class="tab" role="tab" id="tabRate" aria-selected="false">Cea mai mare proporție</button>
+        <button class="tab" role="tab" id="tabMoney" aria-selected="false">Lipsesc banii</button>
+        <button class="tab" role="tab" id="tabSchool" aria-selected="false">Nu lipsesc banii</button>
+        <button class="tab" role="tab" id="tabAlone" aria-selected="false">Nu ajunge nimeni</button>
       </div>
       <p class="tabnote" id="tabNote"></p>
       <div class="tablewrap"><table>
-        <thead><tr><th>#</th><th>School</th><th>Setting</th><th class="num">Cand/yr</th><th>Share below 5</th><th class="num">Below 5/yr</th><th class="num" title="Commune deprivation, 0 = richest, 1 = poorest. Ticks are the 0.2 / 0.8 archetype cuts.">Commune<br>money</th><th>Programme here</th></tr></thead>
+        <thead><tr><th>#</th><th>Școală</th><th>Mediu</th><th class="num">Candidați/an</th><th>Proporție sub 5</th><th class="num">Sub 5/an</th><th class="num" title="Puterea financiară a comunei: 0 = cea mai bogată, 1 = cea mai săracă.">Venitul<br>comunei</th><th>Program existent</th></tr></thead>
         <tbody id="rows"></tbody>
       </table></div>
-      <div class="legend"><span class="deplg"><i style="width:14px;height:6px;border-radius:2px"></i>commune money — ticks at 0.2 / 0.8 are the archetype cuts. <b>Routes the intervention; does not rank severity</b> (it explains ~2.6% of the variance in results).</span><span><i style="width:3px;height:12px;background:var(--red)"></i>smoothed estimate</span><span><i style="width:18px;height:4px;background:var(--red);opacity:.28"></i>≈80% range</span><span><i style="width:1px;height:12px;background:var(--muted)"></i>county average for that setting</span></div>
-      <button class="more" id="more">Show 25 more</button>
+      <div class="legend"><span class="deplg"><i style="width:14px;height:6px;border-radius:2px"></i>venitul comunei — ajută la alegerea intervenției, nu măsoară gravitatea</span><span><i style="width:3px;height:12px;background:var(--red)"></i>estimare ajustată</span><span><i style="width:18px;height:4px;background:var(--red);opacity:.28"></i>interval aproximativ de 80%</span><span><i style="width:1px;height:12px;background:var(--muted)"></i>media județului</span></div>
+      <button class="more" id="more">Arată încă 25</button>
     </div>
   </section>
 
-  <section class="panel" aria-label="Programmes">
-    <h2>Programmes on the map</h2>
-    <p class="tabnote">Education NGOs working with rural or at-risk pupils, with the counties where their public pages say they operate. Curated September 2026 from their own sites and press releases. Teach for Romania (30 counties) and Junior Achievement (national) list only the counties we could confirm, so absence here is not proof of absence.</p>
+  <section class="panel" aria-label="Programe">
+    <h2>Programe de pe hartă</h2>
+    <p class="tabnote">Organizații educaționale care lucrează cu elevi din mediul rural sau aflați în risc. Județele provin din paginile publice ale organizațiilor, verificate în septembrie 2026. Lipsa unui județ din listă nu dovedește că organizația nu lucrează acolo.</p>
     <div class="ngos" id="ngos"></div>
   </section>
 
   <section class="notes">
-    <div class="panel"><h3>How the smoothing works</h3>
-      <p>Each school's share of candidates below 5 is pulled toward the average of similar schools in its county (rural with rural). A 12-pupil school moves a lot; a 150-pupil school barely moves. Years are pooled. Method: empirical-Bayes beta-binomial, fitted per county × setting.</p></div>
-    <div class="panel"><h3>The blind spot</h3>
-      <p>These results only see pupils who sat the exam. Of 162,616 pupils enrolled in grade 8, about 14,600 (8.8%) never registered for EN 2026 — and the 2025 gap was about the same (16,815, ~9%), so this recurs every June rather than being a 2026 deterioration. It mixes repetenți, transfers and administrative loss, not pure dropout. Pair with INS TEMPO SCL103D (pupils by locality) to estimate who vanished before the exam.</p></div>
-    <div class="panel"><h3>Next joins</h3>
-      <ul><li>Coverage: PNRAS and Masă sănătoasă school lists; World Vision, Teach for Romania and Junior Achievement sites.</li>
-      <li>Distance is county seat to county seat (≈). Next: geocode each school's locality and each programme's sites.</li>
-      <li>Friction: distance to the nearest high school or dual school.</li>
-      <li>Public view shows opportunities, never a "worst villages" league table.</li></ul></div>
+    <div class="panel"><h3>Cum ajustăm estimarea</h3>
+      <p>Comparăm școlile mici cu școli asemănătoare din același județ. Astfel, câteva rezultate slabe nu pun automat o școală mică în capul listei.</p></div>
+    <div class="panel"><h3>Ce nu vedem încă</h3>
+      <p>Rezultatele includ doar elevii care au susținut examenul. Aproximativ 14.600 de elevi înscriși în clasa a VIII-a nu s-au înscris la Evaluarea Națională 2026.</p></div>
+    <div class="panel"><h3>Ce urmează</h3>
+      <ul><li>Adăugăm distanța până la cel mai apropiat liceu.</li>
+      <li>Verificăm localitățile fiecărei școli și organizații.</li>
+      <li>Arătăm oportunități, niciodată un clasament al „celor mai slabe sate”.</li></ul></div>
   </section>
 
-  <p class="sub">Sources: <a href="https://tribunainvatamantului.ro/20-la-suta-renunta-la-scoala_rural/">19.7% of a rural cohort lost across the 9 years of compulsory school, vs 2.8% urban</a> · <a href="https://www.edupedu.ro/aproape-15-000-de-elevi-care-erau-inscrisi-la-inceputul-acestui-an-scolar-in-clasa-a-viii-a-nu-apar-inscrisi-la-evaluarea-nationala-care-incepe-luni-generatia-2026-a-trecut-prin-pandemie-si-9-minis/">~14,600 missing from EN 2026</a> · <a href="https://data.gov.ro/en/dataset/rezultate_evaluare_2025">data.gov.ro EN 2025</a> · <a href="https://pnrr.edu.ro/despre-mate/">MATE</a> · <a href="https://worldvision.ro/ce-facem/proiecte-educatie/">World Vision România</a></p>
+  <p class="sub">Surse: <a href="https://tribunainvatamantului.ro/20-la-suta-renunta-la-scoala_rural/">19,7% dintr-o generație rurală se pierde în cei 9 ani de școală obligatorie, față de 2,8% în urban</a> · <a href="https://www.edupedu.ro/aproape-15-000-de-elevi-care-erau-inscrisi-la-inceputul-acestui-an-scolar-in-clasa-a-viii-a-nu-apar-inscrisi-la-evaluarea-nationala-care-incepe-luni-generatia-2026-a-trecut-prin-pandemie-si-9-minis/">aproximativ 14.600 lipsesc de la EN 2026</a> · <a href="https://data.gov.ro/en/dataset/rezultate_evaluare_2025">data.gov.ro EN 2025</a> · <a href="https://pnrr.edu.ro/despre-mate/">MATE</a> · <a href="https://worldvision.ro/ce-facem/proiecte-educatie/">World Vision România</a></p>
+    </div>
+  </details>
+  </div>
 </div>
 
 <!-- Contact addresses for the schools, keyed by COD SIIIR. Generated by model/build_app_data.js and
@@ -449,6 +597,7 @@ tbody.swap tr{animation:rise var(--dur-swap) var(--ease-out) both}
 const CONTACTS=window.CONTACTS||null;
 const $=id=>document.getElementById(id);
 const norm=s=>String(s).normalize("NFKD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+$("goHome").onclick=()=>{setRole(null,false);window.scrollTo({top:0,behavior:"smooth"})};
 const PAT={school:[/unitat/,/scoal/,/provenient/],county:[/^judet/,/judet/],mediu:[/mediu/],lat:[/^lat/],lon:[/^lon/,/^lng/],
   avg:[/^media$/,/media en/,/media evaluar/,/^medie/,/media/],ro:[/romana.*final/,/romana/],math:[/matematic.*final/,/matematic/]};
 
@@ -470,10 +619,10 @@ function detect(h){const m={},used=new Set(),n=h.map(norm);
 const grade=x=>{const v=parseFloat(String(x??"").trim().replace(",","."));return isFinite(v)?v:NaN};
 
 function candidatesFrom(text,name){
-  const r=parseCSV(text);if(r.length<2)throw new Error(name+": the file is empty.");
+  const r=parseCSV(text);if(r.length<2)throw new Error(name+": fișierul este gol.");
   const m=detect(r[0]);
   if(m.school==null||m.county==null||(m.avg==null&&(m.ro==null||m.math==null)))
-    throw new Error(name+": couldn't find school, county and grade columns. First headers: "+r[0].slice(0,8).join(" | "));
+    throw new Error(name+": nu am găsit coloanele pentru școală, județ și note. Primele coloane: "+r[0].slice(0,8).join(" | "));
   const yr=(name.match(/20\d\d/)||["na"])[0];
   return r.slice(1).map(c=>{const ro=m.ro!=null?grade(c[m.ro]):NaN,ma=m.math!=null?grade(c[m.math]):NaN;
     const avg=m.avg!=null?grade(c[m.avg]):(ro+ma)/2;
@@ -560,15 +709,15 @@ const CODES={AB:"ALBA",AR:"ARAD",AG:"ARGES",BC:"BACAU",BH:"BIHOR",BN:"BISTRITA N
 const ck=c=>{let k=norm(c).toUpperCase().replace(/^JUDETUL /,"");if(CODES[k])return CODES[k];if(/BUCURESTI|SECTOR|MUNICIPIUL BUC/.test(k))return"BUCURESTI";return SEATS[k]?k:null};
 const km=(a,b)=>{const r=Math.PI/180,dl=(b[0]-a[0])*r,dn=(b[1]-a[1])*r,x=Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2;return 6371*2*Math.asin(Math.sqrt(x))};
 const NGOS=[
- {n:"World Vision România",rel:"high",what:"Pregătit pentru liceu (grade 8 prep, 91% passed EN 2025) and Vreau în clasa a 9-a (transport, meals, mentoring through high school). Pâine și Mâine: meal + homework in 33 rural schools.",c:["BOTOSANI","CALARASI","CLUJ","DAMBOVITA","DOLJ","GIURGIU","IALOMITA","IASI","MEHEDINTI","OLT","TELEORMAN","VALCEA","VASLUI"],u:"https://worldvision.ro/faq/"},
- {n:"Salvați Copiii",rel:"high",what:"Școala după școală and remedial education for ages 6–14: homework help, meals, parent counselling. Educational centres in rural and urban communities.",c:["VASLUI","DOLJ","DAMBOVITA","ILFOV","HUNEDOARA","TIMIS","CARAS SEVERIN","GIURGIU","BUCURESTI"],u:"https://www.salvaticopiii.ro/ce-facem/educatie/prevenirea-abandonului-scolar"},
- {n:"Fundația Regală Margareta",rel:"high",what:"Centrele Generații: seniors mentor children at risk of dropping out (ages 6–19), 17 centres. Fondul Special pentru Copii: support for pupils through EN and Bac.",c:["ALBA","ARAD","BISTRITA NASAUD","CLUJ","CONSTANTA","MURES","PRAHOVA","SATU MARE","TIMIS","BUCURESTI","SALAJ","ILFOV","SUCEAVA","TULCEA","TELEORMAN","VRANCEA","MARAMURES","IALOMITA"],u:"https://www.forbes.ro/educatia-schimba-destine-700-de-copii-au-finalizat-cu-succes-anul-scolar-datorita-sprijinului-oferit-de-fundatia-regala-margareta-a-romaniei-510429"},
- {n:"Teach for Romania",rel:"high",what:"248 teachers in 172 schools in vulnerable, mostly rural communities across 30 counties. Pilot users for a diriginte tool. Only confirmed counties listed.",c:["BRASOV","CALARASI","CLUJ","MARAMURES","TULCEA","VASLUI","MURES","SUCEAVA","TIMIS","BUCURESTI"],u:"https://agerpres.ro/comunicate/2026/07/17/comunicat-de-presa---teach-for-romania--1576983"},
- {n:"Junior Achievement România",rel:"med",what:"Mobilitate pentru viitor: career guidance for 1,000 pupils in grades 7–8, company visits, scholarships, transition to high school or technical programmes. National presence beyond these counties.",c:["ARGES","DAMBOVITA","PRAHOVA","BUZAU"],u:"https://www.jaromania.org/programe-proiecte/orientare-profesionala/mobilitate-pentru-viitor/"},
- {n:"Fundația Noi Orizonturi",rel:"med",what:"IMPACT clubs for middle and high school pupils: life skills through community projects, led by teachers, librarians, priests.",c:["HUNEDOARA","CLUJ","IASI"],u:"https://www.noi-orizonturi.ro/2025/03/03/deschidem-10-cluburi-impact-in-judetele-iasi-cluj-si-hunedoara/"},
- {n:"CONCORDIA România",rel:"med",what:"Vocational training and Școala de meserii for young people; hosts grade-8 visits to its training centre in Ploiești.",c:["PRAHOVA","BUCURESTI","ILFOV"],u:"https://www.concordia.org.ro/programe/educatie/"},
- {n:"SOS Satele Copiilor",rel:"low",what:"Family strengthening to keep children with their families and in school; not a school programme as such.",c:["BUCURESTI","TELEORMAN","SIBIU","BACAU","BRASOV","ALBA"],u:"https://www.sos-satelecopiilor.ro/ne-extindem-sprijinul-in-comunitatile-vulnerabile-prin-patru-proiecte-noi/"},
- {n:"Fundația Dacia pentru România",rel:"med",what:"Funder, not operator: pays for World Vision's and Junior Achievement's grade 8→9 transition programmes. Strongest in Argeș.",c:["ARGES"],u:"https://worldvision.ro/2025/04/24/world-vision-romania-si-fundatia-dacia-pentru-romania-un-nou-parteneriat-pentru-viitorul-educatiei-copiilor-din-mediul-rural/"}
+ {n:"World Vision România",rel:"high",what:"Pregătit pentru liceu și Vreau în clasa a 9-a: pregătire, transport, mese și mentorat. Pâine și Mâine oferă masă și ajutor la teme în 33 de școli rurale.",c:["BOTOSANI","CALARASI","CLUJ","DAMBOVITA","DOLJ","GIURGIU","IALOMITA","IASI","MEHEDINTI","OLT","TELEORMAN","VALCEA","VASLUI"],u:"https://worldvision.ro/faq/"},
+ {n:"Salvați Copiii",rel:"high",what:"Școală după școală și educație remedială pentru copii de 6–14 ani: ajutor la teme, mese și consilierea părinților.",c:["VASLUI","DOLJ","DAMBOVITA","ILFOV","HUNEDOARA","TIMIS","CARAS SEVERIN","GIURGIU","BUCURESTI"],u:"https://www.salvaticopiii.ro/ce-facem/educatie/prevenirea-abandonului-scolar"},
+ {n:"Fundația Regală Margareta",rel:"high",what:"Centrele Generații: seniorii sprijină copiii aflați în risc de abandon. Fondul Special pentru Copii susține elevii la Evaluarea Națională și Bacalaureat.",c:["ALBA","ARAD","BISTRITA NASAUD","CLUJ","CONSTANTA","MURES","PRAHOVA","SATU MARE","TIMIS","BUCURESTI","SALAJ","ILFOV","SUCEAVA","TULCEA","TELEORMAN","VRANCEA","MARAMURES","IALOMITA"],u:"https://www.forbes.ro/educatia-schimba-destine-700-de-copii-au-finalizat-cu-succes-anul-scolar-datorita-sprijinului-oferit-de-fundatia-regala-margareta-a-romaniei-510429"},
+ {n:"Teach for Romania",rel:"high",what:"248 de profesori în 172 de școli din comunități vulnerabile, majoritatea rurale, în 30 de județe. Sunt afișate doar județele confirmate.",c:["BRASOV","CALARASI","CLUJ","MARAMURES","TULCEA","VASLUI","MURES","SUCEAVA","TIMIS","BUCURESTI"],u:"https://agerpres.ro/comunicate/2026/07/17/comunicat-de-presa---teach-for-romania--1576983"},
+ {n:"Junior Achievement România",rel:"med",what:"Mobilitate pentru viitor: orientare în carieră, vizite la companii și burse pentru elevii claselor a VII-a și a VIII-a.",c:["ARGES","DAMBOVITA","PRAHOVA","BUZAU"],u:"https://www.jaromania.org/programe-proiecte/orientare-profesionala/mobilitate-pentru-viitor/"},
+ {n:"Fundația Noi Orizonturi",rel:"med",what:"Cluburi IMPACT pentru elevi de gimnaziu și liceu: abilități de viață prin proiecte în comunitate.",c:["HUNEDOARA","CLUJ","IASI"],u:"https://www.noi-orizonturi.ro/2025/03/03/deschidem-10-cluburi-impact-in-judetele-iasi-cluj-si-hunedoara/"},
+ {n:"CONCORDIA România",rel:"med",what:"Pregătire profesională și Școala de meserii pentru tineri; primește elevi de clasa a VIII-a în vizită la centrul din Ploiești.",c:["PRAHOVA","BUCURESTI","ILFOV"],u:"https://www.concordia.org.ro/programe/educatie/"},
+ {n:"SOS Satele Copiilor",rel:"low",what:"Sprijin pentru familii, astfel încât copiii să rămână alături de familie și să continue școala.",c:["BUCURESTI","TELEORMAN","SIBIU","BACAU","BRASOV","ALBA"],u:"https://www.sos-satelecopiilor.ro/ne-extindem-sprijinul-in-comunitatile-vulnerabile-prin-patru-proiecte-noi/"},
+ {n:"Fundația Dacia pentru România",rel:"med",what:"Finanțează programele World Vision și Junior Achievement pentru trecerea din clasa a VIII-a în clasa a IX-a.",c:["ARGES"],u:"https://worldvision.ro/2025/04/24/world-vision-romania-si-fundatia-dacia-pentru-romania-un-nou-parteneriat-pentru-viitorul-educatiei-copiilor-din-mediul-rural/"}
 ];
 const RANK={high:0,med:1,low:2};
 const SHORT={"World Vision România": "World Vision", "Junior Achievement România": "Junior Achievement", "Fundația Regală Margareta": "F. Regală Margareta", "Fundația Noi Orizonturi": "Noi Orizonturi", "CONCORDIA România": "Concordia", "Fundația Dacia pentru România": "F. Dacia"};const sn=n=>SHORT[n]||n;
@@ -585,7 +734,7 @@ function regBaked(d){if(!d||!d.ngo)return null;const m=new Map();
 function regFrom(text){const r=parseCSV(text),h=r[0].map(norm);
   const f=(ps)=>h.findIndex(x=>ps.some(p=>p.test(x)));
   const iN=f([/denumire/,/^nume/]),iJ=f([/judet/]),iS=f([/scop/,/obiect/,/activit/]);
-  if(iJ<0||(iN<0&&iS<0))throw new Error("Register file: couldn't find name, county and purpose columns. First headers: "+r[0].slice(0,8).join(" | "));
+  if(iJ<0||(iN<0&&iS<0))throw new Error("Registrul nu conține coloanele pentru nume, județ și scop. Primele coloane: "+r[0].slice(0,8).join(" | "));
   const re=/educa|scoal|elev|abandon|invatam|meditat|after school|tutor/;const m=new Map();let n=0,noPurpose=0;
   for(const row of r.slice(1)){
     // an org with no stated purpose is excluded before the keyword test, as in model/ngos.js
@@ -603,13 +752,13 @@ function render(){
   const rural=$("rural").checked,q=norm($("q").value);
   const toks=q?q.split(" ").filter(Boolean):null;
   let S=ALL.filter(s=>(!rural||s.rural)&&(!countySel||s.county===countySel)&&(!toks||hit(s,toks)));
-  $("sSchools").textContent=S.length.toLocaleString("en");
-  $("sCand").textContent=Math.round(S.reduce((a,s)=>a+s.perYear,0)).toLocaleString("en");
-  $("sNeed").textContent=Math.round(S.reduce((a,s)=>a+s.need,0)).toLocaleString("en");
-  $("sHot").textContent=S.filter(s=>s.shr>=.5).length.toLocaleString("en");
+  $("sSchools").textContent=S.length.toLocaleString("ro-RO");
+  $("sCand").textContent=Math.round(S.reduce((a,s)=>a+s.perYear,0)).toLocaleString("ro-RO");
+  $("sNeed").textContent=Math.round(S.reduce((a,s)=>a+s.need,0)).toLocaleString("ro-RO");
+  $("sHot").textContent=S.filter(s=>s.shr>=.5).length.toLocaleString("ro-RO");
   const cm=new Map();for(const s of ALL.filter(s=>!rural||s.rural)){const c=cm.get(s.county)||{n:0,need:0};c.n++;c.need+=s.need;cm.set(s.county,c)}
   const cs=[...cm.entries()].sort((a,b)=>b[1].need-a[1].need),mx=cs.length?cs[0][1].need:1;
-  $("counties").innerHTML=cs.slice(0,42).map(([k,c])=>`<button class="crow" data-c="${esc(k)}" aria-pressed="${k===countySel}"><div class="top"><b>${esc(k)}</b><span>${Math.round(c.need).toLocaleString("en")} · ${c.n} schools${REG?` · ${(REG.m.get(ck(k))||0).toLocaleString("en")} NGOs`:""}</span></div><div class="track"><i style="width:${(c.need/mx*100).toFixed(1)}%"></i></div></button>`).join("");
+  $("counties").innerHTML=cs.slice(0,42).map(([k,c])=>`<button class="crow" data-c="${esc(k)}" aria-pressed="${k===countySel}"><div class="top"><b>${esc(k)}</b><span>${Math.round(c.need).toLocaleString("ro-RO")} · ${c.n} școli${REG?` · ${(REG.m.get(ck(k))||0).toLocaleString("ro-RO")} ONG-uri`:""}</span></div><div class="track"><i style="width:${(c.need/mx*100).toFixed(1)}%"></i></div></button>`).join("");
   document.querySelectorAll(".crow").forEach(b=>b.onclick=()=>{countySel=countySel===b.dataset.c?"":b.dataset.c;limit=25;render()});
   for(const s of S)if(!s.m)s.m=matchCounty(s.county);
   if(view==="money")S=S.filter(s=>archetype(s)==="money");
@@ -620,63 +769,63 @@ function render(){
   // the denominators and the null results are what make these lists honest, but delivering 583
   // characters of them before the user has asked anything is what makes the page unreadable.
   const NOTES={
-    money:["Poor results and a poor commune — money may be what is missing.",
-      "In the national worst quartile on results (the percentile runs over all schools, urban included, so this is 31% of rural schools) AND in the poorest fifth of communes by income tax collected per head. A hypothesis for the ISJ to test, not a proven rule: Romania's largest school-grant trial (ROSE, 41,524 pupils) found no moderation by local economic conditions. Where cash does bind, the evidence favours conditional transfers with enforced conditions; school meals raise enrolment by about 3pp but barely move attendance, and transport support is unevaluated."],
-    school:["Poor results but a well-off commune — money is unlikely to be what is missing.",
-      "In the national worst quartile on results but in the richest fifth of communes, so a cash programme is unlikely to be what is missing. The evidenced levers here are school management (+1 SD management ≈ +0.24 SD scores) and teacher stability, which PNRAS Round I did move. Equipment without teacher training is the documented failure mode."],
-    alone:["Poor results, and no programme of any kind reaches them. Nobody is here.",
-      "In the national worst quartile on results, no PNRAS grant, no Masă sănătoasă, and not even on the ministry's own PNRAS eligibility list. Nobody is here. One of the three ministry lists is a scan we could not extract, so we read a third of it by hand: 92% of it is schools already on the lists we could read, which moves this count by under 1%."],
-    need:["Ranked by estimated pupils below 5 each year — where a funder's lei reach the most children.",
-      "Keep 'Rural schools only' ticked, or big town schools dominate the list purely by being big."],
-    rate:["Ranked by smoothed share below 5 — small schools where failing is the norm.",
-      "Often the places no programme reaches. Smoothing pulls a school with few candidates towards its county average, so a handful of bad results cannot by itself put a school at the top."],
+    money:["Rezultate slabe într-o comună săracă — banii pot fi problema principală.",
+      "Școli din zona cu cele mai slabe rezultate la nivel național și din cincimea comunelor cu cele mai mici venituri fiscale. Este o ipoteză de verificat, nu o regulă dovedită."],
+    school:["Rezultate slabe într-o comună înstărită — probabil nu banii sunt problema principală.",
+      "Școli din zona cu cele mai slabe rezultate, dar aflate în cincimea comunelor cu cele mai mari venituri. Merită analizate managementul, stabilitatea profesorilor și mentoratul."],
+    alone:["Rezultate slabe și niciun program care să ajungă aici.",
+      "Școala nu are grant PNRAS, program Masă sănătoasă și nu apare nici pe lista de eligibilitate PNRAS a ministerului."],
+    need:["Ordine după numărul estimat de elevi sub nota 5 în fiecare an.",
+      "Păstrează filtrul pentru școli rurale activ, altfel școlile mari din orașe domină lista prin mărime."],
+    rate:["Ordine după proporția ajustată a elevilor sub nota 5.",
+      "Estimarea ajustează școlile cu puțini candidați spre media județului, ca câteva rezultate să nu ridice automat o școală în capul listei."],
   };
   {const n=NOTES[view]||NOTES.rate;
-   $("tabNote").innerHTML=`${esc(n[0])} <details class="why"><summary>Why this list?</summary>${esc(n[1])}</details>`}
+   $("tabNote").innerHTML=`${esc(n[0])} <details class="why"><summary>De ce această listă?</summary>${esc(n[1])}</details>`}
   $("rows").innerHTML=S.slice(0,limit).map((s,i)=>`<tr${rowsAnim&&i<14?` style="animation-delay:${i*30}ms"`:""}><td class="rank">${i+1}</td>
-    <td><div class="school">${esc(s.school)}</div><div class="sub">${esc(s.locality?s.locality+" · ":"")}${esc(s.county)} · ${s.years.size} year${s.years.size>1?"s":""} pooled</div></td>
-    <td><span class="pill ${s.rural?"rural":""}">${esc(s.mediu||"n/a")}</span></td>
+    <td><div class="school">${esc(s.school)}</div><div class="sub">${esc(s.locality?s.locality+" · ":"")}${esc(s.county)} · ${s.years.size} ${s.years.size===1?"an":"ani"} cumulați</div></td>
+    <td><span class="pill ${s.rural?"rural":""}">${esc(s.mediu||"necunoscut")}</span></td>
     <td class="num">${fmt(s.perYear)}</td>
     <td><div class="rate"><div class="rbar" title="≈80% range ${pct(s.lo)}–${pct(s.hi)}"><span class="ci" style="left:${s.lo*100}%;width:${(s.hi-s.lo)*100}%"></span><span class="prior" style="left:${s.prior*100}%"></span><span class="pt" style="left:calc(${s.shr*100}% - 1px)"></span></div><span class="pv">${pct(s.shr)}</span></div></td>
     <td class="num">${s.need.toFixed(1)}</td>
-    <td class="num" title="${s.uat?esc(s.uat)+" — ":""}${s.income!=null?s.income.toLocaleString("en")+" lei of income tax per head, 2025 budget. Wage income only — not average earnings. ":""}Deprivation ${s.dep!=null?s.dep.toFixed(2)+" — "+depWord(s.dep):"–"}. Percentile over all 3,186 communes and towns, not rural only (median rural 0.54, urban 0.05). Ticks mark the 0.2 / 0.8 cuts that route the intervention — this axis does not rank severity.">${s.dep!=null?`<div class="dep"><span class="depv">${s.dep.toFixed(2)}</span><div class="deptrack"><i style="width:${(s.dep*100).toFixed(1)}%"></i><s style="left:20%"></s><s style="left:80%"></s></div><div class="sub">${s.income!=null?s.income.toLocaleString("en"):"–"} lei</div></div>`:`–<div class="sub">no data</div>`}</td>
+    <td class="num" title="${s.uat?esc(s.uat)+" — ":""}${s.income!=null?s.income.toLocaleString("ro-RO")+" lei impozit pe venit pe locuitor, buget 2025. ":""}Scor financiar ${s.dep!=null?s.dep.toFixed(2)+" — "+depWord(s.dep):"–"}.">${s.dep!=null?`<div class="dep"><span class="depv">${s.dep.toFixed(2)}</span><div class="deptrack"><i style="width:${(s.dep*100).toFixed(1)}%"></i><s style="left:20%"></s><s style="left:80%"></s></div><div class="sub">${s.income!=null?s.income.toLocaleString("ro-RO"):"–"} lei</div></div>`:`–<div class="sub">fără date</div>`}</td>
     <td>${covChips(s)}</td></tr>`).join("")||`<tr><td colspan="8" class="sub">${emptyMsg(toks)}</td></tr>`;
   const tb=$("rows");
   tb.classList.toggle("swap",rowsAnim);
   if(rowsAnim){void tb.offsetWidth;rowsAnim=false}   // restart the cascade on a real tab change only
   $("more").hidden=S.length<=limit;
   const opts=[...new Set(ALL.map(s=>s.county))].sort();
-  $("county").innerHTML=`<option value="">All</option>`+opts.map(c=>`<option value="${esc(c)}" ${c===countySel?"selected":""}>${esc(c)}</option>`).join("");
+  $("county").innerHTML=`<option value="">Toate</option>`+opts.map(c=>`<option value="${esc(c)}" ${c===countySel?"selected":""}>${esc(c)}</option>`).join("");
 }
-const depWord=d=>d==null?"":d>=.8?"poorest fifth":d>=.6?"below average":d>=.4?"average":d>=.2?"above average":"richest fifth";
+const depWord=d=>d==null?"":d>=.8?"cincimea cea mai săracă":d>=.6?"sub medie":d>=.4?"mediu":d>=.2?"peste medie":"cincimea cea mai bogată";
 function covChips(s){const c=[];
-  if(s.pnrasGrant)c.push('<span class="chip">PNRAS grant</span>');
+  if(s.pnrasGrant)c.push('<span class="chip">grant PNRAS</span>');
   if(s.masa)c.push('<span class="chip">Masă sănătoasă</span>');
-  if(s.pnrasEligible&&!s.pnrasGrant)c.push('<span class="chip lo">flagged, no grant</span>');
-  return`<div class="chips">${c.join("")||'<span class="chip lo" style="opacity:.5">nothing</span>'}</div>`}
+  if(s.pnrasEligible&&!s.pnrasGrant)c.push('<span class="chip lo">eligibilă, fără grant</span>');
+  return`<div class="chips">${c.join("")||'<span class="chip lo" style="opacity:.5">niciunul</span>'}</div>`}
 // Why did this come back empty? Check each filter in turn and name the one responsible.
 function emptyMsg(toks){
-  if(!toks)return "No schools match these filters.";
+  if(!toks)return "Nicio școală nu corespunde acestor filtre.";
   const raw=esc($("q").value);
   const all=ALL.filter(s=>hit(s,toks));
-  if(!all.length)return `Nothing matches “${raw}”. The search covers school name, village, commune and county — try one word, or a place name.`;
+  if(!all.length)return `Nu am găsit „${raw}”. Încearcă numele școlii, satului, comunei sau județului.`;
   const inCounty=countySel?all.filter(s=>s.county===countySel):all;
   if(countySel&&!inCounty.length)
-    return `“${raw}” matches ${all.length} school${all.length>1?"s":""}, but none in ${esc(countySel)}. Click the county again to clear it.`;
+    return `Am găsit ${all.length} școli pentru „${raw}”, dar niciuna în ${esc(countySel)}. Atinge din nou județul pentru a șterge filtrul.`;
   const ruralOn=$("rural").checked;
   const afterRural=ruralOn?inCounty.filter(s=>s.rural):inCounty;
   if(ruralOn&&!afterRural.length)
-    return `“${raw}” matches ${inCounty.length} school${inCounty.length>1?"s":""}, but all of them are urban. Untick “Rural schools only” to see them.`;
+    return `Am găsit ${inCounty.length} școli pentru „${raw}”, dar toate sunt urbane. Debifează „Doar școli din sate”.`;
   if(view!=="need"&&view!=="rate")
-    return `“${raw}” matches ${afterRural.length} school${afterRural.length>1?"s":""}, but none in this list. Switch to “Where the most children are” to see them.`;
-  return `Nothing matches “${raw}” with these filters.`;
+    return `Am găsit ${afterRural.length} școli pentru „${raw}”, dar nu în această listă. Alege „Cei mai mulți copii”.`;
+  return `Nu am găsit „${raw}” cu aceste filtre.`;
 }
-function nearby(m){if(!m.key)return`<span class="near">county not recognised</span>`;
+function nearby(m){if(!m.key)return`<span class="near">județ nerecunoscut</span>`;
   const chips=m.inC.slice(0,3).map(o=>`<span class="chip ${o.rel==="high"?"":"lo"}" title="${esc(o.what)}">${esc(sn(o.n))}</span>`).join("");
   const more=m.inC.length>3?`<span class="chip lo">+${m.inC.length-3}</span>`:"";
-  const near=m.nearest?`<span class="${m.nearest.d>100?"far":"near"}">nearest: ${esc(sn(m.nearest.o.n))} ≈${Math.round(m.nearest.d)} km</span>`:"";
+  const near=m.nearest?`<span class="${m.nearest.d>100?"far":"near"}">cea mai apropiată: ${esc(sn(m.nearest.o.n))} ≈${Math.round(m.nearest.d)} km</span>`:"";
   return`<div class="nb"><div class="chips">${chips}${more}</div>${near}</div>`}
-function renderNgos(){$("ngos").innerHTML=NGOS.map(o=>`<div class="ngo"><div class="hd"><b>${esc(o.n)}</b><span class="rel ${o.rel}">${o.rel==="med"?"medium":o.rel} relevance</span></div><p>${esc(o.what)}</p><div class="chips">${o.c.map(c=>`<span class="chip lo">${esc(c.charAt(0)+c.slice(1).toLowerCase())}</span>`).join("")}</div><a class="reg" href="${o.u}">Source</a></div>`).join("")}
+function renderNgos(){$("ngos").innerHTML=NGOS.map(o=>`<div class="ngo"><div class="hd"><b>${esc(o.n)}</b><span class="rel ${o.rel}">${o.rel==="high"?"relevanță mare":o.rel==="med"?"relevanță medie":"relevanță redusă"}</span></div><p>${esc(o.what)}</p><div class="chips">${o.c.map(c=>`<span class="chip lo">${esc(c.charAt(0)+c.slice(1).toLowerCase())}</span>`).join("")}</div><a class="reg" href="${o.u}">Sursă</a></div>`).join("")}
 function tab(v){if(v!==view)rowsAnim=true;view=v;limit=25;["Need","Rate","Money","School","Alone"].forEach(t=>$("tab"+t).setAttribute("aria-selected",v===t.toLowerCase()));render()}
 $("tabNeed").onclick=()=>tab("need");$("tabRate").onclick=()=>tab("rate");
 $("tabMoney").onclick=()=>tab("money");$("tabSchool").onclick=()=>tab("school");$("tabAlone").onclick=()=>tab("alone");
@@ -686,14 +835,15 @@ $("county").onchange=e=>{countySel=e.target.value;limit=25;render()};
 
 async function load(files){$("err").textContent="";
   try{let c=[];for(const f of files)c=c.concat(candidatesFrom(await f.text(),f.name));
-    if(!c.length)throw new Error("No candidate rows found in these files.");
+    if(!c.length)throw new Error("Nu am găsit candidați în aceste fișiere.");
     ALL=model(c);rankPercentiles(ALL);countySel="";
-    $("badge").textContent="Your data";$("badge").className="badge real";
-    $("statusText").textContent=`${c.length.toLocaleString("en")} candidates from ${files.length} file${files.length>1?"s":""} · ${ALL.length.toLocaleString("en")} schools`;
+    $("badge").textContent="Datele tale";$("badge").className="badge real";
+    $("statusText").textContent=`${c.length.toLocaleString("ro-RO")} candidați din ${files.length} fișiere · ${ALL.length.toLocaleString("ro-RO")} școli`;
     $("rural").checked=ALL.some(s=>s.rural);render()}
   catch(e){$("err").textContent=e.message}}
 $("file").onchange=e=>load([...e.target.files]);
-async function loadReg(f){$("err").textContent="";try{REG=regFrom(await f.text());$("regStatus").textContent=`· NGO register: ${REG.n.toLocaleString("en")} education NGOs out of ${REG.withPurpose.toLocaleString("en")} with a stated purpose (${REG.noPurpose.toLocaleString("en")} of ${REG.total.toLocaleString("en")} have none, excluded)`;render()}catch(e){$("err").textContent=e.message}}
+async function loadReg(f){$("err").textContent="";try{REG=regFrom(await f.text());$("regStatus").textContent=`· Registru ONG: ${REG.n.toLocaleString("ro-RO")} organizații educaționale din ${REG.withPurpose.toLocaleString("ro-RO")} cu scop declarat`;
+render()}catch(e){$("err").textContent=e.message}}
 $("regfile").onchange=e=>e.target.files[0]&&loadReg(e.target.files[0]);
 const dz2=$("drop2");["dragover","dragenter"].forEach(t=>dz2.addEventListener(t,e=>{e.preventDefault();dz2.classList.add("over")}));
 ["dragleave","drop"].forEach(t=>dz2.addEventListener(t,e=>{e.preventDefault();dz2.classList.remove("over")}));
@@ -708,20 +858,22 @@ dz.addEventListener("drop",e=>load([...e.dataTransfer.files]));
 // same data — "what do the public records say about MY school, and who could help".
 function setRole(r,remember){
   const dir=r==="dir";
+  const chosen=dir||r==="ngo";
+  if(chosen)document.body.dataset.role=r;else delete document.body.dataset.role;
   $("dirPanel").hidden=!dir;
   // The NGO tool is the default view and is never hidden on load. A first-time visitor must see
   // the map; hiding it behind a choice meant the page opened as an empty card.
   // Hide only what is genuinely population-level: the matcher and the national rankings. The
   // stat tiles and the methodology notes are context a director benefits from, and hiding four
   // panels on one click is what made the page look broken rather than different.
-  for(const el of document.querySelectorAll(".panel.matcher,.grid2")) el.hidden=dir;
-  $("roleNgo").setAttribute("aria-selected",String(!dir));
+  for(const el of document.querySelectorAll(".panel.matcher,.grid2")) el.hidden=!chosen||dir;
+  $("roleNgo").setAttribute("aria-selected",String(r==="ngo"));
   $("roleDir").setAttribute("aria-selected",String(dir));
   if(remember){try{localStorage.setItem("puntea.role",r)}catch(e){}}
   if(dir)setTimeout(()=>$("dirQ").focus(),40);
 }
-$("roleNgo").onclick=()=>setRole("ngo",true);
-$("roleDir").onclick=()=>setRole("dir",true);
+$("roleNgo").onclick=()=>{setRole("ngo",true);renderMatch();document.querySelector(".matcher").scrollIntoView({behavior:"smooth",block:"start"})};
+$("roleDir").onclick=()=>{setRole("dir",true);$("dirPanel").scrollIntoView({behavior:"smooth",block:"start"})};
 
 // ---------- school picker ----------
 let dirSel=null;
@@ -745,17 +897,30 @@ function dirPick(s){
   const band=s.lo!=null&&s.hi!=null?`${(s.lo*100).toFixed(0)}–${(s.hi*100).toFixed(0)}%`:"–";
   const arch=archetype(s);
   const cov=[s.pnrasGrant?"grant PNRAS":"",s.masa?"Masă sănătoasă":""].filter(Boolean).join(", ");
+  const peers=ALL.filter(x=>ck(x.county)===ck(s.county));
+  const weighted=(key,wkey)=>{let sum=0,w=0;for(const x of peers){const v=x[key],ww=x[wkey];if(v!=null&&isFinite(v)&&ww>0){sum+=v*ww;w+=ww}}return w?sum/w:null};
+  const countyGrade=weighted("meanAvg","perYear"),countyAbsent=weighted("absent","n2026");
+  const failGap=s.prior==null?null:s.shr-s.prior;
+  const gradeGap=s.meanAvg==null||countyGrade==null?null:s.meanAvg-countyGrade;
+  const absentGap=s.absent==null||countyAbsent==null?null:s.absent-countyAbsent;
+  const gapText=(d,avg,kind="pct")=>{
+    if(d==null||avg==null)return"Nu există suficiente date pentru comparație";
+    const close=kind==="grade"?.15:.015;
+    if(Math.abs(d)<close)return`≈ La nivelul mediei județului (${kind==="grade"?avg.toFixed(2):pct(avg)})`;
+    const amount=kind==="grade"?Math.abs(d).toFixed(2):`${(Math.abs(d)*100).toFixed(0)} puncte procentuale`;
+    return`${d>0?"▲":"▼"} ${amount} ${d>0?"peste":"sub"} media județului (${kind==="grade"?avg.toFixed(2):pct(avg)})`;
+  };
+  const failTone=failGap==null||Math.abs(failGap)<.015?"":failGap>0?"bad":"good";
+  const gradeTone=gradeGap==null||Math.abs(gradeGap)<.15?"":gradeGap<0?"bad":"good";
+  const absentTone=absentGap==null||Math.abs(absentGap)<.015?"":absentGap>0?"bad":"good";
   const fields=[
-    ["Sub 5 la Evaluarea Națională",`${pct(s.shr)}`,`estimare netezită, interval ${band} · ${s.years.size} ani cumulați (2023–2026)`],
-    ["Elevi sub 5 pe an",`≈${s.need.toFixed(1)}`,`din ≈${fmt(s.perYear)} candidați pe an — candidați la EN, nu efectivul școlii`],
-    ["Media generală",s.meanAvg!=null?s.meanAvg.toFixed(2):"–","media notelor la EN, cumulat"],
-    ["Înscriși dar neprezentați",pct(s.absent),"candidați înscriși care nu au susținut examenul"],
-    ["Poziție națională",s.failPct!=null?`în primele ${(100-s.failPct*100).toFixed(0)}% cele mai slabe`:"–","percentilă peste toate cele 6.331 de școli cu rezultate, urban inclus"],
-    ["Venitul comunei",s.income!=null?`${s.income.toLocaleString("ro-RO")} lei/locuitor`:"–",`impozit pe venit colectat, buget 2025 · scor ${s.dep!=null?s.dep.toFixed(2):"–"} din 1`],
-    ["Programe deja active",cov||"niciunul găsit",s.pnrasEligible?"școala e pe lista de risc PNRAS a ministerului":"nu apare pe lista de risc PNRAS"],
-    // Two different absences, never conflated: the register lists no address for this school, or it
-    // lists one and this copy of the page simply does not ship it (contacts.js is not in git).
-    ["Contact în evidența ministerului",[s.email||(s.inbox?"adresa nu este inclusă în acest export (rulează npm run app)":"fără email în registru"),s.phone||""].filter(Boolean).join(" · "),s.inboxN>1?`adresă comună cu încă ${s.inboxN-1} unitate/unități`:"adresă proprie"],
+    {k:"Rezultate sub nota 5",v:pct(s.shr),compare:gapText(failGap,s.prior),src:`Estimare ajustată · interval ${band} · ${s.years.size} ani cumulați`,tone:failTone},
+    {k:"Elevi sub nota 5 / an",v:`≈${s.need.toFixed(1)}`,compare:`Din ≈${fmt(s.perYear)} candidați pe an`,src:"Candidați la Evaluarea Națională, nu efectivul total al școlii",tone:failTone},
+    {k:"Media generală la EN",v:s.meanAvg!=null?s.meanAvg.toFixed(2):"–",compare:gapText(gradeGap,countyGrade,"grade"),src:"Media notelor, calculată pe anii disponibili",tone:gradeTone},
+    {k:"Înscriși, dar neprezentați",v:pct(s.absent),compare:gapText(absentGap,countyAbsent),src:"Dintre candidații înscriși la Evaluarea Națională",tone:absentTone},
+    {k:"Poziție națională",v:s.failPct!=null?`${(100-s.failPct*100).toFixed(0)}%`:"–",compare:s.failPct!=null?"Între școlile cu cele mai slabe rezultate":"Fără comparație disponibilă",src:"Percentilă din 6.331 de școli, urban inclus",tone:s.failPct>=.75?"bad":s.failPct<=.25?"good":""},
+    {k:"Venitul comunei",v:s.income!=null?`${s.income.toLocaleString("ro-RO")} lei`:"–",compare:s.dep==null?"Fără comparație":s.dep>=.8?"▼ În cincimea cu venituri mai mici":s.dep<=.2?"▲ În cincimea cu venituri mai mari":"În zona de mijloc",src:"Impozit pe venit colectat / locuitor, buget 2025",tone:s.dep>=.8?"warn":s.dep<=.2?"good":""},
+    {k:"Programe deja active",v:cov||"Niciunul găsit",compare:s.pnrasEligible?"Școala apare pe lista de risc PNRAS":"Școala nu apare pe lista de risc PNRAS",src:"Grant PNRAS și programul Masă sănătoasă",tone:cov?"good":"warn",compact:true},
   ];
   const t1=(matchCounty(s.county).inC||[]).filter(o=>o.rel!=="low");
   const cand=(DATA&&DATA.ngoCand&&DATA.ngoCand[norm(s.county).toUpperCase()])||
@@ -764,25 +929,39 @@ function dirPick(s){
       d:s.ll&&c[2]!=null?km(s.ll,[c[2],c[3]]):null}))
     .sort((a,b)=>(a.d==null)-(b.d==null)||(a.d??1e9)-(b.d??1e9)||b.util-a.util).slice(0,3);
 
+  const contact=[s.email||(s.inbox?"adresa nu este inclusă în acest export (rulează npm run app)":"fără email în registru"),s.phone||""].filter(Boolean).join(" · ");
+  const verified=t1.slice(0,3).map(o=>`<details class="org-card verified">
+    <summary><span class="badge2">✓ program verificat</span><span class="org-name">${esc(o.n)}</span>
+      <span class="org-preview">Lucrează deja în ${esc(s.county)}. Apăsați pentru program, acoperire și sursă.</span></summary>
+    <div class="org-detail"><p><b>Ce sprijin oferă:</b> ${esc(o.what)}</p>
+      <p class="tierlab"><b>Acoperire publică verificată:</b> ${o.c.length} județe, inclusiv ${esc(s.county)}.</p>
+      <a class="org-action" href="${esc(o.u)}" target="_blank" rel="noopener">Vezi programul organizației ↗</a></div>
+  </details>`).join("");
+  const nearby=withD.map(c=>`<details class="org-card">
+    <summary><span class="badge2">scop neverificat</span><span class="org-name">${esc(c.name)}</span>
+      <span class="org-preview">${esc(c.loc||"Localitate nespecificată")}${c.d!=null?` · la aproximativ ${Math.round(c.d)} km`:""}</span></summary>
+    <div class="org-detail"><p><b>De ce apare aici:</b> organizație activă din registru, apropiată de școală, al cărei scop conține termeni legați de educație.</p>
+      <p class="tierlab">Programul și capacitatea de intervenție nu au fost încă verificate.${c.util?" Organizația are statut de utilitate publică.":""}${c.reg?` Identificator în registru: ${esc(String(c.reg))}.`:""}</p></div>
+  </details>`).join("");
   $("dirOut").innerHTML=`
-    <h3>${esc(s.school)}</h3>
-    <p class="tierlab">${esc(s.locality||"")} · ${esc(s.county)} · ${s.mediu}${arch?` · <b>${arch==="money"?"banii par constrângerea":"banii nu par constrângerea"}</b>`:""}</p>
-    <div class="profile">${fields.map(([k,v,src])=>
-      `<div class="pf"><span class="k">${esc(k)}</span><span class="v">${esc(String(v))}</span><span class="src">${esc(src)}</span></div>`).join("")}</div>
+    <div class="school-head"><h3>${esc(s.school)}</h3>
+      <p class="school-summary"><strong>${esc(s.locality||"")}</strong><span>· ${esc(s.county)} · ${s.mediu}</span>${arch?`<span class="badge2">${arch==="money"?"banii pot fi constrângerea":"banii nu par constrângerea"}</span>`:""}</p>
+    </div>
+    <div class="profile-key"><span><i style="background:var(--red)"></i>mai slab decât media</span><span><i style="background:var(--sem-g)"></i>mai bun decât media</span><span><i style="background:var(--money)"></i>necesită atenție</span></div>
+    <div class="profile">${fields.map(f=>
+      `<article class="pf ${f.tone||""}${f.compact?" compact":""}"><span class="k">${esc(f.k)}</span><span class="v">${esc(String(f.v))}</span><span class="compare">${esc(f.compare)}</span><span class="src">${esc(f.src)}</span></article>`).join("")}</div>
     <p class="tierlab" style="margin-top:10px">Datele vin din fișierele publice ale ministerului. <b>Dacă ceva e greșit, spuneți-ne</b> —
-      corecțiile se păstrează separat și nu modifică clasamentul. Nu cerem și nu stocăm date despre elevi.</p>
+      corecțiile se păstrează separat și nu modifică clasamentul. Nu cerem și nu stocăm date despre elevi.<br><b>Contact în evidența ministerului:</b> ${esc(contact)}${s.inboxN>1?` · adresă comună cu încă ${s.inboxN-1} unitate/unități`:""}.</p>
     <div class="tier" style="margin-top:18px">
       <h4>Organizații care v-ar putea ajuta</h4>
       ${t1.length?`<div class="tierlab">Programe verificate, care lucrează în ${esc(s.county)}:</div>
-        ${t1.slice(0,3).map(o=>`<div class="ngorow"><span class="nm">${esc(o.n)}<span class="badge2">program verificat</span></span>
-          <span class="meta">${esc(o.what.slice(0,60))}…</span></div>`).join("")}`
+        <div class="org-grid">${verified}</div>`
         :`<div class="alone"><b>Nicio organizație cu program verificat nu lucrează în ${esc(s.county)}.</b>
            Asta nu e o căutare eșuată — e exact ce arată datele: ${esc(s.county)} e unul dintre județele unde nu ajunge nimeni.
            Mai jos sunt organizațiile înregistrate cele mai apropiate; le puteți trimite o cerere de colaborare.</div>`}
       ${withD.length?`<div class="tierlab" style="margin-top:10px">Înregistrate în apropiere — <b>scopul nu e verificat</b>,
          filtrate doar după cuvinte-cheie din statut și după faptul că sunt active în registru:</div>
-        ${withD.map(c=>`<div class="ngorow"><span class="nm">${esc(c.name)}${c.util?`<span class="badge2">utilitate publică</span>`:""}</span>
-          <span class="meta">${esc(c.loc||"")}${c.d!=null?` · ${Math.round(c.d)} km`:""}</span></div>`).join("")}`:""}
+        <div class="org-grid">${nearby}</div>`:""}
     </div>`;
 }
 
@@ -795,10 +974,10 @@ const kmPx=K/111;
 const unproj=(x,y)=>[B.lat0-y/K, B.lon0+x/(Math.cos(46*Math.PI/180)*K)];
 let customBase=null;   // set by dragging the pin; overrides the "Working from" select
 $("map").setAttribute("viewBox",`0 0 640 ${Math.round(H)}`);
-function fillOrgs(){$("mOrg").innerHTML=NGOS.filter(o=>o.rel!=="low").map((o,i)=>`<option value="${NGOS.indexOf(o)}">${esc(o.n)}</option>`).join("")+`<option value="other">Another organisation</option>`;fillBase()}
+function fillOrgs(){$("mOrg").innerHTML=NGOS.filter(o=>o.rel!=="low").map((o,i)=>`<option value="${NGOS.indexOf(o)}">${esc(o.n)}</option>`).join("")+`<option value="other">Altă organizație</option>`;fillBase()}
 function fillBase(){const v=$("mOrg").value,cs=v==="other"?Object.keys(SEATS):NGOS[+v].c;const prev=$("mBase").value;
   $("mBase").innerHTML=cs.slice().sort().map(c=>`<option value="${c}">${title(c)}</option>`).join("");if(cs.includes(prev))$("mBase").value=prev}
-let mapBuilt=null,lastPicks=[],dotEls=[],hitEls=[],seatEls=[],lblEls=[];
+let mapBuilt=null,mapRural=null,lastPicks=[],visibleMatchCount=3,dotEls=[],seatEls=[],lblEls=[];
 const COUNTY_PATHS={"ALBA":"M177.1 167.4L168.3 171.7L169.0 179.4L171.1 180.4L168.1 182.5L168.6 184.7L169.8 186.6L174.9 188.1L177.1 190.3L181.1 189.2L184.3 189.7L187.0 194.3L186.0 195.9L188.2 200.4L193.9 201.4L196.2 206.8L195.8 207.8L194.6 206.9L193.0 207.8L193.6 210.7L195.8 212.2L194.9 214.3L196.0 216.6L201.4 218.4L205.0 217.1L204.7 221.9L206.7 227.2L211.4 228.6L209.2 230.9L211.0 232.6L210.5 236.3L212.5 241.8L214.3 243.6L213.0 247.5L216.8 251.4L213.7 254.3L213.6 256.0L216.3 255.4L217.5 259.7L222.0 260.4L222.9 262.9L226.5 265.6L229.4 272.1L232.8 271.5L235.3 268.2L232.8 268.6L229.7 262.3L232.0 258.4L230.7 256.5L231.5 254.8L228.1 251.6L229.3 250.3L227.8 248.9L230.0 244.4L231.4 244.9L232.8 243.6L229.7 239.5L234.3 239.5L235.1 237.0L237.4 236.8L236.9 235.2L239.9 232.1L237.1 230.6L237.3 229.0L242.7 228.1L244.9 224.8L246.2 225.8L244.6 220.2L247.6 216.7L253.4 217.3L255.1 220.9L257.4 211.9L258.5 213.0L262.5 208.3L268.6 206.4L267.0 203.7L267.1 199.9L271.1 198.3L267.4 194.3L265.4 195.3L264.0 189.7L258.5 189.0L255.9 187.0L256.5 185.9L254.5 186.1L254.0 185.1L257.0 182.7L257.0 180.2L255.8 180.1L257.3 177.9L256.0 177.9L254.2 180.8L248.8 177.4L246.1 178.9L243.8 176.8L235.2 177.9L231.9 180.7L233.9 182.5L232.5 183.6L228.8 182.0L228.0 179.9L229.3 175.4L226.9 174.2L225.9 175.0L225.2 173.6L223.5 175.2L219.6 173.5L219.0 171.3L214.2 170.1L204.9 174.8L202.2 174.6L201.5 173.0L199.3 173.3L196.2 174.8L195.5 176.9L192.8 177.1L193.0 174.6L190.1 173.6L188.7 170.4L189.4 169.0L184.8 168.7L181.5 170.5L177.2 168.7L177.1 167.4Z","ARAD":"M168.3 182.8L165.6 184.3L151.8 184.0L146.6 178.8L145.3 172.6L141.9 173.8L138.3 171.9L137.0 172.6L134.8 167.3L135.2 164.3L131.7 164.3L129.9 161.4L127.0 161.0L125.8 159.4L124.1 162.2L121.0 162.9L116.3 161.6L118.3 158.6L115.9 157.0L111.4 159.3L101.0 158.4L99.3 160.3L96.1 159.9L95.8 164.5L94.4 164.4L94.0 161.7L92.2 161.1L92.1 159.8L91.4 160.7L88.5 158.2L85.6 162.5L82.7 161.0L79.3 162.9L78.4 165.4L79.7 166.1L76.7 170.1L75.8 173.7L79.5 178.6L78.1 182.7L73.5 182.1L72.2 183.0L71.8 188.2L70.3 189.4L70.6 192.3L66.3 192.6L65.5 196.2L63.1 198.1L61.2 197.6L60.4 195.9L55.7 196.0L55.3 194.7L53.9 195.0L53.7 196.3L50.5 193.9L44.1 195.0L42.4 197.4L43.2 201.7L41.0 201.4L41.4 202.9L39.5 205.8L41.0 207.3L43.7 207.3L47.8 212.4L53.4 213.9L54.9 217.4L63.3 217.2L66.0 223.1L70.0 221.0L74.6 223.6L74.3 222.1L77.4 219.0L81.5 220.7L81.5 222.5L82.7 222.6L84.3 220.1L88.1 218.2L87.2 215.3L88.1 216.6L92.5 214.6L93.8 217.8L93.0 220.0L100.7 223.4L99.9 226.3L102.0 227.0L102.4 229.7L104.0 228.8L106.9 221.9L109.4 225.8L109.0 228.7L111.4 228.3L112.3 223.9L114.4 225.9L115.7 224.8L117.2 225.4L119.2 222.4L122.0 221.5L124.0 223.9L126.7 223.9L132.9 228.2L135.4 227.6L140.0 230.1L141.1 227.1L143.8 227.3L144.4 224.1L147.1 223.5L146.0 221.5L152.7 219.8L152.1 213.6L150.5 212.0L154.6 207.2L153.2 200.5L156.4 198.0L157.6 199.8L162.2 199.0L163.8 200.4L167.0 198.8L168.4 190.7L173.0 187.9L169.8 186.6L168.3 182.8Z","ARGES":"M341.0 279.1L339.7 275.2L337.8 276.6L336.7 275.2L338.0 273.3L335.6 270.2L335.5 266.3L332.3 265.8L326.7 259.9L317.3 259.2L316.2 260.2L305.1 257.5L298.5 259.0L295.6 258.2L291.7 260.5L288.2 259.8L290.0 264.6L288.1 266.3L289.0 270.3L286.1 272.1L287.7 279.0L285.6 283.8L286.9 284.6L286.8 288.4L285.2 293.2L285.8 295.3L287.4 295.7L286.5 296.5L288.8 298.0L287.2 299.4L288.6 302.3L288.2 304.8L286.5 305.0L287.8 306.9L286.1 309.2L288.7 310.3L286.2 313.6L287.9 315.1L285.3 319.8L287.3 320.2L285.0 323.1L286.0 324.4L285.5 326.8L282.2 331.2L283.8 332.7L286.1 331.7L288.0 329.5L288.9 324.9L290.0 325.2L291.0 330.8L293.1 334.0L293.2 338.5L294.3 338.1L295.8 340.4L299.3 339.6L302.1 341.2L299.5 343.1L301.5 350.1L301.1 354.2L303.2 358.4L302.6 365.2L304.3 365.3L303.3 369.2L304.0 372.2L312.2 371.9L312.4 373.0L317.5 373.5L320.7 370.3L323.0 371.6L323.6 370.5L324.3 371.6L326.7 370.4L325.6 369.7L327.3 369.9L333.3 366.0L335.3 369.1L338.1 366.4L336.9 360.9L339.4 356.7L336.4 356.0L334.7 352.1L333.8 351.0L332.9 351.7L333.4 349.5L331.8 349.5L332.7 348.8L331.0 346.7L335.5 343.6L331.4 341.8L333.9 335.4L332.2 331.2L333.4 328.5L332.9 324.0L330.5 322.4L332.9 313.2L331.2 311.1L329.5 311.3L328.1 308.3L331.7 306.2L330.6 303.9L329.4 304.4L330.6 303.2L329.6 302.8L330.1 296.0L329.1 295.1L330.6 294.7L331.9 295.9L333.8 300.2L336.6 297.8L336.2 295.1L339.0 293.8L338.1 289.7L339.9 287.4L341.0 279.1Z","BACAU":"M464.1 148.6L460.5 152.2L460.2 150.1L458.1 150.5L457.0 148.6L454.6 149.8L453.5 148.2L446.6 150.2L446.4 147.2L445.5 148.0L443.6 145.9L444.6 145.7L444.1 144.2L445.0 144.7L444.7 143.2L443.1 143.0L440.8 145.3L440.8 147.6L439.0 148.2L440.3 150.3L436.7 153.5L434.4 151.6L434.6 149.8L433.1 150.5L433.8 148.7L429.4 148.8L429.5 151.7L425.0 153.9L422.5 157.1L418.9 155.6L416.1 157.3L413.8 156.3L410.2 159.9L406.9 158.5L404.5 159.3L402.7 154.8L399.5 156.9L399.4 159.3L395.7 160.6L394.5 158.8L391.9 160.1L390.6 159.2L390.0 154.4L388.8 153.6L386.2 155.6L383.7 155.4L383.5 157.2L384.9 157.6L386.6 161.3L384.7 162.4L385.2 164.4L387.5 167.3L387.6 169.7L390.7 172.7L390.2 175.4L389.0 174.5L385.8 175.6L386.4 177.6L384.5 179.7L385.5 181.0L385.0 182.7L388.4 181.8L389.3 183.3L396.1 184.7L395.5 191.3L399.7 191.4L400.7 189.4L403.0 188.5L404.4 189.4L403.2 193.9L401.8 194.9L402.2 197.4L406.6 199.3L407.7 208.0L410.6 207.3L410.9 209.4L410.1 208.9L409.4 210.4L411.9 211.2L415.1 217.7L417.4 216.6L419.0 218.4L422.7 219.3L428.2 212.9L431.3 212.0L436.2 212.1L438.0 214.7L442.2 213.0L446.3 214.8L447.2 211.5L449.5 210.3L457.5 212.6L456.2 210.5L458.5 211.5L459.7 208.3L458.7 207.1L461.9 203.9L462.7 204.8L463.1 203.3L463.8 204.1L465.1 202.9L466.7 204.2L468.2 203.7L467.8 202.1L470.6 201.6L473.5 206.6L475.1 206.1L476.3 202.7L479.9 203.6L480.6 206.1L481.9 205.2L483.7 206.3L483.9 201.2L481.9 200.2L481.2 195.2L482.2 194.3L480.4 190.7L481.8 190.6L480.9 186.0L475.4 171.7L468.6 162.1L471.7 159.2L469.7 157.3L471.9 155.3L466.2 151.8L464.1 148.6Z","BIHOR":"M177.1 167.4L176.4 162.8L177.6 160.9L175.5 162.0L172.4 153.6L170.3 151.5L170.7 149.2L165.7 145.8L171.5 144.2L175.0 136.6L174.7 135.3L172.2 135.0L167.9 131.6L168.2 129.6L171.7 126.2L169.9 125.2L168.9 122.1L162.8 120.9L157.7 116.7L161.1 115.2L158.8 111.0L157.3 111.3L156.3 109.3L158.6 106.2L157.8 105.0L161.0 103.3L159.8 101.6L160.2 98.4L162.0 98.6L162.4 96.1L164.1 95.0L161.3 93.4L161.0 90.0L158.7 89.4L158.7 87.6L154.1 86.3L152.3 87.2L150.6 86.1L147.5 86.6L146.3 80.8L142.9 79.3L143.0 76.1L140.8 76.3L141.1 73.9L139.5 73.8L137.2 70.6L132.5 70.7L130.2 74.4L127.7 75.4L128.7 76.3L128.1 77.2L127.0 76.2L125.7 78.0L124.5 81.5L126.2 84.5L125.6 90.1L124.9 91.6L120.1 91.8L116.2 99.9L116.8 101.3L114.4 104.4L114.8 109.3L112.2 110.7L110.5 116.9L106.2 117.7L103.4 122.6L101.2 123.1L103.8 126.7L102.4 129.7L103.3 130.2L100.5 133.2L97.9 133.7L98.9 137.6L98.2 139.3L92.7 142.2L92.6 145.7L90.3 149.0L93.2 151.4L93.3 153.2L90.9 156.4L87.1 155.5L86.9 157.0L91.4 160.7L92.1 159.8L92.2 161.1L94.0 161.7L94.4 164.4L95.8 164.5L96.1 159.9L99.3 160.3L101.0 158.4L111.4 159.3L115.9 157.0L118.3 158.6L116.3 161.6L121.0 162.9L124.1 162.2L125.8 159.4L127.0 161.0L129.9 161.4L131.7 164.3L135.2 164.3L134.8 167.3L137.0 172.6L138.3 171.9L141.9 173.8L145.3 172.6L146.6 178.8L153.7 184.7L161.8 183.5L166.5 184.1L171.1 180.4L169.0 179.4L168.3 171.7L177.1 167.4Z","BISTRITA NASAUD":"M317.4 70.8L308.8 70.8L307.4 73.6L302.1 72.7L297.8 74.8L296.0 72.8L291.6 74.0L279.9 69.7L277.1 73.7L274.5 72.5L274.4 74.4L270.4 79.9L265.6 79.4L263.9 81.1L263.0 80.0L262.8 85.8L259.4 88.4L258.7 91.4L256.2 92.9L256.1 97.4L255.1 98.3L253.5 96.7L250.0 98.7L249.5 103.7L252.0 111.7L255.8 110.2L255.8 113.5L259.3 114.8L259.3 115.8L261.7 115.2L262.5 117.7L264.3 118.5L263.3 118.7L261.5 124.4L262.6 125.0L261.1 127.9L262.1 130.6L266.2 130.4L265.2 133.2L269.5 137.3L268.5 137.7L268.4 142.2L267.0 142.8L267.4 144.9L266.3 145.0L270.0 148.3L278.3 150.8L280.9 150.4L281.8 148.2L284.2 148.9L285.5 147.3L284.0 146.7L284.6 143.8L289.1 140.6L289.8 139.4L288.7 136.4L292.9 134.9L293.5 132.0L295.5 131.2L297.7 135.4L303.5 135.7L304.0 135.0L301.8 133.3L303.0 128.7L306.5 122.3L310.5 117.9L313.3 116.6L315.6 117.9L316.9 115.6L320.9 116.5L324.1 114.1L322.9 106.7L325.2 102.6L321.8 100.0L325.2 97.3L324.5 92.1L318.9 87.1L321.7 85.9L323.8 87.8L323.4 86.4L325.9 84.7L324.3 84.6L322.6 81.5L324.0 81.7L326.1 78.8L323.4 74.2L317.4 70.8Z","BOTOSANI":"M476.2 71.5L471.2 66.5L470.0 62.9L468.5 62.1L469.1 61.0L466.9 59.3L468.0 58.0L469.7 58.9L469.0 57.6L470.0 56.2L467.9 55.4L468.0 53.6L465.7 51.8L466.4 50.2L464.7 50.0L466.8 48.5L464.3 47.1L463.7 42.1L460.5 40.3L462.2 37.9L459.8 36.0L461.5 33.4L458.6 33.5L458.7 31.4L456.6 32.2L457.6 29.8L456.0 29.6L452.2 24.5L453.2 20.7L452.2 21.2L452.0 19.9L450.7 21.5L447.9 20.3L447.7 18.6L450.1 18.8L446.4 17.5L447.0 14.6L445.1 14.2L445.4 15.8L444.3 15.9L443.6 14.9L444.7 14.0L443.0 13.9L441.0 10.9L439.6 11.6L438.1 9.0L433.5 9.9L432.9 8.6L432.7 9.8L431.0 8.0L428.9 9.7L428.7 8.1L427.5 9.2L426.7 8.3L425.8 10.4L423.0 10.0L422.7 12.3L421.3 11.7L419.8 13.2L416.1 12.2L413.8 14.7L412.8 14.0L410.6 15.3L409.9 14.2L407.0 15.4L407.1 17.9L404.8 20.3L402.7 25.7L399.2 28.1L397.6 33.3L391.8 34.9L393.9 37.3L393.5 39.2L397.3 40.5L397.3 43.0L398.3 43.8L400.3 42.3L403.7 46.4L404.5 45.8L405.6 47.1L405.0 48.4L406.5 48.8L406.1 50.3L409.5 54.2L411.8 53.2L411.2 57.9L414.0 57.1L413.5 58.6L414.4 58.0L415.8 59.6L418.4 64.5L417.7 65.0L420.9 66.4L420.7 72.1L424.8 78.0L421.3 79.5L423.8 80.8L424.4 84.1L427.0 82.5L432.8 82.5L430.9 80.6L432.1 78.5L442.8 80.7L449.1 80.3L451.1 81.3L450.9 83.0L453.3 85.7L453.8 83.1L456.0 83.3L455.3 78.7L457.1 75.4L465.2 78.7L467.5 77.2L466.7 74.6L467.8 73.2L476.2 71.5Z","BRAILA":"M517.9 276.9L514.8 278.3L508.3 275.4L507.1 277.6L503.8 277.9L501.7 275.2L499.0 275.9L499.6 272.8L497.4 274.2L494.6 273.0L495.8 269.7L493.8 270.5L493.3 268.8L491.7 272.2L489.8 269.4L487.5 268.7L478.9 276.4L479.5 279.6L476.6 281.0L477.4 282.8L475.4 283.9L476.1 288.0L474.5 289.3L471.0 287.5L473.5 295.0L469.7 294.9L469.1 296.1L466.5 294.2L466.2 295.2L462.0 291.5L458.3 294.7L455.0 300.3L456.9 302.7L458.1 302.0L457.9 300.2L460.4 298.9L461.5 304.6L462.5 304.6L461.5 307.0L464.1 305.5L463.5 312.3L466.8 312.4L466.9 315.4L469.0 315.2L465.9 327.2L464.4 326.9L465.7 328.2L464.4 333.1L462.9 333.1L466.5 337.8L467.4 338.5L469.4 335.1L470.8 336.1L472.9 333.5L475.6 336.1L476.2 335.3L477.2 336.3L479.1 333.8L481.8 336.1L485.0 336.2L485.1 334.8L497.8 337.0L497.8 335.8L499.2 335.7L498.0 334.3L499.0 332.2L501.1 333.5L501.9 331.9L504.6 331.9L504.6 335.4L508.1 337.2L512.5 335.6L516.1 337.7L518.2 337.5L520.2 335.3L522.5 327.9L525.2 325.3L524.1 322.3L525.8 317.5L524.3 313.7L525.9 311.5L524.8 305.4L527.4 305.4L527.0 303.4L528.8 302.0L521.9 297.1L524.4 293.0L523.4 290.6L519.8 291.0L515.6 288.0L517.9 276.9Z","BRASOV":"M341.0 279.1L346.3 278.6L347.0 274.6L352.5 271.0L359.2 271.5L361.1 268.3L364.5 267.9L367.4 271.2L370.0 271.2L371.3 269.4L373.8 274.4L376.5 275.3L380.2 265.9L383.4 267.4L385.0 266.7L388.1 270.1L389.6 269.3L392.1 263.2L388.9 259.1L389.0 257.0L386.5 257.1L385.5 253.9L383.2 254.7L382.1 253.6L383.5 250.3L379.6 248.2L376.2 248.4L375.0 246.3L373.7 246.7L374.4 244.7L371.5 244.1L371.6 243.1L370.0 243.8L365.9 242.2L363.3 244.6L364.2 243.6L363.6 241.0L356.4 234.8L357.3 233.6L356.5 232.4L358.5 232.0L358.4 232.9L361.8 230.2L355.3 231.1L356.8 229.0L355.0 226.4L356.1 225.1L355.2 225.1L355.6 221.3L357.4 220.8L358.2 219.0L356.6 217.5L356.7 215.9L353.0 216.7L351.0 215.4L349.4 214.0L349.4 209.2L346.6 209.3L343.8 207.6L341.7 204.2L337.8 204.9L336.9 203.0L336.3 207.6L332.4 204.9L328.2 207.5L325.2 206.7L323.0 208.4L321.0 207.2L318.6 209.1L316.5 212.1L317.7 215.1L312.8 217.2L311.2 220.0L308.3 220.0L309.3 223.0L304.9 223.2L303.6 227.0L300.6 226.5L301.5 230.8L305.1 233.3L305.2 236.0L301.6 235.9L301.3 238.2L299.6 236.3L296.4 240.2L299.2 248.2L298.4 254.8L299.4 258.1L307.6 257.5L309.3 259.3L314.6 259.0L316.2 260.2L317.3 259.2L326.7 259.9L332.3 265.8L335.5 266.3L335.6 270.2L338.0 273.3L336.7 275.2L337.8 276.6L339.7 275.2L341.0 279.1Z","BUZAU":"M478.9 277.9L473.8 280.0L468.2 278.3L468.9 272.2L465.2 274.7L463.3 272.3L460.0 276.4L458.1 276.5L457.6 273.7L461.0 271.2L457.7 270.3L456.5 273.0L453.6 272.4L450.7 269.4L449.0 264.9L449.7 264.4L447.2 265.9L444.3 264.3L443.4 266.4L439.8 266.3L437.9 263.4L434.2 263.4L429.8 257.7L419.9 254.7L413.8 245.4L414.1 241.9L410.9 239.5L410.4 245.7L408.4 247.0L407.0 250.4L405.6 258.3L403.6 259.8L401.3 256.1L399.3 256.5L397.4 257.8L396.5 262.0L395.0 259.8L390.0 267.3L395.1 272.0L395.8 280.8L397.6 281.5L400.6 285.4L397.4 288.7L399.9 289.2L401.6 296.2L408.6 294.8L408.3 299.5L409.8 300.1L415.4 296.3L416.0 301.9L414.7 303.1L415.1 307.3L414.2 307.8L415.9 309.0L417.4 314.4L419.9 313.5L424.5 319.1L420.1 320.6L420.3 323.4L421.5 322.9L425.0 327.0L426.5 332.5L436.0 332.3L438.2 334.2L442.7 331.8L448.9 334.8L451.1 331.4L457.9 335.4L457.0 338.9L459.4 339.8L459.7 338.9L462.6 339.9L463.3 338.2L460.1 337.4L460.7 335.1L463.9 335.1L462.9 333.1L464.4 333.1L465.7 328.2L464.4 326.9L465.9 327.2L469.0 315.2L466.9 315.4L466.8 312.4L463.5 312.3L464.1 305.5L461.5 307.0L462.5 304.6L461.5 304.6L460.4 298.9L457.9 300.2L458.1 302.0L456.9 302.7L454.9 300.0L462.0 291.5L466.2 295.2L466.5 294.2L469.1 296.1L469.7 294.9L473.5 295.0L471.0 287.5L474.5 289.3L476.1 288.0L475.4 283.9L477.4 282.8L476.6 281.0L479.5 279.6L478.9 277.9Z","CALARASI":"M517.1 377.0L506.5 373.2L503.7 377.5L502.2 375.6L500.4 376.3L499.3 373.0L500.9 371.8L498.5 370.8L498.4 369.5L493.3 369.4L492.3 364.7L487.8 365.0L488.0 356.4L486.3 356.1L486.2 358.0L484.9 357.8L484.5 362.2L483.4 362.5L476.0 362.3L473.6 360.3L473.2 363.3L469.4 362.9L469.6 361.6L468.1 361.4L467.8 363.0L465.5 362.6L465.3 360.7L464.0 360.5L464.1 363.5L459.7 361.8L459.5 363.6L456.6 363.3L456.6 361.1L450.8 361.1L450.8 359.2L443.6 360.4L442.9 359.3L440.4 360.5L440.9 359.6L439.5 359.3L439.1 360.9L438.2 359.8L437.3 360.9L435.6 360.3L436.7 358.0L435.0 357.2L434.6 359.3L432.5 358.4L432.7 356.4L429.6 356.0L430.0 353.4L428.7 353.0L427.4 358.6L425.9 357.9L424.1 360.9L424.4 359.8L422.1 359.5L416.4 354.4L415.1 355.6L413.8 357.3L416.1 357.7L408.9 363.3L411.1 366.0L415.6 366.3L408.0 370.3L406.6 372.8L405.0 370.1L402.3 370.5L406.9 374.0L401.8 377.9L403.3 379.1L401.9 380.9L404.6 384.4L408.8 386.2L408.9 388.0L411.5 387.9L412.5 389.8L411.4 391.7L412.9 391.8L412.7 397.1L408.7 398.8L410.1 404.9L413.7 405.8L435.1 401.6L444.5 396.4L459.7 395.8L465.5 398.0L471.9 395.8L480.1 397.2L487.4 391.1L491.7 389.6L497.7 390.4L503.7 385.9L511.6 385.5L517.1 377.0Z","CARAS SEVERIN":"M151.9 252.1L144.8 252.9L141.6 259.9L136.4 256.8L133.9 258.6L133.7 257.0L132.9 259.1L131.0 259.0L128.9 261.2L127.0 259.3L127.2 263.3L128.8 261.8L129.9 263.6L129.2 264.3L130.9 263.3L131.1 264.6L128.1 265.3L126.3 267.8L120.5 267.4L119.5 264.2L116.8 263.2L116.2 264.8L110.2 264.8L102.8 259.9L97.9 261.3L95.8 268.3L91.6 270.6L91.4 269.1L87.1 270.6L87.0 272.1L90.4 274.1L90.7 275.6L87.5 276.7L89.1 281.2L88.3 281.8L89.6 283.3L93.0 283.7L93.7 285.5L95.8 285.5L96.1 287.4L92.8 291.9L93.2 293.1L91.7 294.5L92.4 296.0L90.0 296.7L93.3 301.1L90.0 303.5L90.3 306.4L88.0 309.5L88.6 311.1L82.3 313.0L87.4 318.7L94.5 321.5L95.4 325.4L90.5 327.3L83.1 327.5L82.1 331.3L85.2 336.0L93.8 336.3L97.1 337.6L98.7 340.6L99.1 345.6L100.4 346.9L103.8 346.4L106.4 347.5L110.5 346.5L112.0 347.8L118.6 348.1L123.7 349.5L125.1 352.6L129.3 350.5L133.7 353.9L135.7 348.8L133.1 346.9L133.7 343.1L134.3 339.7L137.4 337.4L137.6 332.1L141.6 335.4L146.4 336.2L147.8 338.9L151.4 337.9L151.8 333.7L155.9 325.9L155.8 320.9L157.8 319.1L156.2 317.4L167.0 304.8L166.5 302.9L162.0 301.9L160.7 299.7L163.3 295.6L164.9 295.4L168.9 291.2L168.3 288.5L169.7 284.0L167.0 280.0L170.6 275.9L168.4 266.4L166.4 264.0L165.1 264.6L165.6 261.2L162.8 262.2L162.1 260.0L159.9 260.3L159.6 259.0L157.5 259.0L153.7 252.9L151.9 252.1Z","CLUJ":"M253.7 180.4L255.0 179.4L252.8 177.8L253.1 173.5L252.0 172.5L253.8 169.9L255.9 171.0L257.7 169.7L259.2 164.0L256.0 161.9L256.9 160.3L261.4 158.7L262.8 155.1L259.0 152.0L260.4 150.1L262.9 150.8L262.4 148.2L267.0 146.3L266.3 145.0L267.4 144.9L267.0 142.8L268.4 142.2L268.5 137.7L269.5 137.3L265.2 133.2L266.2 130.4L262.1 130.6L261.1 127.9L262.6 125.0L261.5 124.4L263.3 118.7L264.3 118.5L262.5 117.7L261.7 115.2L259.3 115.8L259.3 114.8L255.8 113.5L255.8 110.2L252.0 111.7L250.5 108.2L249.9 98.9L253.5 96.7L255.1 98.3L256.1 97.4L256.2 92.9L252.7 92.5L249.8 93.8L247.7 93.4L246.2 91.2L244.7 91.9L244.4 96.1L241.6 100.5L242.6 103.3L239.2 100.3L238.5 104.2L236.4 103.0L232.0 104.8L229.6 110.9L226.1 110.1L224.9 112.0L221.9 112.3L222.3 115.9L220.7 116.8L221.1 118.4L217.3 118.5L221.1 124.2L219.3 127.1L215.4 127.5L216.3 128.6L214.5 129.0L214.3 132.0L211.5 135.5L207.8 136.5L204.3 130.3L203.5 132.6L204.4 133.0L202.6 134.2L203.9 137.0L202.4 139.2L200.0 138.3L196.2 140.7L194.8 139.4L195.4 137.2L193.7 135.9L191.7 138.0L191.6 136.2L190.2 137.5L189.8 135.6L184.9 134.6L182.6 132.2L181.5 128.0L180.6 128.7L178.6 127.4L176.0 129.1L172.1 126.2L168.2 129.6L168.5 132.3L174.7 135.3L175.0 136.6L171.5 144.2L165.7 145.8L170.7 149.2L170.3 151.5L172.4 153.6L175.5 162.0L177.6 160.9L176.4 162.8L177.0 167.9L178.7 169.6L181.8 170.5L184.8 168.7L189.4 169.0L188.7 170.4L190.1 173.6L193.0 174.6L192.8 177.1L195.5 176.9L196.2 174.8L199.3 173.3L201.5 173.0L202.2 174.6L204.9 174.8L214.2 170.1L219.0 171.3L219.6 173.5L223.5 175.2L225.2 173.6L225.9 175.0L226.9 174.2L229.3 175.4L228.0 179.9L228.8 182.0L232.5 183.6L233.9 182.5L231.9 180.7L235.2 177.9L243.8 176.8L246.1 178.9L248.8 177.4L253.7 180.4Z","CONSTANTA":"M508.1 337.2L508.1 342.3L511.4 345.1L513.2 345.0L517.9 350.0L517.0 355.8L519.4 361.1L521.7 362.8L523.0 367.4L517.8 374.4L515.9 380.2L511.6 385.5L503.7 385.9L497.7 390.4L491.7 389.6L487.4 391.1L480.1 397.2L470.2 396.0L468.3 397.1L469.6 401.9L473.9 403.4L476.7 407.8L481.2 406.8L490.6 407.8L492.6 404.4L494.6 406.2L497.0 412.8L498.8 413.3L505.7 412.1L510.5 408.2L512.3 410.4L515.5 423.7L531.4 431.7L545.1 434.0L553.7 433.5L554.6 424.0L559.5 410.2L557.6 402.0L557.3 394.2L559.4 392.8L556.5 385.5L557.2 379.3L558.9 378.6L557.9 378.5L558.8 376.8L560.9 376.5L571.7 361.7L580.9 345.1L575.6 343.5L568.8 349.6L566.8 347.4L560.0 347.9L560.5 346.1L554.5 347.5L550.9 346.6L550.4 349.5L546.6 348.0L544.1 345.0L543.8 347.3L545.2 348.9L542.9 351.3L542.2 350.9L543.5 349.5L541.7 349.4L542.6 347.9L541.2 348.8L540.6 347.3L541.1 345.0L536.5 343.5L537.3 342.4L536.3 342.1L533.8 343.4L531.1 342.3L532.4 339.1L531.6 337.1L528.6 338.1L527.8 335.1L525.9 333.7L523.4 334.4L520.7 333.4L518.2 337.5L516.1 337.7L512.5 335.6L508.1 337.2Z","COVASNA":"M402.5 197.8L401.7 198.8L402.4 200.7L399.6 201.6L398.9 204.0L397.5 203.6L396.5 205.9L393.9 204.7L392.9 205.8L389.0 205.9L386.6 208.9L383.9 208.2L376.1 209.7L367.5 197.4L367.4 195.1L365.7 194.9L353.2 203.2L353.2 205.7L349.5 211.2L349.7 214.4L353.0 216.7L356.7 215.9L356.6 217.5L358.2 219.0L357.4 220.8L355.6 221.3L355.2 225.1L356.1 225.1L355.0 226.4L356.8 229.0L355.3 231.1L361.8 230.2L358.4 232.9L358.5 232.0L356.5 232.4L357.3 233.6L356.4 234.8L363.6 241.0L364.2 243.6L363.3 244.6L365.9 242.2L370.0 243.8L371.6 243.1L371.5 244.1L374.4 244.7L373.7 246.7L375.0 246.3L376.2 248.4L379.6 248.2L383.5 250.3L382.1 253.6L383.2 254.7L385.5 253.9L386.5 257.1L389.0 257.0L388.9 259.1L392.1 263.2L391.4 266.4L395.0 259.8L396.5 262.0L397.4 257.8L399.3 256.5L401.3 256.1L403.6 259.8L405.6 258.3L407.0 250.4L408.4 247.0L410.4 245.7L409.8 229.6L411.1 228.4L410.9 224.9L413.9 222.0L414.2 216.1L411.9 211.2L409.4 210.4L410.1 208.9L410.9 209.4L410.6 207.3L407.7 208.0L406.6 199.3L402.5 197.8Z","DAMBOVITA":"M335.3 369.1L336.4 371.0L339.7 369.2L342.3 365.3L343.2 365.8L345.8 360.2L348.9 361.8L348.0 364.4L351.4 366.5L353.5 363.0L351.4 362.0L352.3 360.2L355.4 358.2L358.5 359.5L360.3 357.2L362.3 356.9L364.6 359.8L366.2 357.8L370.8 359.2L372.9 357.4L375.2 359.7L375.7 358.3L378.2 358.1L377.1 356.9L377.9 354.4L379.1 356.0L384.8 351.4L381.3 348.2L381.5 347.1L383.5 346.9L383.0 345.9L384.2 346.4L382.6 344.7L384.5 344.0L383.6 340.2L380.4 337.3L377.1 330.8L374.3 331.4L375.0 332.8L370.7 331.4L373.8 324.0L371.4 319.4L366.3 320.4L364.6 319.2L364.1 314.0L365.8 310.7L364.1 307.3L359.5 303.3L356.4 296.8L354.7 297.0L354.9 294.6L353.5 294.0L356.2 289.5L354.1 285.9L350.9 284.1L351.6 277.8L349.5 273.5L347.0 274.6L346.3 278.6L341.0 279.1L339.9 287.4L338.1 289.7L339.0 293.8L336.2 295.1L336.6 297.8L333.8 300.2L331.9 295.9L330.6 294.7L329.1 295.1L330.1 296.0L329.6 302.8L330.6 303.2L329.4 304.4L330.6 303.9L331.7 306.2L328.2 308.8L329.5 311.3L332.2 311.8L333.1 314.7L331.3 316.4L330.5 322.4L332.9 324.0L333.4 328.5L332.2 331.2L333.9 335.4L331.4 341.8L335.5 343.6L331.0 346.7L332.7 348.8L331.8 349.5L333.4 349.5L332.9 351.7L333.8 351.0L334.7 352.1L336.4 356.0L339.4 356.7L336.9 360.9L338.1 366.4L335.3 369.1Z","DOLJ":"M240.4 341.9L236.2 340.6L235.6 353.9L234.9 352.3L229.5 353.5L227.8 351.1L223.0 352.4L221.8 355.2L219.9 354.5L216.5 359.4L214.1 357.9L211.4 359.7L210.1 358.2L206.0 359.1L207.9 360.4L207.6 361.8L205.3 362.4L205.6 363.8L202.2 365.8L204.0 367.7L202.3 370.1L205.6 372.8L203.6 372.6L203.7 373.7L201.7 374.4L200.9 378.4L197.9 379.2L196.5 384.3L195.5 384.3L195.5 388.0L196.7 388.5L195.6 390.2L197.1 391.1L196.6 394.8L189.7 394.1L187.2 399.7L190.3 400.1L192.0 401.9L191.5 405.4L189.7 407.9L181.5 410.7L178.8 419.6L181.1 424.5L192.9 428.2L206.9 423.4L216.5 422.8L222.5 424.6L229.4 428.6L238.7 427.7L239.4 429.1L245.8 432.0L252.5 433.0L262.0 437.2L264.9 426.4L267.2 426.8L267.7 422.3L269.5 422.9L270.9 415.5L269.3 414.5L271.7 411.4L272.0 409.1L266.0 408.4L266.4 402.5L269.2 402.4L269.5 398.6L268.6 398.6L270.0 392.9L267.8 393.1L269.7 388.8L268.2 386.8L265.8 386.9L266.0 385.3L264.3 384.2L262.0 383.9L261.8 380.7L260.7 380.8L258.0 377.0L256.6 372.8L253.7 373.9L252.0 373.1L252.6 370.4L248.2 369.0L247.5 370.2L247.2 365.6L248.7 364.9L247.1 363.7L248.4 362.0L247.2 360.8L250.0 359.1L246.9 351.5L248.1 350.1L245.5 350.2L242.7 348.1L240.9 349.0L240.4 341.9Z","GALATI":"M517.9 276.9L522.3 273.5L528.3 276.0L528.8 272.4L531.1 271.4L528.1 270.3L526.0 267.0L526.1 260.9L523.8 261.1L521.7 258.0L527.3 254.3L526.2 253.7L527.1 248.2L525.3 243.5L526.0 241.4L523.4 240.6L522.9 238.2L522.8 234.1L524.6 232.5L523.3 231.8L524.1 228.2L521.5 220.1L522.8 216.0L521.7 214.4L523.0 213.6L523.4 210.2L516.5 211.1L516.5 210.0L514.8 210.4L513.6 207.6L512.0 208.2L510.1 206.5L507.5 207.2L506.6 205.6L505.8 209.1L502.0 212.4L500.4 208.9L494.9 207.6L490.3 208.6L489.2 206.8L489.9 209.4L489.0 210.5L490.5 213.7L489.0 214.2L491.6 215.2L489.8 215.7L490.1 219.1L487.4 220.6L484.3 215.9L485.4 214.6L484.4 212.9L485.6 212.0L483.5 207.8L482.2 207.8L482.0 209.1L478.5 207.8L478.3 212.5L469.7 213.1L468.2 217.0L465.8 217.0L466.1 225.1L469.2 231.6L466.8 232.9L468.9 233.1L470.5 235.8L476.5 250.1L478.2 252.0L479.8 251.3L481.0 255.0L483.2 255.0L482.6 256.2L484.1 256.5L483.1 257.7L485.6 260.3L483.5 262.0L485.1 263.4L484.9 266.1L486.0 267.1L485.0 267.9L489.8 269.4L491.7 272.2L493.3 268.8L493.8 270.5L495.8 269.7L494.6 273.0L497.4 274.2L499.6 272.8L499.0 275.9L501.7 275.2L503.8 277.9L507.1 277.6L508.3 275.4L514.8 278.3L517.9 276.9Z","GIURGIU":"M402.3 381.2L398.7 383.7L397.7 386.2L396.6 385.4L396.1 388.7L386.0 380.6L383.7 383.6L384.9 379.1L379.3 377.6L378.1 375.3L376.3 375.1L376.0 372.3L373.9 372.0L376.8 369.6L375.3 368.4L376.5 367.3L375.5 364.9L376.2 363.9L376.9 365.8L378.8 366.4L379.8 364.1L378.5 363.3L380.1 360.4L378.2 358.1L375.7 358.3L375.2 359.7L372.9 357.4L370.8 359.2L366.2 357.8L364.6 359.8L362.3 356.9L360.3 357.2L358.5 359.5L355.4 358.2L352.3 360.2L351.4 362.0L353.5 363.0L347.8 371.6L349.9 373.7L351.6 373.5L350.6 378.4L357.3 380.0L360.3 379.1L361.2 380.1L360.4 381.9L362.5 383.2L362.8 381.1L363.7 381.5L363.6 383.7L365.9 385.3L363.4 389.4L362.8 393.1L365.9 393.9L364.2 394.2L364.3 397.0L366.3 396.3L366.3 399.3L364.8 397.4L364.3 400.5L362.9 398.1L360.8 400.9L360.1 403.0L361.1 404.0L359.1 405.4L358.6 410.4L360.6 414.5L358.2 414.8L358.2 417.7L360.1 418.0L359.6 423.6L361.1 423.6L361.1 425.8L363.1 425.8L363.6 430.3L362.5 432.5L363.3 435.5L364.9 434.7L363.9 438.0L367.9 437.8L371.1 436.0L373.0 432.9L377.8 429.3L381.4 422.9L388.4 417.9L392.8 411.4L397.8 410.5L410.1 404.9L408.7 398.8L412.7 397.1L412.9 391.8L411.4 391.7L412.5 389.8L411.5 387.9L408.9 388.0L408.8 386.2L405.1 384.9L402.3 381.2Z","GORJ":"M167.0 304.8L168.7 304.9L170.1 308.5L172.8 307.2L174.2 310.2L178.1 311.9L180.0 315.9L182.9 315.7L182.7 318.2L180.9 318.6L183.4 331.7L185.7 332.6L184.9 333.9L185.9 335.6L186.8 334.2L188.7 335.3L189.7 338.9L193.5 340.4L195.2 343.6L198.1 345.1L198.2 343.6L201.8 343.5L201.5 345.1L208.2 345.3L211.8 349.4L215.1 349.8L214.5 350.6L216.3 351.5L216.0 354.0L219.1 355.4L220.2 354.5L221.8 355.2L223.0 352.4L227.8 351.1L229.5 353.5L234.9 352.3L235.8 353.8L236.2 340.6L240.4 341.9L239.7 335.5L241.4 332.1L240.3 327.9L238.6 327.1L239.8 319.7L238.7 315.4L241.3 312.7L240.5 309.0L243.5 307.9L242.4 303.1L245.3 300.8L241.4 290.4L244.5 285.3L244.1 283.4L241.4 282.0L234.3 284.2L232.0 282.1L230.1 283.6L228.0 281.7L221.3 285.4L218.0 285.4L215.7 283.5L212.3 283.2L209.8 286.7L205.5 286.1L202.9 288.9L195.5 287.6L193.7 290.0L187.7 291.1L185.0 288.7L180.5 290.4L178.3 288.2L174.8 290.5L174.5 289.5L171.6 291.1L168.9 290.6L160.7 299.7L162.0 301.9L166.5 302.9L167.0 304.8Z","HARGHITA":"M383.7 155.4L378.2 155.2L379.3 159.4L376.6 159.9L371.9 153.3L372.7 145.2L370.9 143.4L372.6 141.9L371.1 140.9L370.9 142.5L369.8 141.8L371.0 139.8L369.9 137.8L372.5 133.7L376.3 134.1L374.0 129.4L372.3 130.0L368.0 120.0L360.7 118.0L359.3 119.6L355.2 119.1L354.6 116.5L349.9 113.3L347.8 109.6L339.9 111.4L339.3 116.1L336.1 117.7L335.1 119.8L338.9 127.6L336.4 141.8L338.5 142.5L338.7 146.0L340.7 147.6L338.9 150.2L337.1 150.4L336.9 152.5L339.3 156.3L338.3 157.8L335.5 158.0L335.2 161.3L334.3 162.7L332.7 161.9L329.9 166.7L326.8 166.2L321.5 170.1L318.9 174.3L320.6 174.4L321.5 176.8L320.1 177.9L319.3 177.2L318.8 179.2L316.5 179.3L315.8 181.4L318.7 184.7L316.6 185.7L314.0 184.2L311.9 185.0L312.5 186.7L310.4 188.2L312.0 190.4L311.4 192.8L315.4 195.5L316.3 198.1L324.6 197.9L325.0 199.1L326.7 199.1L328.8 203.7L335.9 207.6L337.0 206.7L336.9 203.0L337.8 204.9L341.7 204.2L344.4 208.2L349.4 209.2L350.1 211.3L351.3 207.2L353.2 205.7L353.2 203.2L365.7 194.9L367.4 195.1L367.5 197.4L376.1 209.7L383.9 208.2L386.6 208.9L389.0 205.9L392.9 205.8L393.9 204.7L396.5 205.9L397.5 203.6L398.9 204.0L399.6 201.6L402.4 200.7L401.8 194.9L403.2 193.9L404.4 189.4L403.0 188.5L400.7 189.4L399.7 191.4L395.5 191.3L396.1 184.7L389.3 183.3L388.4 181.8L385.0 182.7L385.5 181.0L384.5 179.7L386.4 177.6L385.8 175.6L389.0 174.5L390.2 175.4L390.7 172.7L387.6 169.7L387.5 167.3L385.2 164.4L384.7 162.4L386.6 161.3L384.9 157.6L383.5 157.2L383.7 155.4Z","HUNEDOARA":"M173.0 187.9L168.4 190.7L166.5 199.4L163.8 200.4L162.2 199.0L157.9 199.8L156.4 198.0L152.7 201.1L154.6 207.2L150.5 212.0L152.1 213.6L152.7 219.8L146.0 221.5L146.3 223.0L151.4 226.8L150.8 229.7L148.1 231.9L149.3 231.9L150.9 234.6L155.2 236.1L155.5 241.0L159.0 239.6L160.1 241.7L154.8 246.2L154.6 249.8L151.9 252.1L153.7 252.9L157.5 259.0L159.6 259.0L159.9 260.3L162.1 260.0L162.8 262.2L165.6 261.2L165.1 264.6L166.4 264.0L169.3 268.9L170.6 275.9L167.0 280.0L169.7 284.0L168.3 288.5L168.9 290.6L171.6 291.1L174.5 289.5L174.8 290.5L178.3 288.2L180.5 290.4L185.0 288.7L187.7 291.1L193.7 290.0L195.5 287.6L202.9 288.9L205.5 286.1L209.8 286.7L212.3 283.2L215.7 283.5L218.0 285.4L221.3 285.4L228.0 281.7L228.7 279.0L227.0 274.7L228.3 268.7L222.0 260.4L217.5 259.7L216.3 255.4L213.6 256.0L213.7 254.3L216.8 251.4L213.0 247.5L214.3 243.6L212.5 241.8L210.5 236.3L211.0 232.6L209.2 230.9L211.4 228.6L206.7 227.2L204.7 221.9L205.0 217.1L201.4 218.4L196.0 216.6L194.9 214.3L195.8 212.2L193.6 210.7L193.0 207.8L194.6 206.9L195.8 207.8L195.6 203.8L192.7 200.8L188.2 200.4L186.5 197.8L186.0 195.9L187.0 194.3L185.0 190.2L181.1 189.2L177.1 190.3L174.9 188.1L173.0 187.9Z","IALOMITA":"M463.9 335.0L460.7 335.1L460.1 337.4L463.3 338.2L462.6 339.9L459.7 338.9L459.4 339.8L457.0 338.9L457.9 335.4L451.1 331.4L448.9 334.8L442.7 331.8L438.2 334.2L436.0 332.3L426.5 332.5L424.9 328.4L419.6 331.2L417.5 334.6L414.9 332.7L410.5 337.3L406.3 334.6L405.0 336.7L409.7 341.2L408.8 344.3L406.8 345.2L409.2 348.3L408.5 349.2L409.3 348.8L411.5 351.4L407.3 357.5L408.0 357.0L409.0 359.4L411.5 358.8L411.2 360.4L413.3 360.0L416.1 357.7L413.8 357.3L416.4 354.4L422.1 359.5L424.4 359.8L424.1 360.9L425.9 357.9L427.4 358.6L428.7 353.0L430.0 353.4L429.6 356.0L432.7 356.4L432.5 358.4L434.6 359.3L435.0 357.2L436.7 358.0L435.6 360.3L437.3 360.9L438.2 359.8L439.1 360.9L439.5 359.3L440.9 359.6L440.4 360.5L442.9 359.3L443.6 360.4L450.8 359.2L450.8 361.1L456.6 361.1L456.6 363.3L459.5 363.6L459.7 361.8L464.1 363.5L464.0 360.5L465.3 360.7L465.5 362.6L467.8 363.0L468.1 361.4L469.6 361.6L469.4 362.9L473.2 363.3L473.6 360.3L476.0 362.3L484.5 362.2L484.9 357.8L486.2 358.0L487.1 356.2L488.0 356.4L487.8 365.0L492.3 364.7L493.3 369.4L498.4 369.5L498.5 370.8L500.9 371.8L499.3 373.0L500.4 376.3L502.2 375.6L503.7 377.5L506.5 373.2L517.1 377.0L517.8 374.4L523.0 367.4L521.7 362.8L519.4 361.1L517.0 355.8L517.9 350.0L513.2 345.0L511.4 345.1L508.1 342.3L508.0 336.6L504.6 335.4L504.6 331.9L501.9 331.9L501.1 333.5L499.0 332.2L498.0 334.3L499.2 335.7L497.8 335.8L497.8 337.0L485.1 334.8L485.0 336.2L481.8 336.1L479.1 333.8L477.2 336.3L476.2 335.3L475.6 336.1L472.9 333.5L470.8 336.1L469.4 335.1L467.4 338.5L463.9 335.0Z","IASI":"M431.1 82.6L429.7 85.6L431.2 88.5L427.4 89.4L429.6 91.6L428.5 92.1L429.9 92.5L429.3 93.2L425.1 93.5L422.6 90.3L420.1 90.3L419.8 88.9L417.5 90.0L418.5 92.8L417.8 94.0L422.8 98.1L418.5 101.4L425.4 108.9L424.5 112.4L426.9 118.2L429.9 116.3L432.7 118.9L434.9 117.7L438.4 120.6L438.9 123.0L442.7 121.5L442.5 123.0L443.3 122.6L444.2 124.3L448.1 122.6L448.7 119.7L452.1 123.8L454.6 118.9L460.8 119.1L462.6 121.1L462.8 124.1L466.3 125.8L466.5 127.6L464.7 129.3L462.4 128.0L461.8 129.6L458.6 131.6L461.8 133.9L465.4 139.3L469.2 138.6L471.6 139.7L476.6 136.9L478.3 139.8L480.6 139.9L485.4 138.0L485.4 134.8L487.7 138.4L487.9 137.4L489.2 138.3L492.7 136.6L490.3 132.0L491.2 127.7L498.5 134.2L500.9 138.9L502.3 138.7L500.9 131.1L501.8 132.0L503.6 131.3L503.8 138.0L502.7 140.1L507.4 140.1L508.8 143.8L512.2 143.6L511.2 139.5L512.1 140.5L514.6 140.3L515.3 142.1L516.9 142.5L519.4 140.9L523.4 142.2L524.0 141.3L522.3 139.1L523.7 138.4L523.4 137.1L521.3 136.0L523.3 134.3L521.2 132.8L522.2 132.3L521.0 130.4L522.2 128.9L518.0 125.9L519.4 125.6L519.1 124.6L515.6 124.2L512.3 122.2L513.2 121.5L509.2 120.0L507.7 116.8L504.7 115.7L506.2 115.2L505.6 114.2L501.7 113.6L502.8 113.5L501.8 112.8L503.6 111.4L502.2 107.4L501.4 107.7L502.0 106.3L499.3 104.1L499.5 100.9L498.2 99.2L496.6 98.7L495.4 100.2L494.9 97.8L492.8 98.7L491.2 96.3L489.8 97.1L488.6 96.1L490.8 95.0L489.5 94.2L489.8 92.3L487.7 91.6L488.8 88.5L486.7 86.2L488.0 83.3L485.7 81.0L484.3 82.4L484.3 80.8L483.7 81.9L481.6 81.3L480.3 79.2L481.1 77.4L480.1 77.8L480.4 76.5L477.9 73.7L478.6 72.1L476.2 71.5L467.8 73.2L466.7 74.6L467.5 77.2L465.2 78.7L457.1 75.4L455.3 78.7L456.0 83.3L453.8 83.1L453.3 85.7L450.9 83.0L451.1 81.3L449.1 80.3L442.8 80.7L432.1 78.5L430.9 80.6L432.8 82.5L431.1 82.6Z","ILFOV":"M412.4 359.9L411.2 360.4L411.5 358.8L409.0 359.4L408.0 357.0L407.3 357.5L411.5 351.4L409.3 348.8L408.5 349.2L409.2 348.3L406.8 345.2L408.8 344.3L409.7 341.2L405.0 336.7L403.2 336.7L401.5 339.6L397.3 337.7L393.5 338.3L392.0 336.8L391.1 337.5L391.9 339.6L390.0 338.3L388.6 339.9L386.9 338.9L383.6 339.7L382.8 338.6L384.6 343.7L382.6 344.7L384.3 345.6L381.3 348.2L384.8 351.4L379.1 356.0L377.9 354.4L377.3 355.1L378.0 356.4L377.1 356.9L380.1 360.4L378.5 363.3L379.8 364.1L378.8 366.4L376.9 365.8L376.2 363.9L375.5 364.9L376.5 367.3L375.3 368.4L376.8 369.6L373.9 372.0L376.0 372.3L376.3 375.1L378.1 375.3L379.3 377.6L384.9 379.1L383.7 383.6L386.0 380.6L396.1 388.7L396.6 385.4L397.7 386.2L398.7 383.7L402.3 381.2L403.3 379.1L401.8 377.9L406.9 374.0L402.3 370.5L405.0 370.1L406.6 372.8L408.0 370.3L415.6 366.3L411.1 366.0L408.9 363.3L412.4 359.9Z","MARAMURES":"M317.4 70.8L317.3 69.1L323.4 66.7L323.4 65.0L316.9 60.6L316.5 58.4L312.4 58.8L312.0 56.2L309.3 53.6L308.8 49.8L305.9 49.5L305.5 48.2L303.9 48.9L302.7 47.6L300.8 47.9L298.5 45.5L298.7 42.6L295.7 37.7L293.7 38.0L292.3 36.0L287.8 37.5L283.2 35.7L280.4 37.2L279.6 39.8L277.2 40.9L275.9 39.9L269.6 42.6L267.5 40.8L262.0 40.9L261.1 38.9L258.8 37.3L256.8 37.7L255.3 36.0L251.7 36.2L250.9 37.8L245.8 39.3L242.9 34.7L239.8 33.4L232.8 34.4L230.8 32.6L226.4 32.6L223.9 31.0L221.6 35.9L224.8 38.4L226.3 38.2L227.8 42.3L229.3 42.4L231.1 45.9L226.9 48.3L226.0 51.3L218.9 55.3L214.9 53.6L209.7 54.1L209.1 52.7L206.5 52.0L204.1 54.9L205.3 58.8L211.7 59.8L213.2 62.4L214.7 62.6L213.1 64.4L212.5 63.7L211.6 66.4L208.2 67.7L208.1 72.3L206.4 72.3L206.2 75.2L203.3 73.9L198.8 68.3L197.4 69.0L192.8 74.7L192.4 81.1L187.0 81.2L188.3 83.6L187.0 85.6L190.5 86.2L192.2 88.2L193.4 85.4L199.8 85.7L201.4 83.8L203.8 86.2L212.7 87.7L214.0 90.4L220.8 91.4L222.8 92.9L227.2 92.9L229.6 91.6L229.7 90.1L231.5 90.0L233.8 93.5L235.9 93.8L235.8 95.8L238.1 96.8L239.3 95.2L244.3 95.0L244.7 91.9L246.2 91.2L248.0 93.6L256.8 92.9L259.6 90.3L259.4 88.4L262.8 85.8L263.0 80.0L263.9 81.1L265.6 79.4L270.4 79.9L274.4 74.4L274.5 72.5L277.1 73.7L279.9 69.7L291.6 74.0L296.0 72.8L297.8 74.8L302.1 72.7L307.4 73.6L308.8 70.8L317.4 70.8Z","MEHEDINTI":"M125.1 352.6L126.6 358.1L133.3 364.7L135.9 363.7L144.2 347.0L145.7 345.5L148.9 345.4L152.2 342.2L155.6 342.4L161.3 349.2L164.4 351.1L167.9 350.7L170.3 352.3L173.7 356.5L173.6 358.5L169.5 360.4L164.6 357.1L162.1 357.3L159.9 363.7L157.8 364.6L154.5 363.9L154.3 366.8L156.8 369.7L158.3 377.0L160.5 379.9L168.4 382.8L168.2 388.8L173.0 390.4L184.5 399.3L187.2 399.7L189.7 394.1L196.6 394.8L197.1 391.1L195.6 390.2L196.7 388.5L195.5 388.0L195.5 384.3L196.5 384.3L197.9 379.2L200.9 378.4L201.7 374.4L203.7 373.7L203.6 372.6L205.6 372.8L202.3 370.1L204.0 367.7L202.2 365.8L205.6 363.8L205.3 362.4L207.6 361.8L207.9 360.4L206.0 359.1L210.1 358.2L211.4 359.7L214.1 357.9L216.5 359.4L219.1 355.4L216.0 354.0L216.3 351.5L214.5 350.6L215.1 349.8L211.8 349.4L208.2 345.3L201.5 345.1L201.8 343.5L198.2 343.6L198.7 345.1L197.0 344.8L193.5 342.1L193.5 340.4L189.7 338.9L188.7 335.3L186.8 334.2L185.6 335.3L185.7 332.6L183.4 331.7L182.2 328.8L180.9 318.6L182.7 318.2L182.9 315.7L180.0 315.9L178.1 311.9L174.2 310.2L172.8 307.2L170.1 308.5L168.7 304.9L167.0 304.8L156.2 317.4L157.8 319.1L155.8 320.9L155.9 325.9L151.8 333.7L151.4 337.9L147.8 338.9L146.4 336.2L141.6 335.4L137.6 332.1L137.4 337.4L134.3 339.7L133.7 343.1L133.1 346.9L135.7 348.8L134.3 353.3L133.7 353.9L132.8 352.5L131.7 353.3L129.3 350.5L125.1 352.6Z","BUCURESTI":"M389.1 358.9L386.9 359.5L385.7 362.6L384.2 362.1L383.7 365.2L386.6 366.8L383.1 367.5L383.0 369.8L386.0 370.8L388.3 373.7L394.8 375.9L395.9 371.5L399.2 371.8L400.1 368.3L395.5 366.1L397.3 363.9L392.5 362.8L392.1 358.2L389.1 358.9Z","MURES":"M269.8 196.5L272.0 197.1L273.5 194.2L275.1 197.2L279.4 198.0L282.1 196.0L286.6 196.6L287.2 198.1L291.4 196.7L291.9 195.1L295.4 197.3L296.0 195.5L298.2 194.5L298.9 197.4L298.4 199.5L297.2 199.1L299.3 202.4L298.6 211.2L301.5 213.8L305.0 212.8L305.3 211.4L307.3 212.2L311.1 210.5L313.5 211.0L314.7 213.5L316.5 213.5L317.3 210.4L321.0 207.2L323.0 208.4L325.2 206.7L328.2 207.5L331.3 205.2L328.8 203.7L326.9 199.3L324.6 197.9L315.6 197.8L315.4 195.5L311.4 192.8L312.0 190.4L310.4 188.2L312.5 186.7L312.1 184.9L314.0 184.2L316.6 185.7L318.7 184.7L315.8 181.4L316.5 179.3L318.8 179.2L319.3 177.2L320.1 177.9L321.5 176.8L320.6 174.4L318.9 174.3L321.5 170.1L326.8 166.2L329.9 166.7L332.7 161.9L334.3 162.7L335.2 161.3L335.5 158.0L338.3 157.8L339.3 156.3L336.9 152.5L337.1 150.4L340.8 148.3L338.7 146.0L338.5 142.5L336.4 141.8L338.9 128.5L337.6 124.0L335.1 121.1L336.1 117.7L331.3 114.6L329.4 116.3L324.1 114.1L320.9 116.5L316.9 115.6L315.6 117.9L311.5 117.0L306.5 122.3L303.0 128.7L301.8 133.3L304.0 135.4L297.7 135.4L295.5 131.2L293.5 132.0L292.9 134.9L288.7 136.4L289.8 139.4L289.1 140.6L284.6 143.8L284.0 146.7L285.5 147.3L284.2 148.9L281.8 148.2L279.8 150.7L274.4 150.1L266.4 145.3L266.5 146.9L262.4 148.2L262.9 150.8L259.6 150.9L259.0 152.0L260.5 154.1L262.8 155.1L261.4 158.7L256.9 160.3L256.0 161.9L259.2 164.0L257.7 169.7L255.9 171.0L253.8 169.9L252.0 172.5L253.1 173.5L252.8 177.8L255.0 179.4L253.7 180.4L257.3 177.9L255.8 180.1L257.0 180.2L257.0 182.7L254.0 185.1L256.5 185.9L255.9 187.0L258.5 189.0L264.0 189.7L265.4 195.3L267.4 194.3L269.8 196.5Z","NEAMT":"M464.1 148.6L465.9 147.8L464.5 146.7L464.9 141.2L462.9 139.0L463.8 136.8L458.6 131.6L461.8 129.6L462.4 128.0L464.7 129.3L466.5 127.5L466.3 125.8L462.8 124.1L462.6 121.1L460.8 119.1L454.6 118.9L452.1 123.8L448.7 119.7L448.1 122.6L444.2 124.3L443.3 122.6L442.5 123.0L442.7 121.5L438.9 123.0L438.4 120.6L434.9 117.7L432.7 118.9L429.9 116.3L426.9 118.2L424.5 112.4L425.4 108.9L411.8 94.9L402.8 100.4L397.4 98.0L389.0 101.1L386.9 99.7L383.9 99.8L380.9 100.9L380.3 102.6L374.5 97.6L369.9 97.1L373.1 102.5L367.6 106.5L367.0 110.5L365.7 110.9L363.1 117.9L368.2 120.2L372.3 130.0L374.0 129.4L376.3 134.1L372.5 133.7L369.9 137.8L371.0 139.8L369.8 141.8L370.9 142.5L371.1 140.9L372.6 141.9L370.9 143.4L372.7 145.2L371.9 153.3L376.6 159.9L379.3 159.4L378.2 155.2L386.2 155.6L388.8 153.6L390.0 154.4L390.6 159.2L391.9 160.1L394.5 158.8L395.7 160.6L399.4 159.3L399.5 156.9L402.7 154.8L405.0 159.5L406.9 158.5L407.9 159.7L410.8 159.7L413.8 156.3L416.1 157.3L418.9 155.6L422.5 157.1L425.0 153.9L429.5 151.7L429.4 148.8L433.8 148.7L433.1 150.5L434.6 149.8L434.4 151.6L437.5 153.1L440.3 150.3L439.0 148.2L440.8 147.6L440.8 145.3L443.1 143.0L444.7 143.2L445.0 144.7L444.1 144.2L444.6 145.7L443.6 145.9L445.5 148.0L446.4 147.2L446.6 150.2L453.5 148.2L454.6 149.8L457.0 148.6L458.1 150.5L460.2 150.1L460.5 152.2L464.1 148.6Z","OLT":"M283.3 329.5L281.9 328.5L282.3 325.2L280.1 324.2L278.7 327.0L276.4 327.2L276.0 334.7L272.6 336.7L275.9 356.2L273.5 355.7L273.0 352.4L272.0 352.4L271.6 357.3L263.9 356.5L259.8 362.9L258.4 362.4L258.1 360.9L257.1 361.5L257.4 359.8L254.0 358.3L250.7 358.6L247.2 360.8L248.4 362.0L247.1 363.7L248.7 364.9L247.2 365.6L247.5 370.2L248.2 369.0L252.6 370.4L252.0 373.1L253.7 373.9L256.6 372.8L258.0 377.0L260.7 380.8L261.8 380.7L262.0 383.9L264.3 384.2L266.0 385.3L265.8 386.9L268.2 386.8L269.7 388.8L267.8 393.1L270.0 392.9L268.6 398.6L269.5 398.6L269.2 402.4L266.4 402.5L266.0 408.4L272.0 409.1L271.7 411.4L269.3 414.5L270.9 415.5L269.5 422.9L267.7 422.3L267.2 426.8L264.9 426.4L262.2 435.6L262.0 437.2L266.0 438.8L277.5 437.4L281.4 433.7L288.2 431.1L294.6 432.8L297.6 434.9L297.6 432.0L299.5 431.5L300.0 429.5L303.5 428.5L302.8 427.0L304.2 426.1L299.7 425.8L301.9 424.4L300.0 421.2L298.2 421.2L298.8 418.5L295.4 416.0L297.0 414.6L296.0 412.6L293.3 412.9L294.7 407.6L301.7 405.4L301.1 403.4L310.8 400.1L306.5 391.0L309.4 387.7L308.1 387.0L308.3 381.7L310.0 379.0L308.1 375.0L312.3 374.3L312.6 373.2L312.2 371.9L303.3 371.8L304.3 365.3L302.6 365.2L303.2 358.4L301.1 354.2L301.5 350.1L299.5 343.1L302.1 341.2L299.3 339.6L295.8 340.4L294.3 338.1L293.2 338.5L293.1 334.0L291.0 330.8L290.0 325.2L288.9 324.9L288.0 329.5L286.1 331.7L283.8 332.7L282.2 331.2L283.3 329.5Z","PRAHOVA":"M349.5 273.5L351.6 277.8L350.9 284.1L354.1 285.9L356.2 289.5L353.5 294.0L354.9 294.6L354.7 297.0L356.4 296.8L359.5 303.3L364.1 307.3L365.8 310.7L364.1 314.0L364.9 319.9L371.4 319.4L373.6 323.1L372.4 328.8L370.7 329.8L371.1 331.7L375.0 332.8L374.3 331.4L377.1 330.8L380.4 337.3L383.6 339.7L386.9 338.9L388.6 339.9L390.0 338.3L391.9 339.6L391.1 337.5L392.0 336.8L393.5 338.3L397.3 337.7L401.5 339.6L403.2 336.7L405.0 336.9L406.3 334.6L409.0 335.6L409.7 337.4L414.9 332.7L417.5 334.6L419.6 331.2L425.1 328.2L421.5 322.9L420.3 323.4L420.0 320.9L424.5 319.1L419.9 313.5L417.4 314.4L415.9 309.0L414.2 307.8L415.1 307.3L414.7 303.1L416.0 301.9L415.4 296.3L409.8 300.1L408.3 299.5L408.6 294.8L401.6 296.2L399.9 289.2L397.4 288.7L400.6 285.4L397.6 281.5L395.8 280.8L395.1 272.0L390.0 267.3L388.1 270.1L385.0 266.7L383.4 267.4L380.2 265.9L376.5 275.3L373.8 274.4L371.3 269.4L370.0 271.2L367.4 271.2L364.5 267.9L361.1 268.3L359.2 271.5L354.8 271.8L353.5 270.8L349.5 273.5Z","SALAJ":"M171.7 126.2L176.0 129.1L178.6 127.4L180.6 128.7L181.5 128.0L182.6 132.2L184.9 134.6L189.8 135.6L190.2 137.5L191.6 136.2L191.7 138.0L193.7 135.9L195.4 137.2L194.8 139.4L196.2 140.7L200.0 138.3L202.4 139.2L203.9 137.0L202.6 134.2L204.4 133.0L203.5 132.6L204.3 130.3L207.8 136.5L211.5 135.5L214.3 132.0L214.5 129.0L216.3 128.6L215.4 127.5L219.3 127.1L221.1 124.2L217.3 118.5L221.1 118.4L220.7 116.8L222.3 115.9L221.9 112.3L224.9 112.0L226.1 110.1L229.6 110.9L232.0 104.8L236.4 103.0L238.5 104.2L239.2 100.3L242.6 103.3L241.6 100.5L244.3 95.0L239.3 95.2L236.9 96.7L235.2 94.9L235.9 93.8L233.8 93.5L231.5 90.0L229.7 90.1L229.6 91.6L227.2 92.9L222.2 92.8L220.8 91.4L214.0 90.4L212.7 87.7L203.8 86.2L201.4 83.8L199.8 85.7L196.1 85.4L197.3 89.7L192.8 94.0L189.8 92.2L187.9 93.8L186.8 93.2L183.9 88.0L179.4 87.2L177.0 89.3L174.2 87.4L171.3 90.0L166.2 91.7L165.5 95.4L162.4 96.1L162.0 98.6L160.2 98.4L159.8 101.6L161.0 103.3L157.8 105.0L158.6 106.2L156.3 109.3L157.3 111.3L158.8 111.0L161.1 115.2L157.7 116.7L162.8 120.9L168.9 122.1L169.9 125.2L171.7 126.2Z","SATU MARE":"M164.1 95.4L165.5 95.4L166.2 91.7L171.3 90.0L174.4 87.3L177.0 89.3L179.4 87.2L183.9 88.0L185.2 91.7L187.9 93.8L189.6 92.2L192.9 94.0L196.2 91.8L195.3 90.8L197.3 89.7L196.6 85.5L193.4 85.4L191.5 88.0L190.5 86.2L187.0 85.6L188.3 83.6L187.0 81.2L192.4 81.1L192.8 74.7L198.6 68.2L203.3 73.9L206.2 75.2L206.4 72.3L208.1 72.3L208.2 67.7L211.6 66.4L212.5 63.7L213.1 64.4L214.7 62.6L213.2 62.4L211.7 59.8L205.3 58.8L204.1 54.9L207.8 52.0L209.7 54.1L214.9 53.6L218.9 55.3L226.0 51.3L226.9 48.3L231.1 45.9L229.3 42.4L227.8 42.3L226.3 38.2L211.1 31.0L211.4 29.4L207.5 27.5L208.5 26.0L206.9 23.5L201.7 23.7L200.3 21.6L196.8 24.8L195.3 32.4L190.3 33.8L184.6 31.1L186.0 36.0L182.0 37.5L179.4 41.5L173.6 42.9L174.8 47.6L170.6 48.4L168.5 52.9L160.0 54.3L155.5 50.7L153.3 51.4L152.2 57.3L144.8 54.9L144.8 57.0L141.4 58.2L141.0 61.3L138.8 62.2L135.9 70.5L138.7 71.8L139.5 73.8L141.1 73.9L140.8 76.3L143.0 76.1L142.9 79.3L146.3 80.8L147.5 86.6L150.6 86.1L152.3 87.2L154.1 86.3L158.7 87.6L158.7 89.4L161.0 90.0L161.3 93.4L164.1 95.4Z","SIBIU":"M235.3 268.2L239.7 266.9L241.3 265.1L245.4 264.6L246.4 265.8L249.6 264.6L256.1 265.0L262.4 267.1L268.1 265.7L269.5 263.5L271.5 263.9L276.5 260.2L276.7 261.1L283.9 259.4L286.1 261.1L288.2 259.8L291.7 260.5L295.6 258.2L298.5 259.0L299.4 258.1L298.4 254.8L299.2 248.2L296.4 240.2L299.6 236.3L301.3 238.2L301.6 235.9L305.2 236.0L305.3 235.0L305.1 233.3L301.5 230.8L300.6 226.5L303.6 227.0L304.9 223.2L309.3 223.0L308.3 220.0L311.2 220.0L312.8 217.2L317.7 214.9L313.9 212.8L312.5 210.6L307.3 212.2L305.3 211.4L305.0 212.8L301.5 213.8L300.1 213.1L298.4 208.0L299.3 202.4L297.2 199.1L298.4 199.5L298.9 197.4L298.2 194.5L296.0 195.5L295.4 197.3L291.9 195.1L291.4 196.7L287.2 198.1L286.6 196.6L282.1 196.0L279.4 198.0L275.1 197.2L272.9 194.5L272.0 197.1L269.6 196.9L271.1 198.3L267.1 199.9L267.0 203.7L268.6 206.4L262.5 208.3L258.5 213.0L257.4 211.9L255.1 220.9L253.4 217.3L247.6 216.7L244.6 220.2L246.2 225.8L244.9 224.8L242.7 228.1L237.3 229.0L237.1 230.6L239.9 232.1L236.9 235.2L237.4 236.8L235.1 237.0L234.3 239.5L229.7 239.5L232.8 243.6L231.4 244.9L230.0 244.4L227.8 248.9L229.3 250.3L228.1 251.6L231.5 254.8L230.7 256.5L232.0 258.4L229.7 262.3L232.8 268.6L235.3 268.2Z","SUCEAVA":"M324.1 114.1L329.4 116.3L331.3 114.6L336.4 117.7L339.3 116.1L339.9 111.4L347.8 109.6L349.9 113.3L354.6 116.5L355.2 119.1L359.3 119.6L360.7 118.0L362.6 118.7L365.6 113.4L365.7 110.9L367.0 110.5L367.6 106.5L373.1 102.5L370.5 96.7L374.5 97.6L380.3 102.6L380.9 100.9L383.9 99.8L386.9 99.7L389.0 101.1L397.4 98.0L402.8 100.4L411.8 94.9L418.5 101.4L422.8 98.1L417.8 94.0L418.5 92.8L417.5 90.0L419.8 88.9L420.1 90.3L422.6 90.3L425.1 93.5L429.3 93.2L429.9 92.5L428.5 92.1L429.6 91.6L427.4 89.4L431.2 88.5L429.7 85.6L431.1 82.6L423.9 83.7L423.8 80.8L421.3 78.8L424.8 78.0L424.7 76.8L423.1 76.6L420.7 72.1L420.9 66.4L417.7 65.0L418.4 64.5L415.8 59.6L414.4 58.0L413.5 58.6L414.0 57.1L411.2 57.9L411.8 53.2L409.8 54.2L408.4 53.1L404.5 45.8L403.7 46.4L400.3 42.3L398.3 43.8L397.3 40.5L393.5 39.2L393.1 35.5L389.3 34.0L382.2 35.6L379.7 35.0L378.2 36.5L374.7 36.0L370.6 38.6L360.8 37.7L340.3 41.0L337.6 43.0L335.0 43.0L330.9 52.4L328.8 53.4L327.5 56.0L323.5 56.7L322.6 58.7L316.5 58.4L316.9 60.6L323.7 66.0L317.3 69.1L317.4 70.8L323.4 74.2L326.1 78.8L324.0 81.7L322.6 81.5L324.3 84.6L325.9 84.7L323.4 86.4L323.8 87.8L321.7 85.9L318.9 87.1L324.5 92.1L325.2 97.3L321.8 100.0L325.2 102.6L322.9 106.7L324.1 114.1Z","TELEORMAN":"M312.4 373.0L312.3 374.3L308.1 375.0L310.0 379.0L308.3 381.7L308.1 387.0L309.4 387.7L306.5 391.0L310.8 400.1L301.1 403.4L301.7 405.4L294.7 407.6L294.5 411.4L293.3 412.6L296.0 412.6L297.0 414.6L295.4 416.0L298.8 418.5L298.2 421.2L300.0 421.2L301.9 424.4L299.7 425.8L304.2 426.1L302.8 427.0L303.5 428.5L300.0 429.5L299.5 431.5L297.6 432.0L297.6 434.9L302.7 438.6L308.0 436.0L312.1 436.5L316.6 434.4L319.9 434.6L323.8 438.0L327.3 438.7L330.9 437.2L336.2 438.7L342.6 443.8L345.5 444.8L353.2 442.2L356.8 442.3L363.9 438.0L364.9 434.7L363.3 435.5L362.5 432.5L363.6 430.3L363.1 425.8L361.1 425.8L361.1 423.6L359.6 423.6L360.1 418.0L358.2 417.7L358.2 414.8L360.6 414.5L358.6 410.4L359.1 405.4L361.1 404.0L360.1 403.0L360.8 400.9L362.9 398.1L364.3 400.5L364.8 397.4L366.3 399.3L366.3 396.3L364.3 397.0L364.2 394.2L365.9 393.9L362.8 393.1L363.4 389.4L365.9 385.3L363.6 383.7L363.7 381.5L362.8 381.1L362.5 383.2L360.4 381.9L361.2 380.1L360.3 379.1L357.3 380.0L350.6 378.4L351.6 373.5L349.9 373.7L347.8 371.6L351.6 366.6L348.0 364.4L348.9 361.8L345.8 360.2L343.2 365.8L342.3 365.3L339.7 369.2L336.4 371.0L333.3 366.0L327.3 369.9L325.6 369.7L326.7 370.4L324.3 371.6L323.6 370.5L323.0 371.6L320.7 370.3L317.5 373.5L312.4 373.0Z","TIMIS":"M39.5 205.8L38.1 207.3L36.2 206.9L34.9 209.0L26.2 203.1L23.5 207.5L17.5 206.6L16.7 205.0L12.9 206.6L10.8 210.6L16.1 216.5L16.2 221.0L19.9 224.2L22.7 223.7L25.0 225.3L27.2 231.1L30.7 229.4L31.4 233.2L36.6 237.0L36.0 238.6L36.7 240.3L38.0 240.0L39.2 244.4L44.0 244.0L44.6 241.1L47.2 242.1L45.9 245.6L46.0 253.2L43.5 257.3L43.9 260.2L45.4 259.7L47.8 264.6L43.7 267.9L43.8 269.8L47.9 269.8L50.0 271.2L51.0 273.0L49.9 274.4L53.6 275.7L54.3 278.6L59.9 284.4L62.9 283.7L62.8 285.2L64.1 285.1L65.1 287.1L70.3 284.4L72.0 290.0L76.7 293.3L77.9 292.2L80.1 292.4L82.3 294.1L84.6 294.4L85.1 293.4L90.0 296.7L92.4 296.0L91.7 294.5L96.0 286.6L95.4 285.2L93.7 285.5L93.0 283.7L89.6 283.3L88.3 281.8L89.1 281.2L87.5 276.7L90.7 275.6L90.4 274.1L87.0 272.1L87.1 270.6L91.4 269.1L91.6 270.6L96.1 268.0L97.0 267.1L96.3 264.2L97.9 261.3L102.8 259.9L110.2 264.8L116.2 264.8L116.8 263.2L119.5 264.2L120.5 267.4L126.3 267.8L128.1 265.3L131.1 264.6L130.9 263.3L129.2 264.3L129.9 263.6L128.8 261.8L127.2 263.3L126.5 259.8L128.9 261.2L131.0 259.0L132.9 259.1L133.7 257.0L133.9 258.6L136.4 256.8L141.6 259.9L144.8 252.9L151.5 252.5L154.6 249.8L154.8 246.2L160.1 241.7L159.0 239.6L155.5 241.0L155.2 236.1L150.9 234.6L149.3 231.9L148.1 231.9L150.8 229.7L151.4 226.8L147.1 223.5L144.4 224.1L144.4 226.9L141.1 227.1L140.3 229.8L138.9 230.2L137.2 228.2L132.9 228.2L128.6 224.8L124.0 223.9L122.0 221.5L119.2 222.4L117.2 225.4L115.7 224.8L114.4 225.9L112.3 223.9L111.4 228.3L109.0 228.7L109.4 225.8L106.9 221.9L104.0 228.8L102.4 229.7L102.0 227.0L99.9 226.3L100.7 223.4L93.0 220.0L93.8 217.8L92.5 214.6L88.1 216.6L87.2 215.3L88.1 218.2L84.3 220.1L82.7 222.6L81.5 222.5L81.5 220.7L77.4 219.0L74.3 222.1L74.6 223.6L70.0 221.0L66.0 223.1L63.3 217.2L54.9 217.4L53.4 213.9L47.8 212.4L43.7 207.3L41.0 207.3L39.5 205.8Z","TULCEA":"M620.0 331.8L620.9 329.9L617.0 334.3L613.7 333.9L614.1 335.8L616.8 335.1L620.0 331.8ZM520.7 333.4L523.4 334.4L525.9 333.7L527.8 335.1L528.6 338.1L531.6 337.1L532.4 339.1L531.1 342.3L533.8 343.4L536.3 342.1L537.3 342.4L536.5 343.5L539.8 343.9L541.1 345.0L541.2 348.8L542.6 347.9L541.7 349.4L543.5 349.5L542.2 350.9L542.9 351.3L545.2 348.9L543.8 347.3L544.1 345.0L546.6 348.0L550.4 349.5L550.9 346.6L554.5 347.5L560.5 346.1L560.0 347.9L566.8 347.4L567.5 349.2L569.8 349.5L575.6 343.5L580.9 345.1L586.8 338.5L591.6 335.6L617.4 331.6L621.3 328.4L620.6 326.5L622.0 325.9L624.3 304.8L626.1 300.6L627.9 299.4L623.7 299.9L622.9 298.4L622.9 293.8L625.8 295.6L623.7 283.0L616.8 276.4L609.2 273.3L602.3 272.9L599.9 274.9L597.1 274.1L592.3 277.8L578.9 283.7L577.5 288.6L573.0 285.2L567.8 283.6L566.9 284.6L568.3 286.7L565.0 288.2L567.6 292.1L562.1 293.9L552.6 291.5L538.8 284.9L534.6 277.4L534.6 274.2L533.4 272.3L530.5 271.4L528.8 272.4L528.3 276.0L524.1 273.6L521.2 273.8L517.9 276.9L515.6 288.0L519.8 291.0L523.4 290.6L524.4 293.0L521.9 297.1L528.8 302.0L527.0 303.4L527.4 305.4L524.8 305.4L525.9 311.5L524.3 313.7L525.8 317.5L524.1 322.3L525.2 325.3L522.5 327.9L520.7 333.4Z","VALCEA":"M228.4 270.4L227.0 274.7L228.1 275.4L228.7 279.0L227.6 281.3L228.9 282.9L230.1 283.6L232.0 282.1L234.3 284.2L241.4 282.0L244.7 284.1L241.4 290.4L245.3 300.8L242.4 303.1L243.5 307.9L240.5 309.0L241.3 312.7L238.7 315.4L239.8 319.7L238.6 327.1L240.3 327.9L241.4 332.1L239.7 335.5L240.9 349.0L242.7 348.1L245.5 350.2L248.1 350.1L246.9 351.5L250.1 359.3L254.0 358.3L256.4 359.1L257.1 361.5L258.1 360.9L258.4 362.4L259.8 362.9L263.9 356.5L271.6 357.3L272.0 352.4L273.0 352.4L273.5 355.7L275.9 356.2L272.6 336.7L276.0 334.7L276.4 327.2L278.7 327.0L280.1 324.2L282.3 325.2L281.9 328.5L283.3 329.5L284.9 327.9L286.0 324.4L285.0 323.1L287.3 320.2L285.3 319.8L287.9 315.1L286.2 313.6L288.7 310.3L286.1 309.2L287.8 306.9L286.5 305.0L288.2 304.8L288.6 302.3L287.2 299.4L288.8 298.0L286.5 296.5L287.4 295.7L285.8 295.3L285.2 293.2L286.8 288.4L286.9 284.6L285.6 283.8L287.7 279.0L286.1 272.1L289.0 270.3L288.1 266.3L290.0 264.6L288.2 259.8L286.1 261.1L283.9 259.4L276.7 261.1L276.5 260.2L271.5 263.9L269.5 263.5L268.1 265.7L262.4 267.1L255.4 264.9L249.6 264.6L246.4 265.8L245.4 264.6L242.0 264.9L239.7 266.9L235.3 268.2L232.1 271.8L229.4 272.1L229.9 271.4L228.4 270.4Z","VASLUI":"M482.8 206.0L482.3 207.3L483.4 207.5L485.6 212.0L484.4 212.9L485.4 214.6L484.3 215.9L487.4 220.6L490.1 219.1L489.8 215.7L491.6 215.2L489.0 214.2L490.5 213.7L489.0 210.5L489.9 209.4L489.2 206.8L490.3 208.6L494.9 207.6L500.4 208.9L502.0 212.4L505.8 209.1L506.6 205.6L507.5 207.2L510.1 206.5L512.0 208.2L513.6 207.6L514.8 210.4L516.5 210.0L516.5 211.1L520.9 209.9L523.5 210.8L525.2 205.5L524.3 204.2L525.3 204.1L525.1 202.8L523.6 202.9L524.0 201.1L523.1 201.7L523.1 198.1L525.5 197.3L524.2 196.3L525.0 194.2L525.8 194.7L525.9 193.4L527.0 194.4L527.1 192.9L527.7 194.1L527.6 192.7L529.2 191.6L527.9 187.8L529.5 187.2L528.8 186.1L530.4 185.1L530.1 183.7L531.8 183.8L530.6 183.4L530.9 182.0L532.3 181.8L533.0 179.8L531.6 178.4L532.8 177.5L529.6 173.4L531.3 169.0L530.5 166.4L531.7 166.3L532.4 163.3L531.4 157.1L529.5 156.4L529.6 153.9L527.2 150.3L528.0 149.5L526.4 147.9L527.4 147.7L524.3 145.1L523.4 142.2L519.4 140.9L516.9 142.5L515.3 142.1L514.6 140.3L512.1 140.5L511.2 139.5L512.2 143.6L508.8 143.8L507.4 140.1L502.7 140.1L503.8 138.0L503.6 131.3L501.8 132.0L500.9 131.1L502.3 138.7L500.9 138.9L498.5 134.2L491.2 127.7L490.3 132.0L492.7 136.6L489.2 138.3L487.9 137.4L487.7 138.4L485.4 134.8L485.4 138.0L480.6 139.9L478.3 139.8L476.6 136.9L470.9 139.8L469.2 138.6L467.0 139.4L462.9 138.6L465.4 143.7L464.5 146.7L465.9 147.8L464.3 149.4L471.9 155.3L469.7 157.3L471.7 159.2L468.6 162.1L475.4 171.7L480.9 186.0L481.8 190.6L480.4 190.7L482.2 194.3L481.2 195.2L481.6 198.7L483.9 201.2L483.7 206.3L482.8 206.0Z","VRANCEA":"M414.0 217.3L413.9 222.0L410.7 225.2L409.8 237.8L414.1 241.9L414.2 246.2L421.3 255.8L423.5 255.2L424.1 256.6L425.5 255.9L427.6 257.7L429.8 257.7L433.9 261.7L433.8 263.2L437.9 263.4L439.8 266.3L443.4 266.4L444.3 264.3L447.2 265.9L449.7 264.4L449.0 264.9L450.7 269.4L453.6 272.4L456.5 273.0L457.7 270.3L461.0 271.2L457.6 273.7L458.1 276.5L460.0 276.4L463.3 272.3L465.2 274.7L468.9 272.2L468.2 278.3L472.8 278.9L472.6 280.0L476.8 279.5L487.1 269.0L485.0 267.9L486.0 267.1L484.9 266.1L485.1 263.4L483.5 262.0L485.6 260.3L483.1 257.7L484.1 256.5L482.6 256.2L483.2 255.0L481.0 255.0L479.8 251.3L478.2 252.0L476.5 250.1L470.5 235.8L468.9 233.1L466.8 232.9L469.2 231.6L465.4 220.7L465.8 217.0L468.2 217.0L469.6 215.3L469.2 213.5L478.3 212.5L477.9 208.6L478.5 207.8L482.0 209.1L482.2 207.8L483.5 207.8L482.3 207.3L482.8 205.7L480.6 206.1L479.9 203.6L476.3 202.7L475.1 206.1L473.5 206.6L470.6 201.6L467.8 202.1L468.2 203.7L466.7 204.2L465.1 202.9L463.8 204.1L463.1 203.3L462.7 204.8L461.9 203.9L458.7 207.1L459.7 208.3L458.5 211.5L456.2 210.5L457.5 212.6L449.5 210.3L447.2 211.5L446.3 214.8L442.2 213.0L438.0 214.7L436.2 212.1L431.3 212.0L428.2 212.9L422.7 219.3L419.0 218.4L417.4 216.6L414.0 217.3Z"};
 // bbox of a county path, for "zoom to county". Parsed once, cached.
 const CTY_BBOX={};
@@ -815,9 +994,9 @@ const SEM=[{max:.10,v:"g"},{max:.25,v:"y"},{max:2,v:"r"}];
 const semOf=c=>{if(!c||!c.n)return"0";const r=c.a/c.n;return SEM.find(b=>r<b.max).v};
 const ctyFill=c=>{const v=semOf(c);return v==="0"?"var(--sem-0)"
   :`color-mix(in srgb,var(--sem-${v}) 62%,var(--surface))`};
-function ctyLabel(k,c){if(!c||!c.n)return `${title(k)} — no rural schools`;
-  return `${title(k)} — ${c.a} of ${c.n} rural schools have nothing (${Math.round(c.a/c.n*100)}%)`}
-function buildMap(){const svg=$("map");let g="";
+function ctyLabel(k,c){if(!c||!c.n)return `${title(k)} — fără școli rurale`;
+  return `${title(k)} — ${c.a} din ${c.n} școli rurale nu au niciun program (${Math.round(c.a/c.n*100)}%)`}
+function buildMap(){const svg=$("map");let g="";mapRural=$("mRural").checked;
   // County shapes carry the country view. Shaded by the "no one is here" count: rural schools in
   // the national worst quartile with no PNRAS grant, no meal programme, and not even on the
   // ministry's eligibility list. Denominator is that county's own rural schools, stated in the
@@ -838,20 +1017,20 @@ function buildMap(){const svg=$("map");let g="";
   for(const[k,ll]of Object.entries(SEATS)){const[x,y]=proj(ll);g+=`<circle class="seat" cx="${x}" cy="${y}" r="2"/>`;if(withData.has(k))g+=`<text class="seatlbl" x="${x+5}" y="${y-5}">${title(k)}</text>`}
   g+=`<circle class="ring" id="ring" cx="0" cy="0" style="r:0"/><g id="dots"></g><g id="picks"></g>`+
     `<circle class="base" id="base" r="6" cx="0" cy="0"/>`+
-    `<circle class="basehit" id="basehit" r="16" cx="0" cy="0" tabindex="0" role="slider" aria-label="Your base. Drag it, or use the arrow keys, to move where you work from."/>`;
+    `<circle class="basehit" id="basehit" r="16" cx="0" cy="0" tabindex="0" role="slider" aria-label="Punctul tău de plecare. Mută-l cu săgețile sau trage-l pe hartă."/>`;
   svg.innerHTML=g;
-  const mx=Math.max(...ALL.map(s=>s.need),1);
-  $("dots").innerHTML=ALL.filter(s=>s.ll).map(s=>{const[x,y]=proj(s.ll),a=.25+.75*Math.min(1,s.need/mx);
-    return`<circle class="dot" data-id="${s.id}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(3+Math.sqrt(s.perYear)/1.6).toFixed(1)}" style="fill:color-mix(in srgb,var(--red) ${Math.round(a*100)}%,var(--ground))"/><circle class="hit" data-id="${s.id}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9"/>`}).join("");
+  const mapSchools=ALL.filter(s=>s.ll&&(!mapRural||s.rural));
+  const mx=Math.max(...mapSchools.map(s=>s.need),1);
+  $("dots").innerHTML=mapSchools.map(s=>{const[x,y]=proj(s.ll),a=.42+.58*Math.min(1,s.need/mx);
+    return`<circle class="dot hit" data-id="${s.id}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(3+Math.sqrt(s.perYear)/1.6).toFixed(1)}" style="fill:color-mix(in srgb,var(--red) ${Math.round(a*100)}%,var(--ground))"/>`}).join("");
   dotEls=[...svg.querySelectorAll("#dots .dot")];
-  hitEls=[...svg.querySelectorAll("#dots .hit")];
   seatEls=[...svg.querySelectorAll(".seat")];
   lblEls=[...svg.querySelectorAll(".seatlbl")];
   for(const el of dotEls)el._r0=+el.getAttribute("r");
   applyVB._k=null;
   const tip=$("tip"),wrap=$("mapwrap");
   svg.onmousemove=e=>{const t=e.target.closest(".hit");if(!t){tip.style.opacity=0;return}const s=ALL[+t.dataset.id],r=wrap.getBoundingClientRect();
-    tip.innerHTML=`<b>${esc(s.school)}</b>${esc(title(ck(s.county)||s.county))} · ${s.mediu||"n/a"}<br>${pct(s.shr)} below 5 · ≈${s.need.toFixed(1)} pupils/yr${s.pnrasGrant||s.masa?"<br>"+esc([s.pnrasGrant?"PNRAS grant":"",s.masa?"Masă sănătoasă":""].filter(Boolean).join(" · ")):""}${s.approx?"<br><i>placed at county seat</i>":""}`;
+    tip.innerHTML=`<b>${esc(s.school)}</b>${esc(title(ck(s.county)||s.county))} · ${s.mediu||"necunoscut"}<br>${pct(s.shr)} sub nota 5 · ≈${s.need.toFixed(1)} elevi/an${s.pnrasGrant||s.masa?"<br>"+esc([s.pnrasGrant?"grant PNRAS":"",s.masa?"Masă sănătoasă":""].filter(Boolean).join(" · ")):""}${s.approx?"<br><i>poziție aproximată la reședința de județ</i>":""}`;
     tip.style.opacity=1;let x=e.clientX-r.left+12,y=e.clientY-r.top+12;if(x>r.width-250)x-=260;tip.style.left=x+"px";tip.style.top=y+"px"};
   svg.onmouseleave=()=>tip.style.opacity=0;mapBuilt=ALL}
 
@@ -892,7 +1071,6 @@ function applyVB(exact){
   if(exact||applyVB._k==null||Math.abs(Math.log(k/applyVB._k))>0.14){
     applyVB._k=k;
     for(const el of dotEls)el.setAttribute("r",(el._r0*k).toFixed(2));
-    for(const el of hitEls)el.setAttribute("r",(9*k).toFixed(2));
     for(const el of seatEls)el.setAttribute("r",(2*k).toFixed(2));
     const fs=(10*k).toFixed(2)+"px";
     for(const el of lblEls)el.style.fontSize=fs;
@@ -1044,10 +1222,10 @@ function shadeDots(metric){
   const val=s=>metric==="need"?s.need:s.shr;
   const mx=Math.max(...ALL.map(val),1e-9);
   for(const el of dotEls){const s=ALL[+el.dataset.id];
-    const a=.25+.75*Math.min(1,val(s)/mx);
+    const a=.42+.58*Math.min(1,val(s)/mx);
     el.style.fill=`color-mix(in srgb,var(--red) ${Math.round(a*100)}%,var(--ground))`}
   const lg=$("mapLg");
-  if(lg)lg.textContent=metric==="need"?"darker = more pupils below 5 each year":"darker = higher share below 5";
+  if(lg)lg.textContent=metric==="need"?"mai închis = mai mulți elevi sub nota 5":"mai închis = proporție mai mare sub nota 5";
 }
 // Frame a county in the viewBox. clampVB() keeps it inside the country, so a corner county
 // (Satu Mare, Constanta) lands flush against the edge instead of scrolling off it.
@@ -1061,13 +1239,13 @@ function zoomToCounty(k){
 }
 function fillCountyZoom(){const sel=$("zCty");if(!sel)return;
   const ks=Object.keys(COUNTY_PATHS).filter(k=>CTY_STAT.has(k)).sort((a,b)=>title(a).localeCompare(title(b)));
-  sel.innerHTML=`<option value="">Whole country</option>`+ks.map(k=>{const c=CTY_STAT.get(k);
+  sel.innerHTML=`<option value="">Toată țara</option>`+ks.map(k=>{const c=CTY_STAT.get(k);
     return `<option value="${k}">${title(k)} — ${c.a}/${c.n} (${Math.round(c.a/c.n*100)}%)</option>`}).join("");
   sel.onchange=()=>zoomToCounty(sel.value);
 }
-function renderMatch(){if(mapBuilt!==ALL){buildMap();setupBaseDrag();setupZoom();shadeDots._m=null;fillCountyZoom()}
+function renderMatch(){if(mapBuilt!==ALL||mapRural!==$("mRural").checked){buildMap();setupBaseDrag();setupZoom();shadeDots._m=null;fillCountyZoom()}
   const org=$("mOrg").value,base=customBase||SEATS[$("mBase").value]||SEATS[Object.keys(SEATS)[0]],R=+$("mRad").value,w=+$("mW").value/100,metric=$("mMetric").value,cap=+$("mCap").value;
-  $("oRad").textContent=R+" km";$("oW").textContent=w>=.5?`${Math.round(w*100)}% need`:`${Math.round((1-w)*100)}% distance`;
+  $("oRad").textContent=R+" km";$("oW").textContent=w>=.5?`${Math.round(w*100)}% nevoie`:`${Math.round((1-w)*100)}% apropiere`;
   const me=org==="other"?null:NGOS[+org];
   const[bx,by]=proj(base);const ring=$("ring");ring.setAttribute("cx",bx);ring.setAttribute("cy",by);ring.style.r=(R*kmPx).toFixed(1)+"px";
   $("base").setAttribute("cx",bx);$("base").setAttribute("cy",by);
@@ -1092,63 +1270,70 @@ function renderMatch(){if(mapBuilt!==ALL){buildMap();setupBaseDrag();setupZoom()
   for(const s of pool){s.sev=(metric==="need"?s.need:s.shr)/mv;s.prox=1-s.d/R;s.score=w*s.sev+(1-w)*s.prox}
   shadeDots(metric);
   const picks=pool.sort((a,b)=>b.score-a.score).slice(0,cap);lastPicks=picks;
-  const inPool=new Set(pool.map(s=>s.id)),pickIdx=new Map(picks.map((s,i)=>[s.id,i+1]));
+  const visiblePicks=picks.slice(0,visibleMatchCount);
+  const pickIdx=new Map(picks.map((s,i)=>[s.id,i+1]));
   for(const el of dotEls){const s=ALL[+el.dataset.id];
-    const out=!inPool.has(s.id)&&!(s.hasProgramme&&s.d<=R),cov=!!s.hasProgramme,pk=pickIdx.has(s.id);
+    const pk=pickIdx.has(s.id),out=!pk,cov=!!s.hasProgramme;
     const key=(out?1:0)|(cov?2:0)|(pk?4:0);
     if(el._k===key)continue;el._k=key;
     el.classList.toggle("out",out);el.classList.toggle("covered",cov);el.classList.toggle("pick",pk)}
   const pk=(10*(vb.w/VB0.w)).toFixed(2);
   $("picks").innerHTML=picks.map((s,i)=>{const[x,y]=proj(s.ll);return`<text class="picknum" style="font-size:${pk}px" x="${x+8}" y="${y+4}">${i+1}</text>`}).join("");
   const metricTxt=s=>metric==="need"
-    ? `≈${s.need.toFixed(1)} pupils below 5 a year, ${pct(s.shr)} smoothed share against a ${pct(s.prior)} ${s.mediu||""} county average`
-    : `${pct(s.shr)} smoothed share below 5 against a ${pct(s.prior)} ${s.mediu||""} county average, ≈${s.need.toFixed(1)} pupils a year`;
-  $("matches").innerHTML=picks.map((s,i)=>{const sv=w*s.sev,px=(1-w)*s.prox,tot=Math.max(sv+px,1e-9);
+    ? `≈${s.need.toFixed(1)} elevi sub nota 5 pe an, proporție ajustată ${pct(s.shr)}, față de media județeană de ${pct(s.prior)}`
+    : `proporție ajustată de ${pct(s.shr)} sub nota 5, față de media județeană de ${pct(s.prior)}; ≈${s.need.toFixed(1)} elevi pe an`;
+  $("matches").innerHTML=visiblePicks.map((s,i)=>{
     const other=s.m.inC.filter(o=>o!==me).map(o=>sn(o.n));
-    return`<article class="match" data-sid="${s.id}" style="animation-delay:${i*40}ms"><div class="hd"><span class="no">${i+1}</span><div><div class="school">${esc(s.school)}</div><div class="sub">${esc(title(ck(s.county)||s.county))} · ${s.mediu||"n/a"} · ${fmt(s.perYear)} candidates/yr</div></div><span class="km">${Math.round(s.d)} km${s.approx?" ≈":""}</span></div>
-    <div class="score"><div class="sbar" title="Match score ${(s.score*100).toFixed(0)}/100"><span class="sv" style="flex:${sv/tot}"></span><span class="px" style="flex:${px/tot}"></span></div><div class="lg"><span>need ${(sv*100).toFixed(0)}</span><span>score ${(s.score*100).toFixed(0)}/100</span><span>distance ${(px*100).toFixed(0)}</span></div></div>
-    <p class="why">${metricTxt(s)}.${s.income!=null?` Commune collects ${s.income.toLocaleString("en")} lei of income tax per head — ${esc(depWord(s.dep))} (${s.dep.toFixed(2)} of 1, cuts at 0.2 / 0.8).`:""}${archetype(s)==="money"?" <b>Money is the likeliest binding constraint</b> — inferred from commune income, not measured here.":archetype(s)==="school"?" <b>Money is unlikely to be what is missing</b> — the commune is well off, so look at teaching and mentoring.":""} ${s.pnrasGrant||s.masa?"Already running: "+esc([s.pnrasGrant?"PNRAS grant":"",s.masa?"Masă sănătoasă":""].filter(Boolean).join(", "))+".":s.pnrasEligible?"On the ministry's PNRAS risk list, but no grant has arrived.":"No PNRAS grant, no meal programme."} ${other.length?"Also in the county: "+esc(other.join(", "))+".":""}${s.inboxN>1?` <b>Shares one inbox with ${s.inboxN-1} other school${s.inboxN>2?"s":""}</b> — a coordinating school and its structuri arondate. Write once, name them all.`:""}</p></article>`}).join("")
-    ||`<p class="tabnote">No schools within ${R} km match these settings. Widen the range, or untick "Skip schools another programme already covers".</p>`;
-  const inboxes=new Set(picks.filter(s=>s.inbox).map(s=>s.inbox));
-  const noMail=picks.filter(s=>!s.inbox).length;
-  // The objective in the user's terms, not the score. `need` is the model's estimate of pupils
-  // scoring below 5 each year AT these schools — the size of the problem in front of them. It is
-  // not a claim about children reached: writing to a school reaches nobody by itself.
-  const totNeed=picks.reduce((a,s)=>a+s.need,0);
-  $("mOut").innerHTML=picks.length
-    ?`<b>≈${Math.round(totNeed).toLocaleString("en")} pupils a year</b> score below 5 across these ${picks.length} school${picks.length===1?"":"s"} · `+
-     `${inboxes.size} inbox${inboxes.size===1?"":"es"} to write to${noMail?` · ${noMail} with no email listed`:""}`
+    const needLabel=s.sev>=.67?"Nevoie mare":s.sev>=.34?"Nevoie medie":"Nevoie punctuală";
+    const matchLabel=s.score>=.72?"Potrivire mare":s.score>=.45?"Potrivire medie":"Potrivire posibilă";
+    const programme=s.hasProgramme?"Program existent":"Fără program existent";
+    const contact=s.email
+      ?`<a class="contact-school" href="mailto:${esc(s.email)}">Contactează școala</a>`
+      :`<span class="contact-school unavailable" aria-disabled="true">Contact indisponibil</span>`;
+    return`<article class="match${i===0?" best":""}" data-sid="${s.id}" style="animation-delay:${i*40}ms">
+      ${i===0?`<div class="best-label">Cea mai bună potrivire</div>`:""}
+      <div class="hd"><span class="no">${i+1}</span><div><div class="school">${esc(s.school)}</div><div class="sub">${esc(s.locality||title(ck(s.county)||s.county))} · ${s.mediu||"necunoscut"}</div></div><span class="km">${Math.round(s.d)} km${s.approx?" ≈":""}</span></div>
+      <div class="match-score">${matchLabel} · ${(s.score*100).toFixed(0)}%</div>
+      <div class="match-chips"><span class="match-chip need">${needLabel}</span><span class="match-chip">${programme}</span>${s.inboxN>1?`<span class="match-chip">✉ Contact comun pentru ${s.inboxN} școli</span>`:""}</div>
+      <div class="match-signal">≈${Math.round(s.need).toLocaleString("ro-RO")} elevi/an sub nota 5</div>
+      <div class="match-actions">${contact}<details class="match-explain"><summary>De ce recomandăm?</summary><p>${metricTxt(s)}.${s.income!=null?` Comuna colectează ${s.income.toLocaleString("ro-RO")} lei impozit pe venit pe locuitor — ${esc(depWord(s.dep))}.`:""}${archetype(s)==="money"?" Banii pot fi problema principală — estimare bazată pe venitul comunei.":archetype(s)==="school"?" Probabil nu banii sunt problema principală; merită analizate predarea și mentoratul.":""} ${s.pnrasGrant||s.masa?"Are deja: "+esc([s.pnrasGrant?"grant PNRAS":"",s.masa?"Masă sănătoasă":""].filter(Boolean).join(", "))+".":s.pnrasEligible?"Este pe lista de risc PNRAS, dar nu a primit grant.":"Nu are grant PNRAS sau program de masă."} ${other.length?"În județ mai lucrează: "+esc(other.join(", "))+".":""}</p></details></div>
+    </article>`}).join("")
+    ||`<p class="tabnote">Nicio școală pe o rază de ${R} km nu corespunde. Mărește distanța sau debifează filtrul pentru programe existente.</p>`;
+  $("matchMore").hidden=visiblePicks.length>=picks.length;
+  $("matchMore").textContent=`Vezi încă ${Math.min(3,picks.length-visiblePicks.length)}`;
+  $("mOut").textContent=picks.length
+    ?`${visiblePicks.length} din ${picks.length} recomandări afișate`
     :"";
-  const ranked=pool.length-picks.length,ex=[];
-  if(exCovered)ex.push(`${exCovered} already have a programme`);
-  if(exUrban)ex.push(`${exUrban} urban`);
+  const ranked=pool.length-picks.length;
   $("mMsg").textContent=picks.length
-    ?`${nRange} schools within ${R} km${customBase?` of ${customBase[0].toFixed(2)}°N ${customBase[1].toFixed(2)}°E`:""}: `+
-     `${picks.length} shown, ${ranked} ranked lower${ex.length?`, ${ex.join(", ")}`:""}.`
+    ?`${ranked} alte școli eligibile în raza aleasă.`
     :"";
 }
-$("mOrg").onchange=()=>{customBase=null;fillBase();renderMatch()};
+$("mOrg").onchange=()=>{customBase=null;fillBase();visibleMatchCount=3;renderMatch()};
 $("mBase").addEventListener("change",()=>{if($("mBase").value!=="__custom")customBase=null});
-["mBase","mRad","mCap","mSkip","mRural"].forEach(id=>$(id).addEventListener("input",renderMatch));
-["mW","mMetric"].forEach(id=>$(id).addEventListener("input",()=>flipMatches(renderMatch)));
-$("mCopy").onclick=async()=>{const org=$("mOrg").value==="other"?"Our organisation":NGOS[+$("mOrg").value].n;
-  const txt=`${org} — shortlist from ${title($("mBase").value)} within ${$("mRad").value} km\n`+lastPicks.map((s,i)=>`${i+1}. ${s.school} (${s.locality||""}, ${title(ck(s.county)||s.county)}) — ${Math.round(s.d)} km, ${pct(s.shr)} below 5, ≈${s.need.toFixed(1)} pupils/yr`).join("\n");
-  try{await navigator.clipboard.writeText(txt);$("mMsg").textContent="Shortlist copied."}catch(e){$("mMsg").textContent="Copy isn't allowed here. Select the cards and copy them instead."}};
+["mBase","mRad","mCap","mSkip","mRural"].forEach(id=>$(id).addEventListener("input",()=>{visibleMatchCount=3;renderMatch()}));
+["mW","mMetric"].forEach(id=>$(id).addEventListener("input",()=>{visibleMatchCount=3;flipMatches(renderMatch)}));
+document.querySelectorAll('input[name="priority"]').forEach(input=>input.addEventListener("change",()=>{
+  $("mW").value=input.value;$("oW").value=input.value+"% nevoie";$("mW").dispatchEvent(new Event("input",{bubbles:true}));
+}));
+$("matchMore").onclick=()=>{visibleMatchCount+=3;renderMatch()};
+$("mCopy").onclick=async()=>{const org=$("mOrg").value==="other"?"Organizația noastră":NGOS[+$("mOrg").value].n;
+  const txt=`${org} — listă din ${title($("mBase").value)}, în limita a ${$("mRad").value} km\n`+lastPicks.map((s,i)=>`${i+1}. ${s.school} (${s.locality||""}, ${title(ck(s.county)||s.county)}) — ${Math.round(s.d)} km, ${pct(s.shr)} sub nota 5, ≈${s.need.toFixed(1)} elevi/an`).join("\n");
+  try{await navigator.clipboard.writeText(txt);$("mMsg").textContent="Lista a fost copiată."}catch(e){$("mMsg").textContent="Copierea nu este permisă aici. Selectează cardurile și copiază-le manual."}};
 const _load=load;load=async f=>{await _load(f);renderMatch()};$("file").onchange=e=>load([...e.target.files]);
 
 if(DATA&&DATA.rows&&DATA.rows.length){
   ALL=inflate(DATA);rankPercentiles(ALL);REG=regBaked(DATA);
-  if(REG)$("regStatus").textContent=`· NGO register 2026: ${REG.n.toLocaleString("en")} of ${REG.withPurpose.toLocaleString("en")} with a stated purpose mention education (keyword match — over-counts, see MATCHMAKING.md). ${REG.noPurpose.toLocaleString("en")} of ${REG.total.toLocaleString("en")} state no purpose and are excluded.`;
-  $("badge").textContent="Real ministry data";$("badge").className="badge real";
-  $("statusText").textContent=`${ALL.length.toLocaleString("en")} schools (${ALL.filter(s=>s.rural).length.toLocaleString("en")} rural) from Evaluarea Națională 2023–2026 · ${ALL.filter(s=>!s.approx).length.toLocaleString("en")} geocoded · commune income and programme coverage joined`;
+  if(REG)$("regStatus").textContent=`· Registrul ONG 2026: ${REG.n.toLocaleString("ro-RO")} din ${REG.withPurpose.toLocaleString("ro-RO")} organizații cu scop declarat menționează educația (potrivire prin cuvinte-cheie, deci numărul poate fi prea mare).`;
+  $("badge").textContent="Date reale ale ministerului";$("badge").className="badge real";
+  $("statusText").textContent=`${ALL.length.toLocaleString("ro-RO")} școli (${ALL.filter(s=>s.rural).length.toLocaleString("ro-RO")} rurale) din Evaluarea Națională 2023–2026 · ${ALL.filter(s=>!s.approx).length.toLocaleString("ro-RO")} localizate pe hartă`;
 }else{
   ALL=model(synth());rankPercentiles(ALL);
 }
 $("rural").checked=true;renderNgos();render();fillOrgs();$("mOrg").value=String(NGOS.findIndex(o=>o.n.startsWith("World Vision")));fillBase();
 if([...$("mBase").options].some(o=>o.value==="CALARASI"))$("mBase").value="CALARASI";
-$("mRad").value=120;renderMatch();
-let _role=null;try{_role=localStorage.getItem("puntea.role")}catch(e){}
-setRole(_role==="dir"?"dir":"ngo",false);   // default NGO: the map is visible on a cold load
+$("mRad").value=120;
+setRole(null,false);
 })();
 </script>
 

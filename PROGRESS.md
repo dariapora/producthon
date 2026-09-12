@@ -8,7 +8,7 @@ instruction.** Every `.md` in this repo is reconciled here; if you are a differe
 changes to the doc owner as text rather than editing, and read the top log entry for who owns which
 code. Code ownership is unchanged.
 
-Last updated: **12 Sept 2026** — stale-timestamp error class, WORKFLOW.md §1b + the escalation gate (session 3 write, session 4 source)
+Last updated: **12 Sept 2026** — low-literacy interaction redesign on `app/index.html`
 
 ---
 
@@ -144,6 +144,24 @@ Two demo schools, for two different points — don't mix them up:
 ---
 
 ## Log
+
+### 12 Sept 2026 — low-literacy interaction layer
+
+- Reworked the tool's first screen around one question and two large, illustrated role choices.
+- Follow-up: the school-help path is now first, neither role is preselected, and all application
+  content stays hidden until the visitor explicitly chooses a path. Stored roles no longer bypass
+  this choice; **Acasă** clears it again.
+- Applied the guideline palette and Montserrat throughout, with 48–56 px touch targets and a
+  selected state that uses fill, outline, text, and a check mark rather than color alone.
+- Kept a stable **Acasă** control; the experimental **Ascultă** controls and browser speech were
+  removed after review to make the entry screen quieter.
+- Simplified and translated the NGO matcher instructions and primary controls; advanced data
+  replacement controls are hidden, and analytical panels sit behind **Vezi datele detaliate**.
+- Translated the static interface, map legend, generated ranking explanations, match cards,
+  validation errors, data status, NGO descriptions, and clipboard feedback into Romanian.
+- Preserved the generated payload, ranking, matching, director search, and map behavior.
+- `git diff --check` and the inline JavaScript syntax check pass. Browser suites could not run in
+  this checkout because `test/node_modules` is absent (`playwright` is not installed).
 
 ### 12 Sept 2026 — Workshop 2 transcript exists (S4 produced; outside the doc freeze)
 `../albert-cristea.md` + `../albert-cristea.vtt`, in the **parent** folder next to the m4a and the
