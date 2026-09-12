@@ -240,6 +240,40 @@ if (!noDeprivation && fs.existsSync(sirutaFile) && fs.existsSync(budgetFile) && 
     s.deprivation = Number(d.deprivation.toFixed(6));
   }
   console.log(`deprivation join: ${depHit}/${list.length} schools matched to a UAT budget`);
+
+  // ---------- commune-level fallback position ----------
+  // data/scoli_coordonate_2017.xlsx does not cover every school, and the gap is not random: it hit
+  // ȘCOALA GIMNAZIALĂ COJASCA, which ranks 2nd by need nationally. A school with no coordinates is
+  // invisible on the map and unreachable by the distance matcher, so the worst-affected schools were
+  // silently excluded from the tool built to find them.
+  //
+  // Where another school in the SAME commune is geocoded, that commune's position is used instead.
+  // This is NOT the school's location and is never presented as one — `geo_source` carries which of
+  // the two it is, all the way to the page, and the UI says "poziție la nivel de comună" wherever a
+  // fallback position is shown or measured from.
+  //
+  // Median per axis, not mean. Some source coordinates are plainly wrong — the furthest school in
+  // this file sits 399 km from the mean of its own commune — and a mean lets one bad row drag the
+  // whole commune with it. A median cannot be moved by an outlier it does not outnumber.
+  const cell = new Map();                       // uat siruta -> [[lat,lon], ...] of real positions
+  for (const s of list) {
+    if (!s.uatSiruta || !Number.isFinite(s.lat)) continue;
+    if (!cell.has(s.uatSiruta)) cell.set(s.uatSiruta, []);
+    cell.get(s.uatSiruta).push([s.lat, s.lon]);
+  }
+  const med = a => { const b = a.slice().sort((x, y) => x - y), n = b.length;
+    return n % 2 ? b[n >> 1] : (b[n / 2 - 1] + b[n / 2]) / 2; };
+  let filled = 0, unplaceable = 0;
+  for (const s of list) {
+    if (Number.isFinite(s.lat)) { s.geoSource = 'school'; continue; }
+    const pts = s.uatSiruta && cell.get(s.uatSiruta);
+    if (!pts || !pts.length) { unplaceable++; continue; }   // stays blank: guessing is worse
+    s.lat = Number(med(pts.map(p => p[0])).toFixed(6));
+    s.lon = Number(med(pts.map(p => p[1])).toFixed(6));
+    s.geoSource = 'commune';
+    filled++;
+  }
+  console.log(`commune-level positions: ${filled} schools placed from another school in their commune · ${unplaceable} still without a position`);
 } else if (!noDeprivation) {
   console.log('deprivation layer skipped (missing one of: siruta/budget/population file)');
 }
@@ -323,7 +357,7 @@ function rankAndWrite(subset, file) {
   const byRate = [...subset].sort((a, b) => b.shrunk - a.shrunk);
   const rr = new Map(); byRate.forEach((s, i) => rr.set(s, i + 1));
   const head = ['rank_need', 'siiir_code', 'school', 'locality', 'county', 'mediu', 'siruta', 'tip_unitate',
-    'lat', 'lon', 'phone', 'email', 'years', 'candidates_per_year', 'n_fail', 'raw_fail_rate',
+    'lat', 'lon', 'geo_source', 'phone', 'email', 'years', 'candidates_per_year', 'n_fail', 'raw_fail_rate',
     'fail_rate_shrunk', 'fail_rate_p10', 'fail_rate_p90', 'county_prior_rate', 'need_per_year', 'absent_rate', 'mean_avg',
     'n_present_2026', 'raw_fail_rate_2026', 'rank_rate',
     'uat_siruta', 'uat_name', 'uat_population', 'income_tax_per_capita', 'equalization_per_capita',
@@ -333,7 +367,7 @@ function rankAndWrite(subset, file) {
     'coverage_programmes'];
   const lines = [head.join(',')];
   subset.forEach((s, i) => lines.push([i + 1, s.code, s.name, s.locality, s.county, s.mediu, s.siruta, s.tip,
-    s.lat, s.lon, s.phone, s.email, s.years.size, f3(s.cpy), s.fail, f3(s.rawRate), f6(s.shrunk), f3(s.p10), f3(s.p90),
+    s.lat, s.lon, s.geoSource || '', s.phone, s.email, s.years.size, f3(s.cpy), s.fail, f3(s.rawRate), f6(s.shrunk), f3(s.p10), f3(s.p90),
     f3(s.priorRate), f3(s.need), f3(s.absentRate), f3(s.meanAvg), s.n2026, f3(s.rate2026), rr.get(s),
     s.uatSiruta, s.uatName, s.uatPop,
     Number.isFinite(s.incomeTaxPc) ? s.incomeTaxPc.toFixed(1) : '',

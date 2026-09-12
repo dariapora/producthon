@@ -11,6 +11,7 @@ const suites=[
   ['FLIP reorder on the weight slider','motion2.mjs'],
   ['Need means: view preserved, encoding follows','metric.mjs'],
   ['table fits its box','cols.mjs'],
+  ['payload invariants (no addresses, field alignment, position provenance)','payload.mjs'],
 ];
 let bad=0;
 for(const [name,f] of suites){
