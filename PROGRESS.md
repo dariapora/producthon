@@ -8,7 +8,7 @@ instruction.** Every `.md` in this repo is reconciled here; if you are a differe
 changes to the doc owner as text rather than editing, and read the top log entry for who owns which
 code. Code ownership is unchanged.
 
-Last updated: **12 Sept 2026** — four-session reconcile (session 2 — pitch page, coverage relabel, denominator rule)
+Last updated: **12 Sept 2026** — stale-timestamp error class, WORKFLOW.md §1b + the escalation gate (session 3 write, session 4 source)
 
 ---
 
@@ -144,6 +144,80 @@ Two demo schools, for two different points — don't mix them up:
 ---
 
 ## Log
+
+### 12 Sept 2026 — Workshop 2 transcript exists (S4 produced; outside the doc freeze)
+`../albert-cristea.md` + `../albert-cristea.vtt`, in the **parent** folder next to the m4a and the
+Iulia files — raw source material where the root `CLAUDE.md` already says source lives, so **not**
+under the seven-doc freeze. Albert Cristea, *"Give your prototype an interface that doesn't need
+explaining"*, 11:45–13:45, 33:51 of Romanian audio → 540 cues, ~5,204 words. Local `mlx_whisper`
+large-v3-turbo, `--language ro --condition-on-previous-text False` (the default collapses a long
+Romanian file into `...` cues — it cost 17 minutes of the Iulia recording at 07:38). Verified: zero
+collapse cues, word count even across all seven 5-minute blocks. Header carries provenance, method,
+known limits, and an explicit **"this is a source, not a quotation"** warning — correct, and the
+right instinct given `RESEARCH.md` §1.6: a transcript is exactly the artefact that looks like
+verbatim evidence and is not.
+
+**Do not lift the ~33:02 confidentiality aside onto a slide.** Read at the timestamp, it is one of
+the roughest cues in the file (*"nu le salvați în glaudă"*, and the following clause is garbled),
+it is an off-the-cuff answer inside a room exchange rather than a stated principle, and it is about
+**Lovable + Supabase — a stack we do not use**. Our own position is strictly stronger: a single-file
+app with no backend cannot leak child data to a cloud database because there is no cloud database.
+Citing him would weaken the answer, not corroborate it. State our rule; leave him out of it.
+
+### 12 Sept 2026 — a second error class (stale timestamps), §1b, and the escalation gate (S3 write; S4 source)
+**New error class, logged separately from the denominator one because the fix is different.** A
+wrong denominator is a property of the **sentence**, so it is proofreadable. A stale timestamp is a
+property of the **sentence plus the world** — it was true when written and became false without the
+text changing. So the fix is *not* a proofreading pass: it is **making the referent explicit at
+write time**. "789, as of the 12 Sept scan read" survives its own expiry because it announces it.
+Framing is session 4's, sharper than the version this session first wrote (which claimed the class
+could only be caught by re-reading later).
+
+Six instances known so far, against nine denominator ones:
+1. `WORKFLOW.md` ×5 — the **25 June 2026** Formular 177 deadline written as upcoming. It has
+   passed; §2's trigger is now the *next* cycle. Corrected at lines 63, 78, 89, 104, 224.
+2. `MATCHMAKING.md` J8 — "no per-school detail view, no county-mean comparison, 9 curated NGOs",
+   measured at midday and made false by that afternoon's work. Now date-stamped: the per-school
+   view **shipped**, the register join **shipped** (so the thinness moved from coverage to
+   precision), and the county comparison is **still genuinely absent**.
+
+**Two pre-pitch passes, and they are different passes.** (a) every parenthetical containing a count
+→ ask "of what?"; (b) every date and every present-tense build claim → ask "when was this true?".
+Neither catches the other's class. Also: session 4's "2.5 of 8" assessment of the team's to-be flow
+carries a timestamp and must not be quoted without it.
+
+**Also landed, both from session 4.** §1b **"The second persona — the school director"** inserted in
+`WORKFLOW.md` after §1, with an evidence-status warning block (this persona is the **weaker**
+evidenced of the two — §1 rests on desk research plus a statutory mechanism, §1b on a decision made
+in a room), the UNVERIFIED trigger marker, the structural limit stated against **the nine curated
+NGOs** (83% under three in county, 19.5% none — *not* against the 1,260 register candidates), a
+flow table, "deliberately absent: a county comparison", and the door's own unhappy paths.
+
+Then an amendment on top, from an outside proposal Andrei brought in: **the public marketplace
+becomes the fallback, not the first step** — *problem → match → provider with capacity, in range?
+→ yes: connect / no: publish*, with the published need carrying the diagnosis and what was already
+checked. **The failed match, not the alert, is the unit of gap data.** This is the best available
+position on hartaedu.ro — *marketplace of last resort, not competitor* — and it independently
+arrives at the panel session 1 already built. Step 6 rewritten, step 7 (gap ledger, population
+denominator attached) added, three unhappy paths added. The gate must read **"is there a provider
+with capacity, in range?"**, never "does a solution exist": per `RESEARCH.md` §3.1 most named
+Romanian programmes are unevidenced, so closing a need as solved asserts an efficacy we cannot
+support. **It also makes the claim testable** — a good ranking should predict *in advance* which
+schools fall through to the fallback, checkable against data already held.
+
+Two cautions added by this session when applying it:
+- **`capacity_pupils_per_year` is `null` by design** (`MATCHMAKING.md`:131 — only from a partner
+  conversation). Making it load-bearing for the **gate** means that, as built today, it decides
+  nothing: the gate must **fail open** (publish) or a field we never populate would silently
+  suppress every need.
+- **Publishing to an external marketplace assumes a partnership that does not exist.** Narada is
+  #3 on the contact list, never approached; only ATSI was written to, no reply. Architecture, never
+  an integration — a judge hearing it as shipped has been misled exactly as by an unlabelled
+  placeholder.
+
+**Still open:** the escalation window length (⭐), the supply-side↔demand-side taxonomy mapping (⭐,
+and it is the actual product work), **`git init` — unanswered**, and session 1's role-stickiness fix.
+
 
 ### 12 Sept 2026 — county choropleth + a live bug that hides the map (S4 built; S3 verified)
 **The county map work is session 4's** — `.semkey` legend, `--sem-g/-y/-r/-0` in all three `:root`

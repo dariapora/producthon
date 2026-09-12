@@ -110,6 +110,13 @@ select:focus,input:focus,button:focus-visible{outline:2px solid var(--accent);ou
 .tab:active{transform:scale(.98)}
 .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--red)}
 .tabnote{font-size:13px;color:var(--muted);margin:10px 0 12px}
+.tabnote details.why{display:inline}
+.tabnote details.why summary{display:inline;cursor:pointer;color:var(--accent);text-decoration:underline;
+  text-underline-offset:2px;list-style:none}
+.tabnote details.why summary::-webkit-details-marker{display:none}
+.tabnote details.why[open] summary{display:block;margin-bottom:4px}
+.mout{font-size:15px;color:var(--ink);margin:14px 0 2px}
+.mout b{font-weight:600}
 .tablewrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:14px;min-width:780px;font-variant-numeric:tabular-nums}
 th{text-align:left;font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -192,6 +199,12 @@ a{color:var(--accent)}
 .zoomui select{font:inherit;font-size:12px;padding:2px 4px;max-width:190px}
 .semkey{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap}
 .semkey i{border-radius:2px}
+/* Redundant encoding for the red band. Red/yellow/green is the one triple that collapses under
+   red-green colour blindness (~8% of men) and at the country view the hue was the ONLY carrier of
+   the "nobody is here" share. The hatch restates "over 25%" in a channel that survives. It tracks
+   --lod with the county fill so it disappears as the dots take over. */
+.hatch{pointer-events:none;stroke:none;fill-opacity:calc(1 - .6*var(--lod));
+  transition:fill-opacity .3s var(--ease-out,ease)}
 .seat{fill:var(--muted);opacity:.5}
 /* The halo IS the label's background, not the county fill. Measured on the semaphore yellow:
    ink on the light fill (#FFE461) is 12.8:1, but on the DARK fill (#A69741) only 2.44:1 — dark
@@ -366,9 +379,10 @@ tbody.swap tr{animation:rise var(--dur-swap) var(--ease-out) both}
         </div>
         <svg id="map" viewBox="0 0 640 420" role="img" aria-label="Map of schools around your base. Scroll to zoom, drag to pan, drag the pin to move your base."></svg>
         <div class="tip" id="tip"></div>
-        <div class="maplegend"><span class="semkey">county — share of its rural schools with nothing:<i style="width:10px;height:10px;background:color-mix(in srgb,var(--sem-g) 62%,var(--surface))"></i>under 10%<i style="width:10px;height:10px;background:color-mix(in srgb,var(--sem-y) 62%,var(--surface))"></i>10–25%<i style="width:10px;height:10px;background:color-mix(in srgb,var(--sem-r) 62%,var(--surface))"></i>over 25%</span><span><i style="width:10px;height:10px;background:var(--red)"></i><span id="mapLg">school: darker = more pupils below 5 each year — zoom in to see them</span></span><span><i style="width:10px;height:10px;border:1.5px solid var(--red)"></i>has a programme</span><span><i style="width:10px;height:10px;border:2px solid var(--ink)"></i>on your shortlist</span><span><i style="width:10px;height:10px;background:var(--accent)"></i>your base and range</span><span class="maphint">⌘/Ctrl + scroll or double-click to zoom · drag to pan</span></div>
+        <div class="maplegend"><span class="semkey">county — share of its rural schools with nothing:<i style="width:10px;height:10px;background:color-mix(in srgb,var(--sem-g) 62%,var(--surface))"></i>under 10%<i style="width:10px;height:10px;background:color-mix(in srgb,var(--sem-y) 62%,var(--surface))"></i>10–25%<i style="width:10px;height:10px;background:repeating-linear-gradient(45deg,var(--sem-r) 0 1.6px,color-mix(in srgb,var(--sem-r) 62%,var(--surface)) 1.6px 7px)"></i>over 25% (hatched)</span><span><i style="width:10px;height:10px;background:var(--red)"></i><span id="mapLg">school: darker = more pupils below 5 each year — zoom in to see them</span></span><span><i style="width:10px;height:10px;border:1.5px solid var(--red)"></i>has a programme</span><span><i style="width:10px;height:10px;border:2px solid var(--ink)"></i>on your shortlist</span><span><i style="width:10px;height:10px;background:var(--accent)"></i>your base and range</span><span class="maphint">⌘/Ctrl + scroll or double-click to zoom · drag to pan</span></div>
       </div>
     </div>
+    <p class="mout" id="mOut"></p>
     <div class="matches" id="matches"></div>
     <div class="mfoot"><button class="btn" id="mCopy">Copy shortlist</button><span id="mMsg"></span></div>
   </section>
@@ -593,12 +607,23 @@ function render(){
   if(view==="school")S=S.filter(s=>archetype(s)==="school");
   if(view==="alone")S=S.filter(s=>s.failPct>=.75&&!s.covered&&!s.pnrasEligible);
   S=S.slice().sort(view==="rate"?(a,b)=>b.shr-a.shr||b.perYear-a.perYear:(a,b)=>b.need-a.need);
-  $("tabNote").textContent=
-     view==="money"?"In the national worst quartile on results (the percentile runs over all schools, urban included, so this is 31% of rural schools) AND in the poorest fifth of communes by income tax collected per head. A hypothesis for the ISJ to test, not a proven rule: Romania's largest school-grant trial (ROSE, 41,524 pupils) found no moderation by local economic conditions. Where cash does bind, the evidence favours conditional transfers with enforced conditions; school meals raise enrolment by about 3pp but barely move attendance, and transport support is unevaluated."
-    :view==="school"?"In the national worst quartile on results but in the richest fifth of communes, so a cash programme is unlikely to be what is missing. The evidenced levers here are school management (+1 SD management ≈ +0.24 SD scores) and teacher stability, which PNRAS Round I did move. Equipment without teacher training is the documented failure mode."
-    :view==="alone"?"In the national worst quartile on results, no PNRAS grant, no Masă sănătoasă, and not even on the ministry's own PNRAS eligibility list. Nobody is here. One of the three ministry lists is a scan we could not extract, so we read a third of it by hand: 92% of it is schools already on the lists we could read, which moves this count by under 1%."
-    :view==="need"?"Ranked by estimated pupils below 5 each year: where a funder's lei reach the most children. Keep 'Rural schools only' ticked, or big town schools dominate."
-    :"Ranked by smoothed share below 5: small schools where failing is the norm. Often the places no programme reaches.";
+  // Lead with the plain sentence; keep every caveat one click behind it. Not a word is dropped —
+  // the denominators and the null results are what make these lists honest, but delivering 583
+  // characters of them before the user has asked anything is what makes the page unreadable.
+  const NOTES={
+    money:["Poor results and a poor commune — money may be what is missing.",
+      "In the national worst quartile on results (the percentile runs over all schools, urban included, so this is 31% of rural schools) AND in the poorest fifth of communes by income tax collected per head. A hypothesis for the ISJ to test, not a proven rule: Romania's largest school-grant trial (ROSE, 41,524 pupils) found no moderation by local economic conditions. Where cash does bind, the evidence favours conditional transfers with enforced conditions; school meals raise enrolment by about 3pp but barely move attendance, and transport support is unevaluated."],
+    school:["Poor results but a well-off commune — money is unlikely to be what is missing.",
+      "In the national worst quartile on results but in the richest fifth of communes, so a cash programme is unlikely to be what is missing. The evidenced levers here are school management (+1 SD management ≈ +0.24 SD scores) and teacher stability, which PNRAS Round I did move. Equipment without teacher training is the documented failure mode."],
+    alone:["Poor results, and no programme of any kind reaches them. Nobody is here.",
+      "In the national worst quartile on results, no PNRAS grant, no Masă sănătoasă, and not even on the ministry's own PNRAS eligibility list. Nobody is here. One of the three ministry lists is a scan we could not extract, so we read a third of it by hand: 92% of it is schools already on the lists we could read, which moves this count by under 1%."],
+    need:["Ranked by estimated pupils below 5 each year — where a funder's lei reach the most children.",
+      "Keep 'Rural schools only' ticked, or big town schools dominate the list purely by being big."],
+    rate:["Ranked by smoothed share below 5 — small schools where failing is the norm.",
+      "Often the places no programme reaches. Smoothing pulls a school with few candidates towards its county average, so a handful of bad results cannot by itself put a school at the top."],
+  };
+  {const n=NOTES[view]||NOTES.rate;
+   $("tabNote").innerHTML=`${esc(n[0])} <details class="why"><summary>Why this list?</summary>${esc(n[1])}</details>`}
   $("rows").innerHTML=S.slice(0,limit).map((s,i)=>`<tr${rowsAnim&&i<14?` style="animation-delay:${i*30}ms"`:""}><td class="rank">${i+1}</td>
     <td><div class="school">${esc(s.school)}</div><div class="sub">${esc(s.locality?s.locality+" · ":"")}${esc(s.county)} · ${s.years.size} year${s.years.size>1?"s":""} pooled</div></td>
     <td><span class="pill ${s.rural?"rural":""}">${esc(s.mediu||"n/a")}</span></td>
@@ -790,8 +815,14 @@ function buildMap(){const svg=$("map");let g="";
   for(const s2 of ALL){if(!s2.rural)continue;const k=ck(s2.county);if(!k)continue;
     const c=CTY_STAT.get(k)||{a:0,n:0};c.n++;
     if(s2.failPct>=.75&&!s2.covered&&!s2.pnrasEligible)c.a++;CTY_STAT.set(k,c)}
+  g+=`<defs><pattern id="hatchR" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">`+
+    `<line x1="0" y1="0" x2="0" y2="7" stroke="var(--sem-r)" stroke-width="1.8"/></pattern></defs>`;
   g+=`<g id="counties">`+Object.keys(COUNTY_PATHS).map(k=>{const c=CTY_STAT.get(k);
     return `<path class="cty" data-c="${k}" d="${COUNTY_PATHS[k]}" style="fill:${ctyFill(c)}"><title>${ctyLabel(k,c)}</title></path>`}).join("")+`</g>`;
+  // Second pass, not inline with the fills: counties tile, so a neighbour drawn later would paint
+  // over a hatch drawn earlier at the shared border.
+  g+=`<g id="hatches">`+Object.keys(COUNTY_PATHS).filter(k=>semOf(CTY_STAT.get(k))==="r")
+    .map(k=>`<path class="hatch" d="${COUNTY_PATHS[k]}" style="fill:url(#hatchR)"/>`).join("")+`</g>`;
   const withData=new Set(ALL.map(s=>ck(s.county)));
   for(const[k,ll]of Object.entries(SEATS)){const[x,y]=proj(ll);g+=`<circle class="seat" cx="${x}" cy="${y}" r="2"/>`;if(withData.has(k))g+=`<text class="seatlbl" x="${x+5}" y="${y-5}">${title(k)}</text>`}
   g+=`<circle class="ring" id="ring" cx="0" cy="0" style="r:0"/><g id="dots"></g><g id="picks"></g>`+
@@ -1030,15 +1061,22 @@ function renderMatch(){if(mapBuilt!==ALL){buildMap();setupBaseDrag();setupZoom()
   const[bx,by]=proj(base);const ring=$("ring");ring.setAttribute("cx",bx);ring.setAttribute("cy",by);ring.style.r=(R*kmPx).toFixed(1)+"px";
   $("base").setAttribute("cx",bx);$("base").setAttribute("cy",by);
   $("basehit").setAttribute("cx",bx);$("basehit").setAttribute("cy",by);
-  const pool=[];
-  for(const s of ALL){if(!s.m)s.m=matchCounty(s.county);if(!s.ll)continue;s.d=km(base,s.ll);
+  // Every school within range is accounted for below: shown, ranked lower, or filtered out, and
+  // the three add up to nRange. The pool is NOT the set the filters removed things from — schools
+  // that fall short of `cap` were out-ranked, not excluded, and saying otherwise would attach a
+  // correct count to the wrong set.
+  const pool=[];let nRange=0,exUrban=0,exCovered=0,exNoGeo=0;
+  for(const s of ALL){if(!s.m)s.m=matchCounty(s.county);if(!s.ll){exNoGeo++;continue}s.d=km(base,s.ll);
     const others=s.m.inC.filter(o=>o.rel==="high"&&o!==me);s.coveredBy=others;
     // real coverage beats the county-level NGO guess: a PNRAS grant or a meal programme is a
     // fact about THIS school, not about its county
     s.hasProgramme=s.pnrasGrant||s.masa;                  // a fact about this school
     s.alreadyServed=s.hasProgramme||others.length>0;       // fact, or an NGO working in its county
-    const ok=s.d<=R&&(!$("mRural").checked||s.rural)&&!($("mSkip").checked&&s.alreadyServed);
-    if(ok)pool.push(s)}
+    if(s.d>R)continue;                                  // distance first: it defines nRange
+    nRange++;
+    if($("mRural").checked&&!s.rural){exUrban++;continue}
+    if($("mSkip").checked&&s.alreadyServed){exCovered++;continue}
+    pool.push(s)}
   const mv=Math.max(...pool.map(s=>metric==="need"?s.need:s.shr),1e-9);
   for(const s of pool){s.sev=(metric==="need"?s.need:s.shr)/mv;s.prox=1-s.d/R;s.score=w*s.sev+(1-w)*s.prox}
   shadeDots(metric);
@@ -1061,8 +1099,22 @@ function renderMatch(){if(mapBuilt!==ALL){buildMap();setupBaseDrag();setupZoom()
     <p class="why">${metricTxt(s)}.${s.income!=null?` Commune collects ${s.income.toLocaleString("en")} lei of income tax per head — ${esc(depWord(s.dep))} (${s.dep.toFixed(2)} of 1, cuts at 0.2 / 0.8).`:""}${archetype(s)==="money"?" <b>Money is the likeliest binding constraint</b> — inferred from commune income, not measured here.":archetype(s)==="school"?" <b>Money is unlikely to be what is missing</b> — the commune is well off, so look at teaching and mentoring.":""} ${s.pnrasGrant||s.masa?"Already running: "+esc([s.pnrasGrant?"PNRAS grant":"",s.masa?"Masă sănătoasă":""].filter(Boolean).join(", "))+".":s.pnrasEligible?"On the ministry's PNRAS risk list, but no grant has arrived.":"No PNRAS grant, no meal programme."} ${other.length?"Also in the county: "+esc(other.join(", "))+".":""}${s.inboxN>1?` <b>Shares one inbox with ${s.inboxN-1} other school${s.inboxN>2?"s":""}</b> — a coordinating school and its structuri arondate. Write once, name them all.`:""}</p></article>`}).join("")
     ||`<p class="tabnote">No schools within ${R} km match these settings. Widen the range, or untick "Skip schools another programme already covers".</p>`;
   const inboxes=new Set(picks.filter(s=>s.inbox).map(s=>s.inbox));
-  const shareNote=picks.some(s=>s.inboxN>1)?` · ${inboxes.size} inbox${inboxes.size===1?"":"es"} to write to`:"";
-  $("mMsg").textContent=picks.length?`${picks.length} of ${pool.length} eligible schools within ${R} km${customBase?` of ${customBase[0].toFixed(2)}°N ${customBase[1].toFixed(2)}°E`:""}${shareNote}`:"";
+  const noMail=picks.filter(s=>!s.inbox).length;
+  // The objective in the user's terms, not the score. `need` is the model's estimate of pupils
+  // scoring below 5 each year AT these schools — the size of the problem in front of them. It is
+  // not a claim about children reached: writing to a school reaches nobody by itself.
+  const totNeed=picks.reduce((a,s)=>a+s.need,0);
+  $("mOut").innerHTML=picks.length
+    ?`<b>≈${Math.round(totNeed).toLocaleString("en")} pupils a year</b> score below 5 across these ${picks.length} school${picks.length===1?"":"s"} · `+
+     `${inboxes.size} inbox${inboxes.size===1?"":"es"} to write to${noMail?` · ${noMail} with no email listed`:""}`
+    :"";
+  const ranked=pool.length-picks.length,ex=[];
+  if(exCovered)ex.push(`${exCovered} already have a programme`);
+  if(exUrban)ex.push(`${exUrban} urban`);
+  $("mMsg").textContent=picks.length
+    ?`${nRange} schools within ${R} km${customBase?` of ${customBase[0].toFixed(2)}°N ${customBase[1].toFixed(2)}°E`:""}: `+
+     `${picks.length} shown, ${ranked} ranked lower${ex.length?`, ${ex.join(", ")}`:""}.`
+    :"";
 }
 $("mOrg").onchange=()=>{customBase=null;fillBase();renderMatch()};
 $("mBase").addEventListener("change",()=>{if($("mBase").value!=="__custom")customBase=null});

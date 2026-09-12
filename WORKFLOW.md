@@ -149,7 +149,41 @@ The consequence is a hard requirement, not an edge case: for the 789, an empty r
 outcome. **The director flow must never return an empty state.** Where nothing is in range it
 returns a "nobody works here yet" panel with a pre-filled collaboration request.
 
-### The flow (second door) — six steps
+### The escalation architecture — the public marketplace is the fallback, not the first step
+
+*problem → match → provider with capacity, in range? → yes: connect / no: publish.* A school
+describes the problem; we try it against providers that already exist; only where that fails does
+the need get **published publicly**, carrying the diagnosis and what was already checked, so it does
+not start from zero. **The failed match, not the alert, is the unit of gap data.**
+
+This is the best available position on hartaedu.ro: **marketplace of last resort, not competitor**
+— `SUMMARY.md`'s stance made structural. It also lands on the panel session 1 already built: the
+"nobody works here yet" state with a pre-filled collaboration request *is* this escalation, one step
+short of publishing.
+
+**The gate reads "is there a provider with capacity, in range?" — never "does a solution exist".**
+Per `RESEARCH.md` §3.1 most named Romanian NGO programmes are unevidenced, so "a solution exists"
+asserts an efficacy we cannot support, and closing a need as solved on that basis is worse than
+publishing it. Provider-and-capacity is checkable; solution-exists is not.
+
+> ⚠️ **Dependency, must not be dropped.** Publishing into an external marketplace **assumes a
+> partnership that does not exist**: Narada is #3 on the contact list, never approached, and the only
+> conversation opened is ATSI, with no reply. Present this as **architecture, never as an
+> integration**. A judge who hears "we publish to hartaedu" as a shipped capability has been misled
+> exactly as by an unlabelled placeholder.
+
+> ⚠️ **And the gate's key field is empty today.** `capacity_pupils_per_year` is `null` by design
+> — `MATCHMAKING.md`:131, "only from a partner conversation". Making it load-bearing for the
+> *gate* means that, as built today, it decides nothing: the gate must **fail open** (publish) rather
+> than fail closed, or a field we never populate would silently suppress every need. This is one more
+> argument for the NGO-side form being the primary call to action.
+
+> **The claim this makes testable.** If the ranking is any good it should **predict in advance which
+> schools fall through to the public fallback** — coverage-zero schools are where matching should
+> fail most often. That is checkable against data we already hold, and it is a stronger
+> demonstration than a map: the population layer forecasting the marketplace's own failures.
+
+### The flow (second door) — seven steps
 
 | # | Who | Step | Input | Output |
 |---|---|---|---|---|
@@ -158,7 +192,8 @@ returns a "nobody works here yet" panel with a pre-filled collaboration request.
 | 3 | System | Prefills the profile from public data | that school's row | EN trend 2023–26, **national percentile with its denominator stated**, archetype, coverage flags, inbox group |
 | 4 | **Human** | **Confirms or corrects the profile** | the prefilled profile | a confirmed profile — and the chance to state what we refuse to infer |
 | 5 | AI | The closest three organisations, each with a cited reason | school row + NGO profiles + score components (J3, template first) | three matches with sources — **or** the "nobody works here yet" panel |
-| 6 | **Human** | **Sends the request** | the draft | a sent request, or a collaboration request. The product still never sends by itself |
+| 6 | **Human** | **Sends the request — or escalates** | the draft, or the empty result | a sent request to a named provider; **or**, where nothing matched, a structured public need carrying the diagnosis and what was already checked. The product still never sends by itself |
+| 7 | System | Records the gap | the outcome of 5 and 6 | need type × county × date, **with the population denominator from the ranking attached** |
 
 **Deliberately absent: a county comparison.** The profile shows the **national** percentile only,
 with its denominator stated. `failPct` runs over all 6,331 schools, urban included, so a
@@ -174,6 +209,18 @@ county-relative figure would be a different statistic wearing the same label.
   from the staff room. Record both; never silently overwrite the public figure.
 - **⭐ The school has a phone but no email** — it never receives step 1 at all, so this door does
   not exist for it. Same open item as §3.
+- **⭐ A false-positive match buries a real need — the new failure this gate introduces.** Before,
+  a bad match wasted a director's time; now it can *remove* a need from the public queue altogether,
+  most likely via a `stage: running` organisation dormant since 2013. **A matched need that draws no
+  reply within a set window must escalate automatically.** Matching may delay publication; it may
+  never cancel it. The window length is unresolved — ⭐.
+- **The gap ledger inherits the bias it exists to expose.** "187 requests, 3 organisations" counts
+  only schools that spoke. Left bare it is the DonorsChoose result again (`RESEARCH.md` §2.2:
+  funding tracked which teachers had time and a network to ask). **Every gap figure carries the
+  population denominator** — of the county's rural schools, not of those who asked. This is the one
+  thing we can supply that the marketplace cannot compute for itself.
+- **⭐ Two taxonomies.** Ours is supply-side (`programme_types`, closed, 14 values); a need-led flow
+  needs a demand-side one. The mapping between them is the actual product work and does not exist.
 
 ## 2. Trigger and outcome
 

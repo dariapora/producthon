@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parcursul Puntea 8→9</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* ── Committed dark, same world as app/pitch.html. Deliberate: this page is the
+      companion to the pitch and is shown in the same room. See MOTION.md. ──── */
+:root{
+  --ground:#0c1013;
+  --ground-2:#131a1f;
+  --ground-3:#1b242b;
+  --ink:#f0eeea;
+  --ink-2:#9aa5ad;
+  --ink-3:#606c75;
+  --rule:#232e36;
+
+  /* the three sources of (non)determinism — one hue each, used nowhere else */
+  --human:#3f9d8f;
+  --ai:#d9a441;
+  --system:#7d8b95;
+  --bad:#c7415a;
+
+  --ease-out:cubic-bezier(.23,1,.32,1);
+  --dur-swap:200ms;
+  --dur-reveal:600ms;
+  --stag-row:30ms;
+
+  --sans:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+
+  --rail:16px;      /* centre of the spine, measured from the wrapper's edge */
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--sans);font-size:16px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.page{max-width:900px;margin:0 auto;padding-inline:20px;padding-block:0}
+
+/* ── masthead ───────────────────────────────────────────────────────────── */
+.masthead{position:sticky;top:0;z-index:5;background:rgba(12,16,19,.88);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--rule)}
+.masthead .page{display:flex;justify-content:space-between;align-items:baseline;
+  gap:16px;padding-block:12px;font-family:var(--mono);font-size:12.5px;color:var(--ink-3)}
+.masthead b{color:var(--ink-2);font-weight:500}
+
+h1{font-size:clamp(34px,6.6vw,64px);font-weight:800;line-height:1;letter-spacing:-.035em;
+  text-wrap:balance;margin:0 0 18px}
+h2{font-size:clamp(24px,3.8vw,34px);font-weight:700;line-height:1.1;letter-spacing:-.025em;
+  text-wrap:balance;margin:0 0 14px}
+h3{font-size:18px;font-weight:600;margin:0 0 8px;letter-spacing:-.01em}
+p{max-width:62ch;margin:0 0 14px;color:var(--ink-2)}
+p.lead{font-size:clamp(17px,2.2vw,20px);color:var(--ink);max-width:54ch}
+strong{color:var(--ink);font-weight:600}
+a{color:var(--ink)}
+.eyebrow{font-family:var(--mono);font-size:12.5px;color:var(--ink-3);margin:0 0 14px}
+
+header.hero{padding-block:clamp(56px,11vh,104px) 40px}
+
+/* ── trigger / outcome bookends ─────────────────────────────────────────── */
+.bookend{border:1px solid var(--rule);background:var(--ground-2);border-radius:3px;
+  padding:22px 22px 18px;margin-block:28px}
+.bookend .tag{font-family:var(--mono);font-size:12px;color:var(--ink-3);
+  display:block;margin-bottom:10px}
+.bookend h3{font-size:21px;letter-spacing:-.015em}
+.bookend p:last-child{margin-bottom:0}
+.bookend.verified{border-left:2px solid var(--human)}
+
+/* ── the spine ──────────────────────────────────────────────────────────── */
+.flow{position:relative;padding-left:52px;margin-block:8px}
+.flow::before{content:"";position:absolute;left:var(--rail);top:10px;bottom:34px;width:1px;
+  background:var(--rule)}
+/* the fill is scroll progress, not decoration: it tracks how far the reader is */
+.flow::after{content:"";position:absolute;left:var(--rail);top:10px;width:1px;
+  height:var(--progress,0px);background:linear-gradient(var(--system),var(--ink-3));
+  transition:height 120ms linear}
+
+.step{position:relative;margin-bottom:30px}
+.step .node{position:absolute;left:calc(var(--rail) - 52px - 9px);top:2px;
+  width:18px;height:18px;border-radius:50%;background:var(--ground);
+  border:1px solid var(--rule);display:grid;place-items:center;
+  font-family:var(--mono);font-size:10.5px;color:var(--ink-3);
+  transition:border-color var(--dur-swap) var(--ease-out),
+             color var(--dur-swap) var(--ease-out),
+             transform var(--dur-swap) var(--ease-out)}
+.step.in .node{transform:scale(1.06)}
+.step[data-who="system"].in .node{border-color:var(--system);color:var(--system)}
+.step[data-who="ai"].in .node{border-color:var(--ai);color:var(--ai)}
+/* a human decision is a diamond — the decision diamond belongs to a person */
+.step[data-who="human"] .node{border-radius:2px;transform:rotate(45deg);width:19px;height:19px}
+.step[data-who="human"] .node span{transform:rotate(-45deg)}
+.step[data-who="human"].in .node{border-color:var(--human);color:var(--human);
+  transform:rotate(45deg) scale(1.06)}
+
+.card{border:1px solid var(--rule);background:var(--ground-2);border-radius:3px;
+  padding:18px 20px}
+.step[data-who="human"] .card{background:var(--ground-3);border-color:#2b3a3a}
+.card-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin-bottom:10px}
+.who{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 7px;border-radius:2px;border:1px solid currentColor;white-space:nowrap}
+.who.system{color:var(--system)}
+.who.ai{color:var(--ai)}
+.who.human{color:var(--human)}
+.card-head h3{margin:0;flex:1 1 16ch;min-width:0}
+.job{font-family:var(--mono);font-size:12px;color:var(--ai)}
+.card>p{margin-bottom:12px}
+.card>p:last-child{margin-bottom:0}
+
+/* ── the IN/OUT ledger: every output is consumed by a later step ─────────── */
+.io{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);
+  border:1px solid var(--rule);border-radius:2px;margin-top:12px}
+.io>div{background:var(--ground);padding:11px 13px;min-width:0}
+.io dt{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 6px}
+.io dd{margin:0;font-size:14px;line-height:1.5;color:var(--ink-2);overflow-wrap:anywhere}
+.io code{font-family:var(--mono);font-size:12.5px;color:var(--ink);background:none}
+.feeds{display:inline-block;margin-top:9px;font-family:var(--mono);font-size:11.5px;
+  color:var(--ink-3)}
+.feeds b{color:var(--ink-2);font-weight:500}
+
+/* ── unhappy paths ──────────────────────────────────────────────────────── */
+details.bad{margin-top:12px;border:1px solid var(--rule);border-left:2px solid var(--bad);
+  border-radius:2px;background:var(--ground)}
+details.bad summary{cursor:pointer;list-style:none;padding:10px 13px;
+  font-family:var(--mono);font-size:12.5px;color:var(--bad);
+  display:flex;justify-content:space-between;gap:10px;align-items:center}
+details.bad summary::-webkit-details-marker{display:none}
+details.bad summary::after{content:"+";color:var(--ink-3);font-size:15px;line-height:1}
+details.bad[open] summary::after{content:"–"}
+details.bad summary:focus-visible{outline:2px solid var(--ai);outline-offset:-2px}
+details.bad ul{margin:0;padding:2px 15px 14px 30px}
+details.bad li{font-size:14px;line-height:1.55;color:var(--ink-2);margin-bottom:8px}
+details.bad li:last-child{margin-bottom:0}
+details.bad li b{color:var(--ink);font-weight:600}
+.plan-b{display:block;margin-top:10px;padding-top:10px;border-top:1px solid var(--rule);
+  font-size:14px;color:var(--ink-2)}
+.plan-b b{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--human);display:block;margin-bottom:4px;font-weight:500}
+
+/* ── second door ────────────────────────────────────────────────────────── */
+.door{border:1px solid var(--rule);border-radius:3px;background:var(--ground-2);
+  padding:20px;margin-top:22px}
+.door ol{margin:14px 0 0;padding-left:0;list-style:none;counter-reset:d}
+.door li{counter-increment:d;display:grid;grid-template-columns:22px 76px 1fr;gap:12px;
+  align-items:baseline;padding:10px 0;border-top:1px solid var(--rule);font-size:15px;
+  color:var(--ink-2)}
+.door li:first-child{border-top:0}
+.door li::before{content:counter(d);font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.door li .w{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.door li .w.human{color:var(--human)}
+.door li .w.ai{color:var(--ai)}
+.door li .w.system{color:var(--system)}
+
+/* ── warning / caveat blocks ────────────────────────────────────────────── */
+.caveat{border:1px solid var(--rule);border-left:2px solid var(--bad);border-radius:2px;
+  background:var(--ground-2);padding:16px 18px;margin-block:22px}
+.caveat p{color:var(--ink-2);margin-bottom:0;max-width:66ch}
+.caveat .tag{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--bad);display:block;margin-bottom:7px}
+
+/* ── pain-point ledger ──────────────────────────────────────────────────── */
+.pains{width:100%;border-collapse:collapse;margin-top:16px;font-size:14.5px}
+.pains th{text-align:left;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:400;
+  padding:0 12px 8px 0;border-bottom:1px solid var(--rule)}
+.pains td{padding:11px 12px 11px 0;border-bottom:1px solid var(--rule);
+  color:var(--ink-2);vertical-align:top}
+.pains td:first-child{color:var(--ink)}
+.lvl{font-family:var(--mono);font-size:11.5px;white-space:nowrap}
+.lvl.f{color:var(--system)}
+.lvl.m{color:var(--ai)}
+.lvl.e{color:var(--bad)}
+.lvl.s{color:var(--human)}
+.scroller{overflow-x:auto}
+
+/* ── survives-failure panel ─────────────────────────────────────────────── */
+.survives{border:1px solid var(--human);border-radius:3px;background:var(--ground-2);
+  padding:22px;margin-block:26px}
+.survives .tag{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--human);display:block;margin-bottom:8px}
+.survives p:last-child{margin-bottom:0}
+
+/* ── open items ─────────────────────────────────────────────────────────── */
+.open li{color:var(--ink-2);margin-bottom:10px}
+.open li::marker{color:var(--ai)}
+
+.src{font-family:var(--mono);font-size:13px;line-height:1.6;color:var(--ink-3);
+  max-width:70ch;margin-top:18px}
+footer{border-top:1px solid var(--rule);margin-top:60px}
+footer .page{padding-block:26px 50px;font-family:var(--mono);font-size:12.5px;color:var(--ink-3)}
+
+section{padding-block:clamp(40px,7vh,68px)}
+section:first-of-type{padding-top:0}
+
+/* ── scroll reveal. The resting state is VISIBLE: the entrance is an animation
+      played when the observer fires, not a hidden start waiting for one. A
+      reader who prints, screenshots, or arrives with JS off sees the whole
+      deliverable; nothing on this page is gated behind scrolling. ─────────── */
+.reveal.in{animation:rise var(--dur-reveal) var(--ease-out) both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+@media (max-width:620px){
+  .io{grid-template-columns:1fr}
+  .door li{grid-template-columns:20px 1fr;row-gap:3px}
+  .door li .w{grid-column:2}
+  .flow{padding-left:38px}
+  :root{--rail:12px}
+  .step .node{left:calc(var(--rail) - 38px - 9px)}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{animation-duration:.01ms !important;transition-duration:120ms !important}
+  @keyframes rise{from{opacity:0}to{opacity:1}}
+  .flow::after{transition:none}
+}
+</style>
+</head>
+<body>
+
+<div class="masthead"><div class="page">
+  <span><b>Puntea 8→9</b> · parcursul utilizatorului</span>
+  <span>Workshop 1 · 12 sep 2026</span>
+</div></div>
+
+<div class="page">
+
+<header class="hero">
+  <p class="eyebrow">Un singur persona, un singur sub-obiectiv, un singur flux</p>
+  <h1>Unde ar trebui să meargă banii, și de ce acolo?</h1>
+  <p class="lead">Persona aleasă: <strong>ofițerul de CSR / sponsorizări</strong>. Nu pentru că
+  este cel mai simpatic dintre cei trei candidați, ci pentru că este singurul cu un
+  <strong>declanșator datat și verificat extern</strong>.</p>
+  <p>Ceilalți doi — liderul de program ONG și dirigintele — rămân <em>actori</em>: există, schimbă
+  contextul, nu sunt rezolvați astăzi. Directorul de școală primește o a doua ușă, mai jos.</p>
+</header>
+
+<section>
+  <div class="bookend verified reveal">
+    <span class="tag">Declanșator — VERIFICAT</span>
+    <h3>Formular 177, ciclul următor</h3>
+    <p>Un plătitor de impozit pe profit poate redirecționa până la <strong>20% din impozitul pe
+    profit</strong> (plafonat la 0,75% din cifra de afaceri) către un ONG — bani care altfel merg
+    la stat, deci cost marginal ≈ zero. Termenul de <strong>25 iunie 2026 a trecut</strong>, așa că
+    decizia vie este ciclul următor. Sezonul de planificare este un moment mai bun pentru discuție
+    decât cu trei săptămâni înainte de depunere.</p>
+    <p class="src">RESEARCH.md §2.3 — verificat.</p>
+  </div>
+
+  <div class="bookend reveal">
+    <span class="tag">Rezultat</span>
+    <h3>O listă scurtă semnată, nu o recomandare</h3>
+    <p>Școli rurale <strong>numite</strong>, fiecare cu un tip de program potrivit și cu un motiv pe
+    care <strong>ISJ îl poate reface cu creionul</strong>, plus un email în română per grup de
+    inbox — <strong>pe care îl trimite omul</strong>. Produsul nu trimite niciodată singur.</p>
+  </div>
+</section>
+
+<section>
+  <h2>De ce acest persona, și nu celălalt</h2>
+  <p>Metoda cere să numeri nivelurile punctelor de durere înainte să formulezi ipoteza. Trei
+  funcționale/financiare contra unul emoțional și unul social:</p>
+
+  <div class="scroller reveal">
+  <table class="pains">
+    <thead><tr><th>Punct de durere</th><th>Nivel</th><th>Dovadă</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Nu poate spune care dintre cele 4.202 de școli rurale clasate are cea mai mare nevoie</td>
+        <td><span class="lvl f">funcțional</span></td>
+        <td>lista de risc a ministerului prinde <strong>19%</strong> din pătrimea cea mai slabă la
+        nivel național (248 din 1.320)</td>
+      </tr>
+      <tr>
+        <td>Registrul spune unde sunt <em>înregistrate</em> cele 125.840 de ONG-uri, nu unde
+        <em>lucrează</em></td>
+        <td><span class="lvl f">funcțional</span></td>
+        <td>MATCHMAKING.md §2 — stratul acesta nu există nicăieri</td>
+      </tr>
+      <tr>
+        <td>O sumă fixă, use-it-or-lose-it, contra unei date anuale ferme</td>
+        <td><span class="lvl m">financiar</span></td>
+        <td>Formular 177; termenul 2026 a trecut, decizia deschisă este ciclul următor</td>
+      </tr>
+      <tr>
+        <td>Trebuie să justifice alegerea în fața unui board și se teme că finanțează ceva ce nu
+        funcționează</td>
+        <td><span class="lvl e">emoțional</span></td>
+        <td>RCT ROSE, 41.524 de elevi: fără impact semnificativ pentru granturile nelegate</td>
+      </tr>
+      <tr>
+        <td>Vrea impact vizibil și atribuibil</td>
+        <td><span class="lvl s">social</span></td>
+        <td>—</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p style="margin-top:18px"><strong>Ipoteza:</strong> constrângerea care leagă este
+  <strong>defensabilitatea, nu bunăvoința</strong>. Acest om nu trebuie convins să dea; trebuie să
+  poată apăra unde s-a dus. De aceea rezultatul fluxului este o listă scurtă <em>justificată</em>,
+  și de aceea clasamentul trebuie să rămână recalculabil pe hârtie.</p>
+
+  <div class="caveat reveal">
+    <span class="tag">Statutul dovezilor — citiți înainte de a pune ceva de mai sus pe un slide</span>
+    <p>Punctele de durere sunt <strong>deduse din research de birou, nu observate</strong>.
+    <strong>Zero interviuri au fost realizate.</strong> Metoda presupune „ce ai observat la persona
+    ta”; noi nu avem nicio observație despre utilizatorul pe care îl servim, deci fiecare rând de
+    mai sus este o <strong>ipoteză</strong>, iar prioritizarea este o ipoteză despre o ipoteză. Nu
+    o prezentați ca descoperire, și nimic din acest proiect nu poate fi prezentat ca voce a
+    clientului.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Fluxul — calea fericită</h2>
+  <p>Opt pași. Fiecare pas spune <strong>cine</strong> acționează, ce intră și ce iese.
+  Ieșirea este un <strong>contract</strong>: ce tip de conținut poartă, nu în ce format. Fiecare
+  ieșire este consumată de un pas de mai jos — altfel, de ce ai produs-o?
+  <strong>Rombul este o decizie umană.</strong></p>
+
+  <div class="flow" id="flow">
+
+    <article class="step reveal" data-who="system">
+      <div class="node"><span>1</span></div>
+      <div class="card">
+        <div class="card-head"><span class="who system">Sistem</span><h3>Clasează fiecare școală</h3></div>
+        <p>Aritmetică pe fișiere publicate. Nimic din pasul acesta nu este AI, și nimic din el nu
+        se schimbă dacă AI-ul cade.</p>
+        <dl class="io">
+          <div><dt>Intrare</dt><dd>EN 2023–26 per candidat · rețeaua școlară 2025–26 · coordonate
+          2017 · linia bugetară <code>04.02.01</code> per UAT · 3 liste de acoperire</dd></div>
+          <div><dt>Ieșire</dt><dd>6.335 de școli clasate — 4.205 rurale în rețea,
+          <strong>4.202 dintre ele clasate</strong> — fiecare purtând <code>fail_rate_shrunk</code>,
+          <code>need_per_year</code>, <code>absent_rate</code>, <code>deprivation_score</code>,
+          arhetip, <code>coverage_programmes</code>, <code>inbox</code>, lat/lon</dd></div>
+        </dl>
+        <span class="feeds">→ consumat de <b>pasul 4</b></span>
+      </div>
+    </article>
+
+    <article class="step reveal" data-who="human">
+      <div class="node"><span>2</span></div>
+      <div class="card">
+        <div class="card-head"><span class="who human">Om · decizie</span><h3>Stabilește cadrul</h3></div>
+        <p>Județ sau național, suma, tipurile de program pe care le poate finanța efectiv, și cele
+        patru ponderi. <strong>Ponderile sunt o alegere de politică, nu un fapt</strong> — de aceea
+        le alege omul, la vedere, înainte ca ceva să fie punctat.</p>
+        <dl class="io">
+          <div><dt>Intrare</dt><dd>constrângerile proprii ale ofițerului</dd></div>
+          <div><dt>Ieșire</dt><dd>un <strong>cadru de politică</strong> — filtre dure, plus
+          <code>w_fit .35 / w_need .30 / w_geo .20 / w_gap .15</code></dd></div>
+        </dl>
+        <span class="feeds">→ consumat de <b>pasul 4</b></span>
+      </div>
+    </article>
+
+    <article class="step reveal" data-who="ai">
+      <div class="node"><span>3</span></div>
+      <div class="card">
+        <div class="card-head"><span class="who ai">AI</span><h3>Citește scopul ONG-ului →
+          capabilitate + arie de serviciu</h3><span class="job">J1 + J2 · batch, cache</span></div>
+        <p>Stratul care nu există nicăieri altundeva: <em>unde lucrează</em> un ONG, nu unde este
+        înregistrat.</p>
+        <dl class="io">
+          <div><dt>Intrare</dt><dd><code>Denumire</code>, <code>Judet</code>,
+          <code>Localitate</code>, <code>Scopul initial</code> + <code>Modificari 1..5</code>
+          pentru cele <strong>31.080 prefiltrate</strong> din 125.840 (medie 759 caractere).
+          Și din altă parte: taxonomia închisă de 14 tipuri din system prompt, plus nomenclatorul
+          SIRUTA pentru geocodare deterministă</dd></div>
+          <div><dt>Ieșire</dt><dd>per ONG: <code>education_relevant</code>, <code>confidence</code>,
+          <code>programme_types</code>, <code>age_bands</code>, <code>stage</code>,
+          <code>service_area</code> — și <code>evidence</code>, <strong>un fragment verbatim din
+          intrare</strong></dd></div>
+        </dl>
+        <span class="feeds">→ consumat de <b>pasul 4</b></span>
+        <details class="bad">
+          <summary>Ce merge prost — și ce facem atunci</summary>
+          <ul>
+            <li><b><code>evidence</code> nu este un substring al intrării</b> → răspunsul e respins
+            și re-pus în coadă. Un profil nefundamentat nu intră niciodată în bazin. Aceasta este
+            verificarea de groundedness — dar motivul mai bun nu e al nostru, e al recenzentului:
+            îi spune omului <em>unde să se uite</em>, deci supravegherea nu înseamnă să refaci munca.</li>
+            <li><b><code>confidence &lt; 0.6</code></b> → escaladare
+            <code>claude-haiku-4-5</code> → <code>claude-sonnet-5</code>; tot sub prag → perechea
+            pică la filtrul dur 1 și ONG-ul iese.</li>
+            <li><b>Textul scopului nu declară nicio arie de serviciu</b> → implicit județul de
+            reședință, <code>confidence: low</code>. <strong>Niciodată nu lărgim o arie prin
+            inferență</strong> — o rază lărgită greșit recomandă cu încredere o organizație care nu
+            lucrează acolo.</li>
+            <li><b><code>stage: running</code> pentru o asociație dormantă din 2013</b> → eroarea
+            costisitoare, și cea mai jenantă ieșire posibilă. Are propriul prag de recall.</li>
+            <li><b>Rezultatele batch sosesc în altă ordine</b> → cheie pe
+            <code>custom_id = cui</code>, niciodată pe poziție.</li>
+          </ul>
+          <span class="plan-b"><b>Plan B</b>Profiluri din cache, de pe disc. Fără cache: filtrul
+          determinist de recall pe regex, cu lista etichetată vizibil <em>neclasificat</em>.</span>
+        </details>
+      </div>
+    </article>
+
+    <article class="step reveal" data-who="system">
+      <div class="node"><span>4</span></div>
+      <div class="card">
+        <div class="card-head"><span class="who system">Sistem</span><h3>Filtrează, apoi punctează
+          — fără AI</h3></div>
+        <p>Aici se decide clasamentul, și aici nu există model. Este răspunsul la întrebarea ISJ-ului
+        „de ce școala asta și nu aia”.</p>
+        <dl class="io">
+          <div><dt>Intrare</dt><dd>rândurile școlilor (pasul 1) · profilurile ONG (pasul 3) ·
+          cadrul de politică (pasul 2)</dd></div>
+          <div><dt>Ieșire</dt><dd>perechile supraviețuitoare, punctate
+          <code>w_fit·archetype_fit + w_need·priority_score + w_geo·(1−d/r) + w_gap·coverage_gap</code>.
+          <strong>Recalculabil pe hârtie.</strong></dd></div>
+        </dl>
+        <span class="feeds">→ consumat de <b>pasul 5</b></span>
+      </div>
+    </article>
+
+    <article class="step reveal" data-who="ai">
+      <div class="node"><span>5</span></div>
+      <div class="card">
+        <div class="card-head"><span class="who ai">AI</span><h3>Scrie motivul</h3>
+          <span class="job">J3 · template întâi</span></div>
+        <p>Modelul intră doar în spatele butonului „explică mai mult”. Contextul este deliberat
+        îngust: o școală, un ONG, componentele scorului. Nimic altceva.</p>
+        <dl class="io">
+          <div><dt>Intrare</dt><dd><strong>un</strong> rând de școală + <strong>un</strong> profil
+          ONG + componentele scorului</dd></div>
+          <div><dt>Ieșire</dt><dd>2 propoziții în română, numind arhetipul și singurul motiv cel mai
+          puternic. <strong>Fiecare cifră trebuie să existe deja în intrare.</strong></dd></div>
+        </dl>
+        <span class="feeds">→ consumat de <b>pasul 6</b></span>
+        <details class="bad">
+          <summary>Ce merge prost — și ce facem atunci</summary>
+          <ul>
+            <li><b>Apare în ieșire o cifră care nu era în intrare</b> → extragem cu regex fiecare
+            numeral și verificăm apartenența; <strong>cădere închisă pe template</strong>. Nu
+            livrăm niciodată o cifră inventată.</li>
+          </ul>
+          <span class="plan-b"><b>Plan B</b>Template-ul este deja varianta implicită:
+          „Școala X: 71% sub 5, comună în decila Y de venit, niciun program la &lt;25 km.”</span>
+        </details>
+      </div>
+    </article>
+
+    <article class="step reveal" data-who="human">
+      <div class="node"><span>6</span></div>
+      <div class="card">
+        <div class="card-head"><span class="who human">Om · decizie</span><h3>Revizuiește lista
+          scurtă și decide pe cine abordează</h3></div>
+        <p>Pasul 5 face pasul 6 ieftin: fiecare câmp își citează sursa, deci recenzentul știe unde
+        să se uite în loc să refacă munca. <strong>AI-ul nu a clasat nimic și nu a decis nimic.</strong></p>
+        <dl class="io">
+          <div><dt>Intrare</dt><dd>perechile clasate, fiecare motiv, fiecare sursă</dd></div>
+          <div><dt>Ieșire</dt><dd>lista scurtă aprobată</dd></div>
+        </dl>
+        <span class="feeds">→ consumat de <b>pasul 7</b></span>
+      </div>
+    </article>
+
+    <article class="step reveal" data-who="ai">
+      <div class="node"><span>7</span></div>
+      <div class="card">
+        <div class="card-head"><span class="who ai">AI</span><h3>Redactează mesajul — grupat pe
+          inbox, niciodată pe școală</h3><span class="job">J4 · la cerere</span></div>
+        <p>879 de adrese de email sunt partajate de 1.956 de școli. Gruparea nu este o optimizare,
+        este condiția ca mesajul să nu fie ofensator.</p>
+        <dl class="io">
+          <div><dt>Intrare</dt><dd>grupul de inbox (unul <em>sau mai multe</em> rânduri de școală) ·
+          profilul finanțatorului · arhetipul · încadrarea ISJ</dd></div>
+          <div><dt>Ieșire</dt><dd>subiect + 120–160 de cuvinte în română, o singură cerere concretă,
+          cifre reale, numind <strong>fiecare unitate de pe acel inbox</strong></dd></div>
+        </dl>
+        <span class="feeds">→ consumat de <b>pasul 8</b></span>
+        <details class="bad">
+          <summary>Ce merge prost — și ce facem atunci</summary>
+          <ul>
+            <li><b>Redactat per școală în loc de per inbox</b> → un director primește trei mailuri,
+            fiecare deschizând ca și cum nu am fi auzit vreodată de el. Grupăm întâi: vederea
+            implicită Călărași colapsează 6 școli → 5 destinatari, iar cele 64 de școli ale
+            pilotului → <strong>50 de inbox-uri distincte</strong>.</li>
+            <li><b>O cifră sau un contact inventat</b> → fiecare cifră trebuie să fie prezentă în
+            payload; altfel blocăm.</li>
+            <li><b>Școala are telefon, dar nu email</b> → pică la filtrul dur 5 și nu ajunge
+            niciodată la pasul 7. <strong>⭐ Ar trebui să randeze în schimb un script de apel</strong>
+            — asta e o reparație de UX, nu una de AI.</li>
+          </ul>
+          <span class="plan-b"><b>Plan B</b>Traseul de degradare globală (MATCHMAKING.md §8);
+          de demonstrat o dată înainte de pitch, pentru că wifi-ul căzut este cel mai probabil mod
+          în care asta pică duminică.</span>
+        </details>
+      </div>
+    </article>
+
+    <article class="step reveal" data-who="human">
+      <div class="node"><span>8</span></div>
+      <div class="card">
+        <div class="card-head"><span class="who human">Om · decizie</span><h3>Editează și apasă
+          trimite</h3></div>
+        <p><strong>Sistemul nu are capacitate de trimitere.</strong> Nu este o setare, nu este un
+        toggle pe care l-am lăsat oprit — nu există.</p>
+        <dl class="io">
+          <div><dt>Intrare</dt><dd>ciorna</dd></div>
+          <div><dt>Ieșire</dt><dd>un mesaj trimis, de un om, de pe adresa lui</dd></div>
+        </dl>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="survives reveal">
+    <span class="tag">Chiar și când AI-ul greșește, ce rămâne adevărat</span>
+    <h3>Tot ce clasează.</h3>
+    <p>Indicele de nevoie, arhetipul, distanțele, golul de acoperire și datele de contact sunt
+    aritmetică pe fișiere publicate. <strong>Cu toți pașii de AI căzând simultan, ofițerul primește
+    tot o listă scurtă defensabilă de școli numite, cu motive din template.</strong> AI-ul livrează
+    un strat care altfel nu există — unde lucrează efectiv cele 125.840 de ONG-uri — și scrie proză
+    în română. Nu atinge niciodată clasamentul.</p>
+  </div>
+</section>
+
+<section>
+  <h2>A doua ușă — directorul de școală</h2>
+  <p>Fluxul de mai sus are un declanșator statutar, cu număr de formular și dată, unde neacționarea
+  pierde banii. Un director nu are așa ceva: „s-au publicat rezultatele la EN” nu poartă niciun
+  termen personal și nicio consecință. <strong>Asimetria aceasta este un rezultat, nu o scăpare în
+  redactare</strong> — este motivul pentru care partea de ofertă este produsul principal, iar
+  aceasta este a doua ușă.</p>
+  <p>Deci declanșatorul nu este un eveniment de calendar, ci <strong>mesajul nostru care
+  ajunge</strong> (pasul 7 de mai sus). Directorul nu vine să caute; noi ajungem la el.</p>
+
+  <div class="caveat reveal">
+    <span class="tag">Limita structurală, măsurată</span>
+    <p>Un director poate fi potrivit doar cu o organizație care deja lucrează lângă el — iar pentru
+    școlile care contează cel mai mult, niciuna nu o face. Măsurat contra <strong>celor nouă ONG-uri
+    curate</strong>: 83% dintre școlile din pătrimea cea mai slabă aveau sub trei organizații în
+    județ, și <strong>19,5% nu aveau niciuna</strong>. Numitorul se spune de fiecare dată: este
+    contra celor nouă, <strong>nu</strong> contra celor 1.260 de candidați pe care îi dă acum
+    joncțiunea cu registrul. Consecința este o cerință dură, nu un caz limită: pentru cele 789 de
+    școli unde nu e nimeni, rezultatul gol este <em>cazul modal</em>.
+    <strong>Fluxul directorului nu returnează niciodată o stare goală.</strong></p>
+  </div>
+
+  <div class="door reveal">
+    <h3>Șase pași</h3>
+    <ol>
+      <li><span class="w system">Sistem</span><span>Mesajul nostru ajunge în inboxul școlii — numind
+      fiecare unitate de pe acel inbox, cu un link</span></li>
+      <li><span class="w human">Om</span><span>Directorul deschide linkul și își găsește școala →
+      un singur <code>COD SIIIR</code></span></li>
+      <li><span class="w system">Sistem</span><span>Preumple profilul din date publice: trendul EN
+      2023–26, <strong>percentila națională cu numitorul ei spus</strong>, arhetipul, semnalele de
+      acoperire, grupul de inbox</span></li>
+      <li><span class="w human">Om · decizie</span><span>Confirmă sau corectează profilul — și are
+      ocazia să spună ce noi refuzăm să inferăm</span></li>
+      <li><span class="w ai">AI</span><span>Cele mai apropiate trei organizații, fiecare cu un motiv
+      citat — <strong>sau</strong> panoul „aici încă nu lucrează nimeni”, cu o cerere de colaborare
+      pre-completată</span></li>
+      <li><span class="w human">Om · decizie</span><span>Trimite cererea. Produsul tot nu trimite
+      singur</span></li>
+    </ol>
+    <p class="src">Absent deliberat: o comparație județeană. Profilul arată doar percentila
+    <strong>națională</strong>, cu numitorul spus. <code>failPct</code> se calculează peste toate
+    cele 6.331 de școli, urbanul inclus — o cifră relativă la județ ar fi o altă statistică purtând
+    aceeași etichetă.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Interdicțiile, verificate contra fluxului</h2>
+  <div class="scroller reveal">
+  <table class="pains">
+    <thead><tr><th>Regula</th><th colspan="2">Starea noastră</th></tr></thead>
+    <tbody>
+      <tr><td>Niciodată un scor lângă numele unei persoane</td>
+        <td colspan="2"><strong>Nu punctăm deloc o persoană.</strong> Doar agregate la nivel de
+        școală; niciun rând per candidat nu ajunge într-un prompt</td></tr>
+      <tr><td>Niciodată date despre etnie</td>
+        <td colspan="2"><code>roma_inclusion</code> este în taxonomia închisă de tipuri de program,
+        și trebuie explicat nesolicitat: clasifică <strong>scopul declarat al unei organizații</strong>,
+        din propria ei înregistrare în registru — niciodată un elev, o școală sau o localitate.
+        <strong>Nu poate deveni niciodată un filtru pe partea de școală.</strong></td></tr>
+      <tr><td>AI-ul nu deține decizia</td>
+        <td colspan="2">Deciziile stau la pașii <strong>2, 6 și 8</strong>. AI-ul nu clasează
+        nimic</td></tr>
+      <tr><td>Supravegherea umană să fie reală, nu decorativă</td>
+        <td colspan="2">Pasul 5 face pasul 6 ieftin: fiecare câmp își citează sursa</td></tr>
+      <tr><td>Fără interfață de chat peste date</td>
+        <td colspan="2">Refuzată deliberat — o casetă de chat face ca un clasament auditabil să
+        devină neauditabil</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>⭐ Nerezolvate</h2>
+  <p>Lucrurile care nu se pot rezolva acum se marchează, și se decide ulterior dacă sunt o reparație
+  de UX, una de AI, sau un pas determinist ieftin pus <em>înaintea</em> celui de AI.</p>
+  <ul class="open">
+    <li><strong>Persistența listei scurte între sesiuni.</strong> Pașii 6→7 pot fi la ore sau
+    săptămâni distanță, iar termenul e fix. Nespecificat încă.</li>
+    <li><strong>Școlile cu telefon, fără email.</strong> Astăzi pică tăcut la filtrul dur 5 și a
+    doua ușă nici nu există pentru ele. Ar trebui să primească un script de apel.</li>
+    <li><strong>Pașii 2, 6 și 8 proiectați ca interfețe</strong> — exact cele trei decizii umane
+    sunt ecranele care nu trebuie să aibă nevoie de explicații.</li>
+  </ul>
+</section>
+
+</div>
+
+<footer><div class="page">
+  Puntea 8→9 · parcursul utilizatorului · deliverable Workshop 1, 12 sep 2026 ·
+  sursa canonică: <b>WORKFLOW.md</b>
+</div></footer>
+
+<script>
+(function(){
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* reveals — everything is legible at rest; the observer only adds the
+     entrance animation for readers who scroll into it */
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }
+    });
+  }, {rootMargin:"0px 0px -8% 0px", threshold:0.12});
+  document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
+
+  /* spine fill = reading progress through the flow. Not decoration: it is the
+     only thing on the page that says how far through eight steps you are. */
+  var flow = document.getElementById("flow"), ticking = false;
+  function paint(){
+    ticking = false;
+    var r = flow.getBoundingClientRect();
+    var span = r.height - 44;
+    var done = Math.min(Math.max(innerHeight*0.5 - r.top - 10, 0), span);
+    flow.style.setProperty("--progress", done.toFixed(1) + "px");
+  }
+  function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(paint); } }
+  addEventListener("scroll", onScroll, {passive:true});
+  addEventListener("resize", onScroll, {passive:true});
+  paint();
+
+  /* open every unhappy path when printing — a printed flow with collapsed
+     fallbacks is missing half the deliverable */
+  addEventListener("beforeprint", function(){
+    document.querySelectorAll("details.bad").forEach(function(d){ d.open = true; });
+  });
+  if(reduce){ /* the fill still moves, it just never animates between frames */ }
+})();
+</script>
+</body>
+</html>
