@@ -129,12 +129,7 @@ function RootComponent() {
         <TopNav />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
-        <footer className="mt-6 border-t border-line">
-          <div className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-between gap-3 px-6 py-6 text-sm text-sub">
-            <span>EDUconnect · rezultate și sprijin pentru școli</span>
-            <span>Surse: Evaluarea Națională 2026 și Registrul ONG</span>
-          </div>
-        </footer>
+   
       </div>
     </QueryClientProvider>
   );
