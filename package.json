@@ -8,12 +8,17 @@
     "deprivation": "node model/deprivation.js --out out",
     "extract": "python3 model/extract_pdfs.py",
     "coverage": "node model/coverage.js --out out",
-    "app": "node model/build_app_data.js"
+    "app": "node model/build_app_data.js",
+    "ngos": "node model/ngos.js --out out",
+    "classify": "node model/classify_ngos.js",
+    "eval": "node model/eval_ngos.js",
+    "families": "node model/eval_ngos.js --families"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.125.0",
     "xlsx": "^0.18.5"
   },
   "private": true

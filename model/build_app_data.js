@@ -146,6 +146,24 @@ if (fs.existsSync(ONG)) {
 
 // --- candidate NGOs per county (model/ngos.js). Kept as a county-bucketed lookup, not 31,716
 // rows inline: the page is already ~1.5 MB.
+// J1 profiles, if model/classify_ngos.js has been run. Optional on purpose: the page must build and
+// work on a clone that has never called an API, and it does — without this file every candidate is
+// simply "purpose not verified", exactly as before. §8's degraded mode is not a banner bolted on
+// afterwards, it is the state the pipeline is already in when the file is absent.
+let ngoProfiles = null;
+const PROF = 'out/ngo_profiles.json';
+if (fs.existsSync(PROF)) {
+  try {
+    const j = JSON.parse(fs.readFileSync(PROF, 'utf8'));
+    ngoProfiles = j.profiles || null;
+  } catch (e) { console.log(`warning: ${PROF} is unreadable (${e.message}) — building without J1 profiles`); }
+}
+// Same composite key as model/classify_ngos.js. The register number alone is not unique (3,186
+// collisions register-wide, 9 inside the candidate list), so joining on it would attach one
+// organisation's verdict to another's card.
+const stripD = v => String(v).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const keyOf = (reg, name) => `${String(reg || '').trim()}|${stripD(name).toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 60)}`;
+
 let ngoByCounty = null;
 const CAND = 'out/ngo_candidates.csv';
 if (fs.existsSync(CAND)) {
@@ -154,14 +172,31 @@ if (fs.existsSync(CAND)) {
   const [kReg, kName, kCty, kLoc, kLat, kLon, kUtil, kEdu] =
     ['reg', 'name', 'county', 'locality', 'lat', 'lon', 'public_utility', 'education_in_name'].map(cx);
   ngoByCounty = {};
+  let prof = 0, relYes = 0, relNo = 0, relNull = 0;
   for (const r of cr.slice(1)) {
     const c = r[kCty];
-    (ngoByCounty[c] = ngoByCounty[c] || []).push([
+    const row = [
       r[kName], r[kLoc], num(r[kLat], 4), num(r[kLon], 4),
       (r[kUtil] === '1' ? 1 : 0) | (r[kEdu] === '1' ? 2 : 0), r[kReg],
-    ]);
+    ];
+    const p = ngoProfiles && ngoProfiles[keyOf(r[kReg], r[kName])];
+    if (p) {
+      prof++;
+      if (p.education_relevant === true) relYes++;
+      else if (p.education_relevant === false) relNo++;
+      else relNull++;
+      // rel: 1 = the model read the purpose and says yes · 0 = says no · null = abstained because
+      // its evidence span was not verbatim in the source. The quote ships with the verdict: a
+      // recommendation a director cannot check against the register is worth no more than the regex.
+      row.push(p.education_relevant === true ? 1 : p.education_relevant === false ? 0 : null,
+               (p.evidence || '').slice(0, 240),
+               (p.programme_types || []).join('|'));
+    }
+    (ngoByCounty[c] = ngoByCounty[c] || []).push(row);
   }
   console.log(`NGO candidates: ${cr.length - 1} rows across ${Object.keys(ngoByCounty).length} counties`);
+  if (ngoProfiles) console.log(`J1 profiles joined: ${prof} of ${cr.length - 1} (${relYes} education-relevant, ${relNo} rejected, ${relNull} abstained)`);
+  else console.log(`J1 profiles: none (${PROF} absent) — candidates ship as "purpose not verified"`);
 }
 
 const payload = {
@@ -171,6 +206,7 @@ const payload = {
   uats,
   ngo,
   ngoCand: ngoByCounty,
+  ngoProfiled: !!ngoProfiles,
   rows: out,
 };
 
