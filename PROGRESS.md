@@ -142,16 +142,33 @@ Two demo schools, for two different points — don't mix them up:
 - The matcher is a deterministic weighted score, not a model. Say "weighted matching on public
   data". Reserve "AI" for NGO-purpose classification and email drafting, which genuinely are.
 - The NGO-per-county counts in the app are a **keyword match** and over-count badly (**30,939 of
-  116,342** — 26.6%). Labelled as such in the UI. `MATCHMAKING.md` J1 replaces it. **The denominator
-  is not the register:** 9,498 of Romania's 125,840 registered NGOs state no purpose anywhere and are
-  excluded before the keyword test (`model/ngos.js`:127), so 30,939 is 26.6% of those that state one
-  and 24.6% of all registered. Say which. Superseded 31,080 of 125,840 / 24.7% on 12 Sept.
+  114,096** — 27.1%). Labelled as such in the UI. `MATCHMAKING.md` J1 replaces it. **The denominator
+  is not the register:** of Romania's 125,840 registered NGOs, 9,498 state no purpose anywhere and
+  2,246 more record no county; both are excluded before the keyword test, and the county gate has to
+  apply on both sides because `n` is the sum of the per-county buckets. Superseded 31,080 of
+  125,840 / 24.7% and then 30,939 of 116,342 / 26.6%, both on 12 Sept.
 - Aggregate per school only; never child-level. Two lists (quick wins / no one is here), never a
   "worst villages" league table.
 
 ---
 
 ## Log
+
+### 12 Sept 2026 — `BRAND.md` added (Andrei's ask)
+
+Andrei's proposed brand and design system, written down verbatim as a standalone doc: brand palette
+(`#183B56` / `#2878D0` / `#F7F9FC` / `#FFFFFF` / `#5F6B7A` / `#E2E8F0`), the EN performance system
+kept deliberately separate (`#D64545` <5 „Sub prag” · `#E5A72E` 5–7 „Nivel mediu” · `#2E8B57` >7
+„Rezultate bune”), Inter type scale, 8px spacing, 12px cards, map rules, Romanian copy table,
+accessibility floor, and the ten components to build (`PrimaryButton` … `MapTooltip`).
+
+**Status is proposed, not applied.** `app/index.html` and `app/pitch.html` still use their own
+tokens; no code changed. `MOTION.md` still owns motion — `BRAND.md` does not override it.
+
+Two things in it that are already repo conventions and now have a visual rule attached: never
+communicate performance by colour alone (number + label always), and never call a school „slabă” /
+„proastă” / an „eșec” — red means *attention may be useful*.
+
 
 ### 12 Sept 2026 (late) — J1 built, schools placed from their commune, and four denominator errors (session 1)
 
@@ -252,7 +269,7 @@ truncated, three checks fail and the suite exits 1. That test also found the git
 outside a git tree**, where a swallowed error made it report "not tracked" for the same reason it
 would on a clean repo — a check that passes when it cannot run. It fails loudly now.
 
-#### Four denominator errors tonight — instances 14 to 17
+#### Five denominator errors tonight — instances 14 to 18
 All four were *correct arithmetic attached to the wrong set*, and **every one reproduced for somebody
 before it was caught.**
 
@@ -262,6 +279,19 @@ before it was caught.**
 | 15 | 30,939 / 116,342 offered as the KW figure | that is `build_app_data.js`'s narrower `re` | correct number, wrong regex |
 | 16 | **35.0%** = 40,684 / 116,342 | **37.4%** = 40,684 / **108,891** | living-only numerator over a living-**and-dead** denominator |
 | 17 | "277 of 1,259" | **282 of 1,260** | 277 counted distinct *names* while the breakdown beside it counted *rows*; 1,259 came from `wc -l` on a file with no trailing newline |
+| 18 | **26.6%** = 30,939 / 116,342 — in the shipped product, the deck line and four docs | **27.1%** = 30,939 / **114,096** | the numerator is county-gated (`n` is the sum of the per-county buckets); the denominator was not. 584 matches dropped from the numerator only, while their 2,246-strong parent set stayed in the denominator |
+
+**#18 was sitting in `CLAUDE.md` in plain sight, written out twice.** The file recorded
+`build_app_data.js`'s regex as *31,523 = 27.1% of 116,342* and, four lines later, the shipped payload
+as *30,939 of 116,342 = 26.6%* — **two rates for one regex, and no line asking why the numerators
+differed by 584.** Both were recorded as facts. The check that would have caught it is the same one
+that caught the others and costs nothing: *which set does this number describe?* — the numerator
+needs a `Judet`, the denominator does not. It is also the first instance to have reached the
+**shipped bytes**: `app/index.html` rendered "30,939 education NGOs out of 116,342 with a stated
+purpose" to the user, so the product stated it, not just the deck. Fixed by moving the county gate
+above the keyword test so it applies to both sides, and `build_app_data.js` now throws unless the
+per-county buckets sum to `n` and `pool + noCounty + noPurpose == total`. **An invariant the build
+asserts is the only version of this lesson that survives the next change.**
 
 **The inclusion–exclusion trap in #16 is the one to remember.** `108,891 = 125,840 − 8,213 dead −
 9,498 blank **+ 762 that are both***. The overlap *shrinks* the gap to 7,451, so the wrong
@@ -345,13 +375,12 @@ as blank via `/\p{L}/u` (`model/ngos.js`:127) — is excluded **before** the key
 | | was | is |
 |---|---|---|
 | excluded, no stated purpose | 9,459 | **9,498** |
-| classification pool | 125,840 | **116,342** |
-| keyword matches | 31,080 (24.7%) | **30,939 (26.6%)** |
+| classification pool | 125,840 | **114,096** |
+| keyword matches | 31,080 (24.7%) | **30,939 (27.1%)** |
 | J1 full-pool batch cost | ~$52 / ~$26 | ~$48 / ~$24 |
 
 The 9,459→9,498 gap is punctuation-only rows plus whitespace handling. Verified against the shipped
-bytes, not taken on report: `app/index.html`'s data block prints `"n":30939, "total":125840,
-"noPurpose":9498, "withPurpose":116342`.
+bytes, not taken on report: `app/index.html`'s data block prints `"n":30939,"total":125840,"noPurpose":9498,"noCounty":2246,"pool":114096,"withPurpose":116342`.
 
 Written in by me: `MATCHMAKING.md` §"Why this needs a model" (+ the exclusion rule and its
 provenance), the §2 method table, the prefilter note, the cost table, the §"Measured cost" floor
@@ -362,11 +391,13 @@ caveat, and the build order at :682; `SUMMARY.md`:255 and the deck line at :489;
 line was "31,080 of 125,840 registered NGOs". Both halves moved, and they moved *differently*:
 the numerator by 141, the denominator by 9,498. So the settled sentence is now:
 
-> "30,939 of the 116,342 registered NGOs that state a purpose at all flag as education-related — a
-> keyword match, which over-counts."
+> "30,939 of the 114,096 registered NGOs that state a purpose and record a county flag as
+> education-related — a keyword match, which over-counts."
 
-30,939 is **26.6% of those that state a purpose** and **24.6% of all 125,840 registered**. Both are
-true and they are different sentences; every place that quotes one now says which. The general
+30,939 is **27.1%** of that set. (This paragraph originally settled on *26.6% of the 116,342 that
+state a purpose*, which held for a few hours until instance 18 showed the numerator was county-gated
+and the denominator was not. The county clause in the sentence above is not padding — it is the
+half that makes the ratio legal.) The general
 lesson is new: the previous nine instances were denominators chosen wrongly at write time. This one
 was chosen *correctly* and then **the pipeline changed underneath it** — a denominator can go stale
 the same way a timestamp can. That folds the two error classes into one: *a figure is a claim about
@@ -424,7 +455,7 @@ check that fails*. Session 4 refused the edit for the right reason (a peer askin
 edit is refused regardless of who is right about the content) and so did I; both routed to Andrei,
 who authorised it. Now: the Claims-discipline bullet carries the revised figure, names the
 denominator with both percentages, points the verification at
-`"n":30939,"total":125840,"noPurpose":9498,"withPurpose":116342`, and keeps one deliberate mention
+`"n":30939,"total":125840,"noPurpose":9498,"noCounty":2246,"pool":114096,"withPurpose":116342`, and keeps one deliberate mention
 of 31,080 as the supersedes line. `CLAUDE.md`:119 still says the register is 125,840 rows, which is
 correct and unchanged. **The route mattered: same edit, refused from a peer, made from the user.**
 
@@ -468,7 +499,7 @@ contradiction of the other two.
 
 **The verification-pointer shape, adopted as a rule.** Session 4 checked the `CLAUDE.md` fix the
 strongest way available: it grepped the literal string
-`"n":30939,"total":125840,"noPurpose":9498,"withPurpose":116342` against *both* `CLAUDE.md` and
+`"n":30939,"total":125840,"noPurpose":9498,"noCounty":2246,"pool":114096,"withPurpose":116342` against *both* `CLAUDE.md` and
 `app/index.html`, and it matches in both. That is stronger than the figures agreeing — **the doc now
 instructs a check whose expected value is a byte-identical substring of the artefact**, so it cannot
 drift without the grep failing. Every verification pointer we write should have that shape: a
@@ -1072,9 +1103,10 @@ strengthens as the data improves. Full cross-tab in `RESEARCH.md` §5.2.
 **Demo school for that section: Școala Gimnazială Cojasca (Dâmbovița)** — rank 5 nationally, all
 three coverage flags zero, genuinely one of the 789. Caveats in `RESEARCH.md` §5.1.1 and they
 matter on stage: it is **71% pooled 2023–2026 but 51% in 2026 alone** (quote both — the 2026 file
-is the one a judge opens); it has **no coordinates**, so never tie it to the map, a distance or the
-matcher; and the two Cojasca units have **swapped emails** in the ministry file, so a J4 outreach
-demo on it must use a placeholder. The commune is the better frame than the school: 9,406 people,
+is the one a judge opens); it **had no coordinates and now carries its commune's** (`59bdb98`), so
+it draws on the map flagged `approx` and a distance off it is good to ~1.7 km median, not better;
+and the two Cojasca units have **swapped emails** in the ministry file, so a J4 outreach demo on it
+must use a placeholder. The commune is the better frame than the school: 9,406 people,
 two schools in the national worst 4%, zero programmes between them.
 
 **SEVEN DENOMINATOR ERRORS, none of them a maths error.** Found across three sessions checking each

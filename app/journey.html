@@ -372,7 +372,11 @@ section:first-of-type{padding-top:0}
         <dl class="io">
           <div><dt>Intrare</dt><dd><code>Denumire</code>, <code>Judet</code>,
           <code>Localitate</code>, <code>Scopul initial</code> + <code>Modificari 1..5</code>
-          pentru cele <strong>31.080 prefiltrate</strong> din 125.840 (medie 759 caractere).
+          pentru cele <strong>40.684 prefiltrate</strong> de <code>model/ngos.js</code> din cele
+          108.891 active care își declară un scop (medie 759 caractere). Din cele 125.840
+          înregistrate, 9.498 nu declară niciun scop și 8.213 sunt radiate &mdash; niciunele nu
+          ajung la model. Rularea livrată a lui J1 citește felia de 30 pe județ: <strong>1.260 de
+          rânduri</strong>.
           Și din altă parte: taxonomia închisă de 14 tipuri din system prompt, plus nomenclatorul
           SIRUTA pentru geocodare deterministă</dd></div>
           <div><dt>Ieșire</dt><dd>per ONG: <code>education_relevant</code>, <code>confidence</code>,
@@ -541,8 +545,15 @@ section:first-of-type{padding-top:0}
     <span class="tag">Limita structurală, măsurată</span>
     <p>Un director poate fi potrivit doar cu o organizație care deja lucrează lângă el — iar pentru
     școlile care contează cel mai mult, niciuna nu o face. Măsurat contra <strong>celor nouă ONG-uri
-    curate</strong>: 83% dintre școlile din pătrimea cea mai slabă aveau sub trei organizații în
-    județ, și <strong>19,5% nu aveau niciuna</strong>. Numitorul se spune de fiecare dată: este
+    curate</strong>, recalculat pe octeții livrați (12 sept 2026), pe cele 1.320 de școli rurale din
+    <em>pătrimea națională</em> cea mai slabă &mdash; adică <code>rank_rate &le; 6335/4</code> în
+    <code>out/schools_need_index.csv</code>, apoi <code>mediu = rural</code>: 1.583 de rânduri în
+    pătrime, din care 1.320 rurale, 31,4% din cele 4.205 rurale clasate: <strong>83,0% au sub trei organizații în județ</strong>.
+    Iar despre absență trebuie spuse amândouă clauzele, altfel cifra induce în eroare:
+    <strong>12,9% nu au niciuna dintre cele nouă</strong>, și <strong>18,7% nu au niciuna pe care
+    interfața chiar o arată</strong> &mdash; una dintre cele nouă e marcată relevanță scăzută și e
+    filtrată. Luăm 12,9% ca cifră unică: e afirmația conservatoare despre absență, iar când toată
+    pledoaria e „nu e nimeni acolo”, subestimarea absenței e direcția corectă în care să greșim. Numitorul se spune de fiecare dată: este
     contra celor nouă, <strong>nu</strong> contra celor 1.260 de candidați pe care îi dă acum
     joncțiunea cu registrul. Consecința este o cerință dură, nu un caz limită: pentru cele 789 de
     școli unde nu e nimeni, rezultatul gol este <em>cazul modal</em>.

@@ -118,8 +118,15 @@ const FIELDS = ['code', 'school', 'locality', 'ci', 'rural', 'lat', 'lon', 'geo'
 
 // --- NGO register: education-purpose counts per county -------------------------
 // Baked so the page needs no upload. This is the KEYWORD match, and its precision is poor —
-// it flags 24.3% of every NGO in Romania (MATCHMAKING.md §5). Labelled as provisional in the UI
-// until the classification job (J1) replaces it.
+// it flags 27.1% of the registered NGOs that state a purpose and record a county (MATCHMAKING.md
+// §5). Labelled as provisional in the UI until the classification job (J1) replaces it.
+//
+// Two things this set is NOT, both of which it gets mistaken for:
+//   * It is not the candidate pipeline's set. `model/ngos.js` uses a WIDER regex (it adds
+//     `copii|tineri`) and excludes struck-off organisations first. Same register, same purpose
+//     rule, different answer: 40,684 there against 31,523 for this regex on the same rows.
+//   * It is not a count of NGOs a director could actually partner with. Struck-off, in-liquidation
+//     and dissolved organisations are all still in here. Never reuse it as a supply figure.
 let ngo = null;
 const ONG = 'data/ong_2026.xlsx';
 if (fs.existsSync(ONG)) {
@@ -131,22 +138,36 @@ if (fs.existsSync(ONG)) {
   const scopeCols = H.map((h, i) => /^Scopul initial$|^Modificari ale scopului/.test(h) ? i : -1).filter(i => i >= 0);
   const re = /educa|scoal|școal|elev|abandon|invatam|învățam|meditat|after school|tutor/i;
   const strip = v => String(v).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const per = {}; let n = 0, total = 0, noPurpose = 0;
+  const per = {}; let n = 0, total = 0, noPurpose = 0, noCounty = 0, pool = 0;
   for (const r of rs.slice(1)) {
     if (!String(r[iN]).trim()) continue;
     total++;
     // No stated purpose anywhere (initial scope + all five modification columns) = not a candidate.
-    // Same rule as model/ngos.js, so the county counts and the candidate list agree.
+    // This purpose rule is the same one `model/ngos.js` applies; the two do NOT otherwise agree,
+    // and the header comment says where they part company. Do not read agreement into this line.
     const purpose = scopeCols.map(i => String(r[i]).trim()).filter(Boolean).join(' ');
     if (!/\p{L}/u.test(purpose)) { noPurpose++; continue; }
+    // The county gate has to sit on BOTH sides of the ratio. `n` is the sum of the per-county
+    // buckets, so an organisation with a blank `Judet` can never enter it — and while this gate
+    // stood after the keyword test, those 584 matches were dropped from the numerator while their
+    // 2,246-strong parent set stayed in the denominator. That reported 30,939/116,342 = 26.6% for
+    // a rate that is 31,523/116,342 = 27.1% counted either way round. Eighteenth time: correct
+    // arithmetic, wrong set. Gate first, then count, so the headline equals what the map shows.
+    const k = strip(String(r[iJ]).trim()).toUpperCase();
+    if (!k) { noCounty++; continue; }
+    pool++;
     const txt = strip(String(r[iN]) + ' ' + purpose);
     if (!re.test(txt)) continue;
-    const k = strip(String(r[iJ]).trim()).toUpperCase();
-    if (!k) continue;
     per[k] = (per[k] || 0) + 1; n++;
   }
-  ngo = { per, n, total, noPurpose, withPurpose: total - noPurpose };
-  console.log(`NGO register: ${n.toLocaleString('en')} education-keyword matches of ${(total - noPurpose).toLocaleString('en')} with a stated purpose (${noPurpose.toLocaleString('en')} of ${total.toLocaleString('en')} excluded: no purpose text)`);
+  // `pool` is the denominator the rate is quoted against, because it is the set `n` was drawn
+  // from. `withPurpose` and `noCounty` stay so the page can disclose what `pool` leaves out.
+  ngo = { per, n, total, noPurpose, noCounty, pool, withPurpose: total - noPurpose };
+  const sum = Object.values(per).reduce((a, b) => a + b, 0);
+  if (sum !== n) throw new Error(`per-county buckets sum to ${sum} but n is ${n} — the headline no longer equals what the map shows`);
+  if (pool + noCounty + noPurpose !== total) throw new Error(`${pool} + ${noCounty} + ${noPurpose} != ${total} — the exclusions do not partition the register`);
+  console.log(`NGO register: ${n.toLocaleString('en')} education-keyword matches of ${pool.toLocaleString('en')} that state a purpose and record a county = ${(100 * n / pool).toFixed(1)}%`);
+  console.log(`  excluded first: ${noPurpose.toLocaleString('en')} no purpose text · ${noCounty.toLocaleString('en')} no county · total register ${total.toLocaleString('en')}`);
 }
 
 // --- candidate NGOs per county (model/ngos.js). Kept as a county-bucketed lookup, not 31,716

@@ -28,7 +28,7 @@ with the only authority that matters (the ISJ).
 | Deprivation per UAT | Budget line 04.02.01 per capita | Already built. Arithmetic on a published file |
 | Constraint archetype | Thresholds on the two above | Derivable. No model needed — see §4 |
 | Candidate filtering + ranking | Weighted score, fixed formula | **Must stay deterministic.** An ISJ will ask "why this school and not that one". A number you can recompute on paper is an answer; an LLM ranking is not |
-| NGO purpose → capability profile | **LLM**, batch, cached | 116,342 free-text Romanian purpose statements (of 125,840 registered; 9,498 state no purpose anywhere and are excluded before the model sees them). Genuinely a language problem |
+| NGO purpose → capability profile | **LLM**, batch, cached | 116,342 free-text Romanian purpose statements (of 125,840 registered; 9,498 state no purpose anywhere and are excluded before the model sees them). This is the whole purpose-stating pool, dead organisations included — the page's county-bucketed *count* is drawn from the 114,096 of them that also record a county. Genuinely a language problem |
 | NGO service geography | **LLM**, batch, cached | Registered address ≠ where they work |
 | Match explanation | **LLM**, on demand | Turning six numbers into a sentence a human will act on |
 | Outreach email draft | **LLM**, on demand | Romanian, per school, naming real figures |
@@ -156,24 +156,31 @@ Target schema, one record per organisation, built once and cached:
 
 - register: **125,840 organisations**, of which **9,498 state no purpose anywhere** —
   `Scopul initial` plus all five `Modificari ale scopului` columns empty, punctuation-only counting
-  as blank (`/\p{L}/u`, `model/ngos.js`:127). They are excluded before the keyword test, so
-  **the classification pool is 116,342**, not 125,840.
-- keyword matches: **30,939 of 116,342 (26.6%)** — the figure the page itself shows
+  as blank (`/\p{L}/u`, `model/ngos.js`:127). A further **2,246 record no county**, and the page's
+  count is bucketed per county, so those cannot enter the numerator either. **The pool the page's
+  figure is drawn from is 114,096.**
+- keyword matches: **30,939 of 114,096 (27.1%)** — the figure the page itself shows. Quoted against
+  116,342 it reads 26.6%, which is a county-gated numerator over an ungated denominator: wrong, and
+  wrong by half a point, which is exactly the size nobody sanity-checks. Counted consistently the
+  rate is 27.1% either way — 31,523/116,342 ignoring county on both sides, 30,939/114,096 requiring
+  it on both. `model/build_app_data.js` now asserts the buckets sum to `n` and that
+  `pool + noCounty + noPurpose == total`, so this cannot drift back silently.
 
 > The exclusion rule is implemented, not proposed: `model/ngos.js`, `model/build_app_data.js` and
 > `regFrom()`. The earlier figure in this document was 9,459 with a pool of 125,840; the difference
 > is the punctuation-only rows plus whitespace handling, and **9,498 / 116,342 / 30,939 are what the
-> shipped page prints** (verified in the `app/index.html` data block: `"n":30939, "total":125840,
-> "noPurpose":9498, "withPurpose":116342`).
+> shipped page prints** (verified in the `app/index.html` data block: `"n":30939,"total":125840,"noPurpose":9498,"noCounty":2246,"pool":114096,"withPurpose":116342`).
 
 > **Which regex, though (added 12 Sept).** There are two and they give different answers, so a
 > denominator that fits one is wrong for the other. `build_app_data.js`'s `re` — the one above, and
-> what the page prints — gives 30,939 / 116,342 = 26.6%, counted **without** the dead-org exclusion.
+> what the page prints — gives 30,939 / 114,096 = 27.1%, counted **without** the dead-org exclusion
+> and **with** the county gate on both sides of the ratio.
 > `model/ngos.js`'s `KW`, which adds `copii|tineri` and is what actually **selects the candidates**,
 > gives **40,684 = 37.4% of the 108,891 that are alive AND state a purpose** (125,840 − 8,213 dead −
 > 9,498 blank **+ 762 that are both**). Over a third of the living sector. Recount with
-> `node model/ngos.js`; do not copy a literal out of this paragraph. Retired: 24.7%, and 35.0%
-> (which divided the living-only 40,684 by the living-and-dead 116,342).
+> `node model/ngos.js`; do not copy a literal out of this paragraph. Retired: 24.7%; 35.0% (which
+> divided the living-only 40,684 by the living-and-dead 116,342); and 26.6% (which divided the
+> county-gated 30,939 by the ungated 116,342).
 >
 > **The problem is also narrower than this section implies for everything we display.**
 > `model/ngos.js` sorts sports clubs last and cuts at 30 per county, so **not one survives into the

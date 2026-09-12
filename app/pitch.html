@@ -398,10 +398,11 @@ a:focus-visible{outline:2px solid var(--need);outline-offset:3px}
 </section>
 
 <section>
-  <h2 class="reveal">Un filtru de cuvinte îi trimite un club de fotbal.</h2>
+  <h2 class="reveal">Am scos cluburile de fotbal. Ce a rămas e partea grea.</h2>
   <p class="reveal" data-d="1">Registrul Național ONG are 125.840 de organizații. În Dâmbovița —
-  județul școlii din Cojasca — <strong>732</strong> se potrivesc pe cuvinte-cheie de educație, din
-  care <strong>693 sunt active</strong> (39 radiate sau în lichidare, excluse). Problema e că
+  județul școlii din Cojasca — <strong>729</strong> dintre cele care își declară un scop se
+  potrivesc pe cuvinte-cheie de educație, din care <strong>690 sunt active</strong> (39 radiate sau
+  în lichidare, excluse). Problema e că
   aproape orice statut din România conține sintagma <em>educarea tinerilor</em>.</p>
 
   <div class="vs">
@@ -414,17 +415,46 @@ a:focus-visible{outline:2px solid var(--need);outline-offset:3px}
     </div>
     <div class="vs-card vs-good reveal" data-d="3">
       <p class="vs-head"><i></i>După regula deterministă</p>
-      <p class="org">ASOCIATIA DE PARINTI IN SPRIJINUL ELEVILOR DIN BEZDEAD</p>
-      <p class="org-note">Aceleași date, același județ, un singur comparator schimbat. Poate fi
-      rulat din nou în fața dumneavoastră — varianta corectată e cea din aplicație.</p>
+      <p class="org">Niciun club sportiv nu mai supraviețuiește.</p>
+      <p class="org-note">Zero rezultate cu „sportiv” sau „fotbal” în nume, în toată lista afișată.
+      Aceleași date, același județ, un singur comparator schimbat. Se poate rula din nou în fața
+      dumneavoastră.</p>
     </div>
   </div>
 
-  <p class="reveal" style="margin-top:26px"><strong>Dar regula funcționează doar fiindcă cluburile
-  sportive își spun „sportiv” în nume.</strong> O organizație cu un nume neutru și un statut din
-  șablon trece în continuare de filtru. Acel rest este exact treaba clasificării AI — singura parte
-  din produs unde folosim un model, și motivul pentru care o evaluăm cu cifre, nu cu o
-  demonstrație.</p>
+  <p class="reveal" style="margin-top:26px"><strong>Și exact de aici încolo regula nu mai are
+  putere de discriminare.</strong> Ce trece mai departe sunt organizații care <em>citesc</em> ca
+  educație — au cuvântul în nume, îl au și în statut — dar nu pot rula un program în școala
+  altcuiva:</p>
+
+  <div class="vs">
+    <div class="vs-card vs-bad reveal" data-d="2">
+      <p class="vs-head"><i></i>Casă de ajutor reciproc</p>
+      <p class="org">ASOCIAŢIA CASA DE AJUTOR RECIPROC A SINDICATULUI LIBER ÎNVĂŢĂMÂNT DÂMBOVIŢA</p>
+      <p class="org-note">Târgoviște, Dâmbovița. Dă împrumuturi propriilor membri — profesori. Nu
+      are niciodată un program pentru copiii unei școli. În lista afișată sunt zeci ca ea.</p>
+    </div>
+    <div class="vs-card vs-bad reveal" data-d="3">
+      <p class="vs-head"><i></i>Asociație de părinți</p>
+      <p class="org">ASOCIATIA DE PARINTI IN SPRIJINUL ELEVILOR DIN BEZDEAD</p>
+      <p class="org-note">Bezdead, Dâmbovița. Reală, activă, utilă — dar <em>pentru școala ei</em>.
+      Nu e un furnizor pe care un ofițer CSR îl poate trimite într-o școală din altă comună. Sute
+      ca ea în listă.</p>
+    </div>
+  </div>
+
+  <p class="reveal" style="margin-top:26px"><strong>1.123 din cele 1.260 de organizații afișate
+  (89,1%) au un cuvânt de educație chiar în nume</strong> — filtrul are 89% rată de potrivire pe
+  propriul lui rezultat, deci nu mai separă nimic, iar tot ce nu poate fi contactat se ascunde
+  înăuntru. Case de ajutor reciproc 68, asociații de părinți 201, sindicate 13, asociații de
+  absolvenți 24 &mdash; <strong>reunite 282 din 1.260, adică 22,4%</strong>. Cele patru categorii
+  <em>se suprapun</em>, deci nu se adună: suma lor dă 306, fiindcă 24 de organizații intră în două
+  dintre ele (un C.A.R. sindical e și casă de ajutor reciproc, și sindicat). 282 e reuniunea,
+  numărată o singură dată per organizație. Asta e problema de precizie, în numere. E singura parte din produs unde
+  folosim un model — și, ca să fim exacți în fața dumneavoastră: <strong>harnașul de evaluare și
+  eșantionul stratificat de 120 de organizații există, etichetele nu. Nu avem încă o cifră
+  măsurată de precizie.</strong> Ce se vede în aplicație e clasificarea rulată, cu citatul din
+  registru pe care se sprijină fiecare verdict.</p>
   <p class="src reveal">Numele sunt reproduse exact ca în registru, cu punctuația lor. Niciuna
   dintre organizații nu are statut de utilitate publică — nu sunt recomandări.</p>
 

@@ -252,7 +252,7 @@ is the copy of record for the narrative and the pitch.
 
 | Job | Verdict | Why |
 |---|---|---|
-| **J1** purpose → capability profile | **Keep — this is the AI product** | 116,342 Romanian legal purpose statements that state a purpose at all (of 125,840 registered; 9,498 state none and are excluded before the keyword test), 30,939 keyword hits with bad precision, boilerplate where *educație* appears in passing. No deterministic method touches it, volume rules out humans, $8 and cached |
+| **J1** purpose → capability profile | **Keep — this is the AI product** | 116,342 Romanian legal purpose statements that state a purpose at all (of 125,840 registered; 9,498 state none and are excluded before the keyword test), 30,939 keyword hits — 27.1% of the 114,096 that also record a county — with bad precision, boilerplate where *educație* appears in passing. No deterministic method touches it, volume rules out humans, $8 and cached |
 | **J2** service geography | **Keep as specced** | Deterministic SIRUTA match first, LLM only where the text *states* an area, same call, no extra cost. "Never widen a service area by inference" is the best AI decision in the spec |
 | **J3** match explanation | **Cut, or demote to a button** | Six numbers into a Romanian sentence is a template's job — see below |
 | **J4** outreach draft | **Keep — strongest after J1** | Romanian prose per recipient with correct register and real figures. A template reads as mail merge and an NGO notices. The human presses send, so the failure mode is bounded. **Count recipients, not schools:** Călărași rural is 72 schools · 68 with an email · **54 distinct inboxes** · 64 with both email and coordinates → **50 inboxes** for the full pilot flow. J4 groups by inbox and names every unit in one message |
@@ -486,18 +486,24 @@ Both gaps in that pitch are now closed — 12 Sept:
   on paper is an answer. AI does the four jobs that are genuinely language problems — classifying
   116,342 NGO purpose statements, extracting service geography, explaining a match, drafting the
   email. ~$8 in batch, cached.
-  **The NGO count, as settled for the deck — revised 12 Sept:** "**30,939** of the **116,342**
-  registered NGOs that state a purpose at all flag as education-related — a keyword match, which
-  over-counts." Always our figure, always with the caveat, and never alongside a hartaedu figure.
+  **The NGO count, as settled for the deck — revised twice on 12 Sept:** "**30,939** of the
+  **114,096** registered NGOs that state a purpose and record a county flag as education-related — a
+  keyword match, which over-counts." Always our figure, always with the caveat, and never alongside
+  a hartaedu figure.
   State the over-count unprompted: it is the reason J1 classification exists, so the caveat sets up
   the AI half of the pitch instead of undercutting the data half.
 
-  **Mind the denominator.** The register holds 125,840, but 9,498 of those state no purpose in any
-  of the six purpose columns and are now excluded before the keyword test (`model/ngos.js`:127,
-  punctuation-only counting as blank). So 30,939 is **26.6% of the 116,342 that state a purpose**
-  and **24.6% of all 125,840 registered** — both true, different sentences. Say which one you mean.
-  This supersedes the earlier deck line "31,080 of 125,840 … 24.7%", and 30,939 / 116,342 / 9,498
-  are what the shipped `app/index.html` data block prints today.
+  **Mind the denominator — it moved twice.** The register holds 125,840. 9,498 state no purpose in
+  any of the six purpose columns (`model/ngos.js`:127, punctuation-only counting as blank), and
+  2,246 more record no county. Both are excluded before the keyword test, and the county exclusion
+  is not optional: the count is bucketed per county, so an organisation without a `Judet` can never
+  enter the numerator, and a denominator that keeps it is measuring a different set. So 30,939 is
+  **27.1% of the 114,096 that state a purpose and record a county** — the rate counted consistently,
+  and the same 27.1% you get ignoring county on both sides (31,523 / 116,342).
+  This supersedes "31,080 of 125,840 … 24.7%" and then "30,939 of 116,342 … 26.6%". What the shipped
+  `app/index.html` data block prints today is
+  `"n":30939,"total":125840,"noPurpose":9498,"noCounty":2246,"pool":114096,"withPurpose":116342`
+  — grep that literal rather than trusting this paragraph.
 
 Ask The Social Incubator and ATSI the questions the data cannot answer: what makes a
 school say yes to a programme, who actually signs off in a rural school, and what killed

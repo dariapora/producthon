@@ -127,8 +127,36 @@ now carries an evidence tier.**
 **Claims discipline on NGO counts — DECIDED (Andrei, 12 Sept).** The deck uses **our** figure,
 always with the caveat attached:
 
-> **31,080 of 125,840 registered NGOs** flag as education-related — a **keyword match, which
-> over-counts**. Precision is what J1 classification is for.
+> **30,939 of the 114,096 registered NGOs that state a purpose and record a county** flag as
+> education-related — a **keyword match, which over-counts**. Precision is what J1 classification
+> is for.
+
+That is **27.1%**, and it is the only percentage to quote for this numerator. Two figures that read
+like alternatives are not alternatives:
+
+- **26.6% of 116,342** — what this file said until late on 12 Sept, and wrong. `n` is the sum of
+  the per-county buckets, so an organisation with a blank `Judet` can never enter the numerator;
+  the denominator did not apply that gate. 584 keyword matches were dropped from the numerator
+  while their 2,246-strong parent set stayed in the denominator, understating the rate by half a
+  point. **Instance eighteen: the arithmetic was right and the set was wrong.** Counted
+  consistently it is 27.1% either way round — 31,523/116,342 ignoring county on both sides, or
+  30,939/114,096 requiring it on both.
+- **37.4% of 108,891** — true, and about a different set. That is `model/ngos.js`, whose regex is
+  wider (it adds `copii|tineri`) and which drops struck-off organisations first. It selects the
+  candidates; it does not produce the page's headline.
+
+The 9,498 with no purpose text are excluded before the keyword test either way: there is nothing
+for J1 to classify and nothing to show a director as a reason, so they could only ever have matched
+on their name. And this set still contains struck-off, in-liquidation and dissolved organisations,
+so it is a statement about how loosely the keyword matches — **never a count of NGOs a school could
+actually partner with.**
+
+This supersedes two earlier lines: "31,080 of 125,840 / 24.7%", which was **correctly computed
+against the pool as it stood** and went stale when the purpose-text exclusion landed — the
+denominator was never wrong, the set moved underneath it — and "30,939 of 116,342 / 26.6%", which
+was not a stale set but a mismatched one. Verify against
+the shipped bytes, not against this paragraph: `app/index.html` prints
+`"n":30939,"total":125840,"noPurpose":9498,"noCounty":2246,"pool":114096,"withPurpose":116342`.
 
 Never quote a hartaedu NGO figure alongside it; they count different things. And stating the
 over-count unprompted is an asset, not a weakness — it is the reason J1 exists, so the caveat sets
@@ -420,8 +448,13 @@ Verified against `out/schools_need_index.csv`, 12 Sept:
   judge opens. Say "71% netezit 2023–2026, 51% în 2026" — showing the smoothing openly is
   stronger than hiding it. Even at 51% it is far above the 39.7% Dâmbovița rural prior, and the 38
   children a year is the number that matters.
-- **It has no coordinates** — one of 458 ungeocoded schools. Fine as an illustration; never tie it
-  to the map, a distance, or the matcher, or it silently falls back to the county seat.
+- **It had no coordinates, and now carries commune-level ones** — it was one of 458 ungeocoded
+  schools; `59bdb98` placed 373 of those at the median position of the other schools in their
+  commune, Cojasca among them (44.712263, 25.878385, `geo_source=commune`). **85 remain unplaceable
+  nationally, 16 of them rural and inside the 1,320.** So it *can* be drawn, and the payload flags
+  it `approx` — but the position is the commune's, not the school's, so a distance quoted off it
+  carries ~1.7 km of median error. Say "poziție la nivel de comună" if the map comes up; never
+  quote a precise distance from it.
 - **The two Cojasca units have swapped emails in the ministry file.** Școala Gimnazială Cojasca
   (locality COJASCA) carries `fantaneles@…`; Liceul Tehnologic Cojasca (locality
   FÂNTÂNELE) carries `cojasca@…`. **Never render a real address in a J4 outreach demo on

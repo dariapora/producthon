@@ -142,8 +142,13 @@ Before writing anything that could reach a slide, know these. Full detail in `RE
   data". Reserve "AI" for the four language jobs in `MATCHMAKING.md` §6.
 - **The routing rule (286 poor+failing vs 104 failing in well-off communes) is a testable
   hypothesis, not a proven law** — the ROSE RCT found no moderation by local economic conditions.
-- **NGO count, if quoted:** "31,080 of 125,840 registered NGOs flag as education-related — a
-  keyword match, which over-counts." Always ours, always with the caveat.
+- **NGO count, if quoted (revised 12 Sept):** "30,939 of the 114,096 registered NGOs that state a
+  purpose and record a county flag as education-related — a keyword match, which over-counts."
+  Always ours, always with the caveat. **That is 27.1%, and it is the only percentage for this
+  numerator:** `n` is the sum of the per-county buckets, so quoting it against 116,342 (26.6%) or
+  125,840 (24.6%) divides a county-gated numerator by an ungated denominator. The set still includes
+  struck-off organisations, so never reuse it as a count of available partners. Supersedes both
+  "31,080 of 125,840 / 24.7%" and "30,939 of 116,342 / 26.6%".
 - **The persona quote in `source/CivicPTeam1.md` was written by the team, not said by anyone.**
   It must never appear as voice-of-customer evidence.
 

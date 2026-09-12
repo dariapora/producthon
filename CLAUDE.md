@@ -18,6 +18,7 @@ pipeline. Entry for a hackathon (see **Event context** below).
 | Pitch, narrative, sources, risks | `SUMMARY.md` |
 | **Claims discipline, stats, prior art, evals plan** | **`RESEARCH.md` — read §1 before touching the deck** |
 | Animation, transitions, the scroll pitch | `MOTION.md` (tokens + what each file is allowed to do) |
+| Colours, type, components, Romanian UI copy | `BRAND.md` (proposed brand/design system — not yet applied) |
 | Just orienting | nothing else — this file is enough |
 
 **Any session that changes something: update `PROGRESS.md` before finishing** (newest log entry
@@ -125,7 +126,9 @@ ministry-data model; #4 is a Sunday-morning task, not a Saturday one.
   never a quarter of anything**, so the ×4 reflex invents a 5,280-row population that does not exist.
   Inside it: zero curated NGO in county **170 = 12.9%** (all nine) or **247 = 18.7%** (excluding the
   one rated `rel:"low"`, which is what the interface surfaces) · fewer than 3 in county **1,096 =
-  83.0%** · no coordinates **71** · `pnras_eligible` **248 = 19%** · `pnras_grant` 147 = 11% ·
+  83.0%** · no position at all **16** (it was 71 before `59bdb98` filled 55 of them from their
+  commune; **any doc still saying 71 predates that commit**) · `pnras_eligible` **248 = 19%** ·
+  `pnras_grant` 147 = 11% ·
   masă sănătoasă 380 = 29%. Quoting "83% / 19.5%" together was two NGO sets in one sentence.
   **Trap for any check you write here:** `pnras_eligible == 1` and `pnras_priority` non-blank are
   co-extensive on all 6,335 rows, but `pnras_priority` is categorical (blank 5,181 · MEDIUM 1,033 ·
@@ -164,17 +167,20 @@ ministry-data model; #4 is a Sunday-morning task, not a Saturday one.
   (the Ghigiu quote, "1 in 5 never reach grade 9", the novelty claim, the supply/demand labels).
   Fix them there before they reach a slide.
 - **NGO counts (decided 12 Sept, revised same day):** quote **our** figure, always with the caveat
-  — "**30,939** of the **116,342** registered NGOs **that state a purpose at all** flag as
-  education-related, a **keyword match which over-counts**".
+  — "**30,939** of the **114,096** registered NGOs **that state a purpose and record a county**
+  flag as education-related, a **keyword match which over-counts**".
   Never a hartaedu figure alongside it; they count different things. State the over-count
   unprompted: it is the reason J1 classification exists, so the caveat sets up the AI half of the
   pitch instead of undercutting the data half.
-  **Name the denominator.** The register holds 125,840, but **9,498** state no purpose in any of the
-  six purpose columns (`Scopul initial` + `Modificari 1..5`, punctuation-only counting as blank) and
-  are excluded before the keyword test — `model/ngos.js`:127. So 30,939 is **26.6% of the 116,342
-  that state a purpose** and **24.6% of all 125,840 registered**: both true, different sentences,
-  say which. (Verify against the baked payload, not against this paragraph:
-  `"n":30939,"total":125840,"noPurpose":9498,"withPurpose":116342`.)
+  **Name the denominator.** The register holds 125,840. **9,498** state no purpose in any of the six
+  purpose columns (`Scopul initial` + `Modificari 1..5`, punctuation-only counting as blank) and a
+  further **2,246** record no county; both are excluded before the keyword test. So 30,939 is
+  **27.1% of the 114,096 that state a purpose and record a county** — and that gate has to apply on
+  both sides, because `n` is the sum of the per-county buckets. Quoting it against 116,342 (26.6%)
+  or 125,840 (24.6%) puts a county-gated numerator over an ungated denominator; both are wrong, and
+  27.1% is the rate counted consistently either way round. (Verify against the baked payload, not
+  against this paragraph:
+  `"n":30939,"total":125840,"noPurpose":9498,"noCounty":2246,"pool":114096,"withPurpose":116342`.)
   Supersedes "31,080 of 125,840 / 24.7%", which was **correctly computed against the pool as it
   stood** and went stale when the exclusion landed — the denominator was never wrong, the set moved.
   Proofreading cannot catch that class; only re-checking against the shipped bytes can.
@@ -185,11 +191,17 @@ ministry-data model; #4 is a Sunday-morning task, not a Saturday one.
   an amount nobody sanity-checks mentally.
   - `model/ngos.js` **KW** (adds `copii|tineri`): **40,684 = 37.4% of 108,891** — counted *after* the
     dead-org exclusion, so 108,891 is its only matching denominator.
-  - `model/build_app_data.js` **`re`** (narrower): 31,523 = 27.1% of 116,342 — counted *without* the
-    dead-org exclusion, so 116,342 is right for this one and wrong for KW. **Same denominator, two
-    regexes, one of them right.**
-  - App status line / baked payload: **30,939 of 116,342 = 26.6%**, and 24.6% of 125,840.
-  - **Retired, do not reuse:** 31,080 / 125,840 / 24.7%, and 35.0%.
+  - `model/build_app_data.js` **`re`** (narrower): **31,523 = 27.1% of 116,342** — counted *without*
+    the dead-org exclusion, so 116,342 is right for this one and wrong for KW. **Same denominator,
+    two regexes, one of them right.**
+  - App status line / baked payload: **30,939 of 114,096 = 27.1%**. The numerator is county-gated
+    (`n` is the sum of the per-county buckets) so the denominator is too — 2,246 of the
+    purpose-stating organisations record no county. **The two rows above now report the same rate,
+    27.1%, which is the check that they describe one regex and not two.**
+  - **Retired, do not reuse:** 31,080 / 125,840 / 24.7% · 35.0% · and **26.6%**, which this file
+    itself carried as a valid third figure while also recording 27.1% one line above. Two rates for
+    one regex was the tell, and it sat here unread: **31,523/116,342 and 30,939/116,342 cannot both
+    be right, and nothing in the file asked why the numerators differed by 584.**
 - **Candidate-list denominators (`out/ngo_candidates.csv`):** **1,260 data rows** as displayed (30 per
   county) · **1,252** distinct `(reg, normalised name)`, which is what `classify_ngos.js` bills for ·
   1,251 distinct `reg` — **never quote the last as an organisation count**, 9 registration numbers
