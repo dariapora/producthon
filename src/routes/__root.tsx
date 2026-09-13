@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -122,14 +123,20 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const isHome = useRouterState({ select: (state) => state.location.pathname === "/" });
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-paper font-body text-ink antialiased">
-        <TopNav />
+      <div className="flex min-h-screen flex-col bg-paper font-body text-ink antialiased">
+        {isHome ? null : <TopNav />}
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-   
+        {isHome ? (
+          <div className="flex flex-1 flex-col">
+            <Outlet />
+          </div>
+        ) : (
+          <Outlet />
+        )}
       </div>
     </QueryClientProvider>
   );

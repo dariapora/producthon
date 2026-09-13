@@ -60,9 +60,10 @@ function displayName(name: string) {
 type Props = {
   counties: CountyStats[];
   nationalAverage: number;
+  onSelectCounty?: (countyName: string) => void;
 };
 
-export function RomaniaCountyMap({ counties, nationalAverage }: Props) {
+export function RomaniaCountyMap({ counties, nationalAverage, onSelectCounty }: Props) {
   const [selectedCounty, setSelectedCounty] = useState<RomaniaCountyShape | null>(null);
   const [hoveredCounty, setHoveredCounty] = useState<RomaniaCountyShape | null>(null);
   const zoom = useSvgPanZoom({ width: 900, height: 900, centerX: 450, centerY: 310 });
@@ -71,6 +72,11 @@ export function RomaniaCountyMap({ counties, nationalAverage }: Props) {
   const activeName = activeCounty ? displayName(activeCounty.name) : null;
   const activeStats = activeName ? statsByCounty.get(activeName) : undefined;
   const activePerformance = getCountyPerformanceColor(activeStats?.enAverage);
+
+  function selectCounty(shape: RomaniaCountyShape) {
+    setSelectedCounty(shape);
+    onSelectCounty?.(displayName(shape.name));
+  }
 
   return (
     <div className="mx-auto mt-5 grid w-full max-w-[1040px] gap-5 lg:grid-cols-[minmax(0,680px)_minmax(240px,1fr)] lg:items-start">
@@ -114,7 +120,7 @@ export function RomaniaCountyMap({ counties, nationalAverage }: Props) {
                   tabIndex={0}
                   aria-label={`${countyName}: ${stats ? `media ${formatGrade(stats.enAverage)}` : "date indisponibile"}`}
                   aria-pressed={isSelected}
-                  onClick={() => setSelectedCounty(shape)}
+                  onClick={() => selectCounty(shape)}
                   onMouseEnter={() => setHoveredCounty(shape)}
                   onMouseLeave={() => setHoveredCounty(null)}
                   onFocus={() => setHoveredCounty(shape)}
@@ -122,7 +128,7 @@ export function RomaniaCountyMap({ counties, nationalAverage }: Props) {
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      setSelectedCounty(shape);
+                      selectCounty(shape);
                     }
                   }}
                   className="cursor-pointer outline-none"
@@ -177,13 +183,15 @@ export function RomaniaCountyMap({ counties, nationalAverage }: Props) {
             ) : (
               <p className="mt-4 text-base text-sub">Date indisponibile în setul demonstrativ.</p>
             )}
-            <Link
-              to="/county/$county"
-              params={{ county: slugify(activeName) }}
-              className="mt-6 inline-flex min-h-11 items-center border-t border-line pt-5 font-semibold text-brand underline underline-offset-4"
-            >
-              Vezi situația județului
-            </Link>
+            {onSelectCounty ? null : (
+              <Link
+                to="/county/$county"
+                params={{ county: slugify(activeName) }}
+                className="mt-6 inline-flex min-h-11 items-center border-t border-line pt-5 font-semibold text-brand underline underline-offset-4"
+              >
+                Vezi situația județului
+              </Link>
+            )}
           </div>
         ) : (
           <div>

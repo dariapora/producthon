@@ -2,9 +2,10 @@ import { Link } from "@tanstack/react-router";
 
 type BrandLogoProps = {
   className?: string;
+  variant?: "dark" | "light";
 };
 
-export function BrandLogo({ className = "" }: BrandLogoProps) {
+export function BrandLogo({ className = "", variant = "dark" }: BrandLogoProps) {
   return (
     <Link
       to="/"
@@ -21,7 +22,7 @@ export function BrandLogo({ className = "" }: BrandLogoProps) {
       <span aria-hidden="true" className="text-[#DC2626]">
         U
       </span>
-      <span aria-hidden="true" className="text-ink">
+      <span aria-hidden="true" className={variant === "light" ? "text-white" : "text-ink"}>
         connect
       </span>
     </Link>

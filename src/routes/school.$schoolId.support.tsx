@@ -2,10 +2,14 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
 import { Breadcrumb, NAV_LABELS } from "@/components/layout/Breadcrumb";
+import { NgoContactDialog } from "@/components/NgoContactDialog";
 import { NgoRecommendationMap } from "@/components/NgoRecommendationMap";
 import { RecommendationScoreBadge } from "@/components/RecommendationScoreBadge";
-import { getSchoolById } from "@/lib/dataset";
+import { getMockNgoEmail, getNgoContact } from "@/data/enrichment/ngoContactEnrichment";
+import { getSchoolById, getSchoolComparison } from "@/lib/dataset";
 import { formatKm } from "@/lib/distance";
+import type { CountyStats, NationalStats, School } from "@/lib/model";
+import { buildSchoolEmailDraft } from "@/lib/ngoEmail";
 import {
   INTERVENTION_TYPES,
   getSchoolRecommendations,
@@ -20,7 +24,9 @@ export const Route = createFileRoute("/school/$schoolId/support")({
     const school = getSchoolById(params.schoolId);
     if (!school) throw notFound();
     const result = getSchoolRecommendations(school);
-    return { school, result };
+    const comparison = getSchoolComparison(params.schoolId);
+    if (!comparison) throw notFound();
+    return { school, result, comparison };
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
@@ -48,7 +54,7 @@ export const Route = createFileRoute("/school/$schoolId/support")({
 });
 
 function SchoolSupport() {
-  const { school, result } = Route.useLoaderData();
+  const { school, result, comparison } = Route.useLoaderData();
 
   const [supportType, setSupportType] = useState<string>("Toate");
   const [sort, setSort] = useState<SortMode>("recomandate");
@@ -138,13 +144,21 @@ function SchoolSupport() {
             <NgoRecommendationMap
               recommendations={filtered}
               school={school}
+              county={comparison.county}
+              national={comparison.national}
               showNational={result.expandedBeyondCounty}
             />
           </div>
         ) : (
           <div className="mt-6 border-y-2 border-line">
             {visible.map((item) => (
-              <RecommendationRow key={item.ngo.id} item={item} schoolId={school.id} />
+              <RecommendationRow
+                key={item.ngo.id}
+                item={item}
+                school={school}
+                county={comparison.county}
+                national={comparison.national}
+              />
             ))}
           </div>
         )}
@@ -223,8 +237,25 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function RecommendationRow({ item, schoolId }: { item: NgoRecommendation; schoolId: string }) {
+function RecommendationRow({
+  item,
+  school,
+  county,
+  national,
+}: {
+  item: NgoRecommendation;
+  school: School;
+  county: CountyStats | null;
+  national: NationalStats;
+}) {
   const { ngo } = item;
+  const contact = getNgoContact(ngo.id);
+  const emailDraft = buildSchoolEmailDraft({
+    email: contact?.email ?? getMockNgoEmail(ngo.id),
+    school,
+    county,
+    national,
+  });
   return (
     <article className="border-b border-line py-6 last:border-b-0 sm:px-2">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -260,14 +291,17 @@ function RecommendationRow({ item, schoolId }: { item: NgoRecommendation; school
         </p>
       )}
 
-      <Link
-        to="/ngo/$ngoId"
-        params={{ ngoId: ngo.id }}
-        search={{ schoolId }}
-        className="mt-4 inline-flex min-h-12 items-center font-semibold text-brand underline underline-offset-4"
-      >
-        Vezi detalii →
-      </Link>
+      <div className="mt-4 flex flex-wrap items-center gap-4">
+        <Link
+          to="/ngo/$ngoId"
+          params={{ ngoId: ngo.id }}
+          search={{ schoolId: school.id }}
+          className="inline-flex min-h-12 items-center font-semibold text-brand underline underline-offset-4"
+        >
+          Vezi detalii →
+        </Link>
+        <NgoContactDialog contact={contact} emailDraft={emailDraft} variant="button" />
+      </div>
     </article>
   );
 }

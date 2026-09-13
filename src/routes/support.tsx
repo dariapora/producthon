@@ -2,12 +2,14 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Building2, MapPin, Search, Send } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { CountySituationPanel } from "@/components/CountySituationPanel";
 import { PerformanceBadge } from "@/components/RiskBadge";
+import { RomaniaCountyMap } from "@/components/RomaniaCountyMap";
 import { SupportSchoolMap } from "@/components/SupportSchoolMap";
 import { Breadcrumb, NAV_LABELS } from "@/components/layout/Breadcrumb";
 import { EmptyState } from "@/components/ui/Panel";
 import { normalizeKey } from "@/data/enrichment/localityCoordinates";
-import { getNgoById } from "@/lib/dataset";
+import { CURRENT_YEAR, getAllCountyStats, getNationalStats, getNgoById } from "@/lib/dataset";
 import { getHartaEduUrgencyTone } from "@/lib/hartaedu";
 import type { Ngo } from "@/lib/model";
 import { formatCount, formatGrade } from "@/lib/risk";
@@ -46,8 +48,11 @@ function SupportOverview() {
   const ngo = selectedNgo?.county !== "Nedeterminat" ? selectedNgo : null;
   const [schoolQuery, setSchoolQuery] = useState("");
   const [schoolSearchOpen, setSchoolSearchOpen] = useState(false);
-  const [view, setView] = useState<"list" | "map">("map");
+  const [view, setView] = useState<"list" | "map" | "national">("map");
   const [visibleCount, setVisibleCount] = useState(24);
+  const [nationalSelectedCounty, setNationalSelectedCounty] = useState<string | null>(null);
+  const national = getNationalStats(CURRENT_YEAR);
+  const allCounties = useMemo(() => getAllCountyStats(CURRENT_YEAR), []);
 
   const scopedSchools = useMemo(
     () => (ngo ? getRankedSchoolsForNgo(ngo, scope) : []),
@@ -129,12 +134,14 @@ function SupportOverview() {
 
       {ngo ? (
         <>
-  
-
           <section id="scoli" className="mt-10 scroll-mt-24 border-sub pt-2">
             <div className="flex flex-wrap items-end justify-between gap-5">
               <div>
-                <h2 className="text-[28px] font-bold">Situația școlilor din {ngo.county}</h2>
+                <h2 className="text-[28px] font-bold">
+                  {view === "national"
+                    ? `Situația națională ${CURRENT_YEAR}`
+                    : `Situația școlilor din ${ngo.county}`}
+                </h2>
               </div>
               <div
                 className="flex gap-5 border-b border-line"
@@ -147,93 +154,127 @@ function SupportOverview() {
                 <ViewButton active={view === "list"} onClick={() => setView("list")}>
                   Listă
                 </ViewButton>
+                <ViewButton active={view === "national"} onClick={() => setView("national")}>
+                  Situația națională
+                </ViewButton>
               </div>
             </div>
 
-            <div className="mt-6 grid items-end gap-4 ">
-              <label className="min-w-[260px] flex-1">
-                <span className="mb-1.5 block text-sm font-semibold">Școală sau localitate</span>
-                <div className="relative">
-                  <input
-                    type="search"
-                    value={schoolQuery}
-                    onFocus={() => setSchoolSearchOpen(true)}
-                    onBlur={() => window.setTimeout(() => setSchoolSearchOpen(false), 150)}
-                    onChange={(event) => {
-                      setSchoolQuery(event.target.value);
-                      setVisibleCount(24);
-                      setSchoolSearchOpen(true);
-                    }}
-                    placeholder="Scrie un nume"
-                    className="min-h-12 w-full rounded-md border border-line bg-card px-4 py-3 outline-none focus:border-sub"
-                  />
-                  {schoolSearchOpen && suggestedSchools.length > 0 ? (
-                    <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-md border-2 border-sub bg-card shadow-lg">
-                      <ul aria-label="Sugestii școli">
-                        {suggestedSchools.map(({ school }) => (
-                          <li key={school.id} className="border-b border-line last:border-b-0">
-                            <button
-                              type="button"
-                              onMouseDown={(event) => event.preventDefault()}
-                              onClick={() => {
-                                setSchoolQuery(school.schoolName);
-                                setSchoolSearchOpen(false);
-                                setVisibleCount(24);
-                              }}
-                              className="w-full px-4 py-3 text-left hover:bg-paper"
-                            >
-                              <span className="block font-semibold">{school.schoolName}</span>
-                              <span className="block text-sm text-sub">
-                                {school.locality ?? school.county}, {school.county}
-                              </span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                </div>
-              </label>
-            </div>
-
-            <p className="mt-5 border-b-2 border-line pb-4 text-sm font-semibold text-sub">
-              {formatCount(filteredSchools.length)}{" "}
-              {filteredSchools.length === 1 ? "rezultat" : "rezultate"}
-            </p>
-
-            {filteredSchools.length === 0 ? (
+            {view === "national" ? (
               <div className="mt-6">
-                <EmptyState title="Nu am găsit școli pentru această căutare." />
-              </div>
-            ) : view === "map" ? (
-              <div className="mt-6">
-                <SupportSchoolMap
-                  key={`${ngo.id}-${scope}`}
-                  schools={filteredSchools}
-                  ngo={ngo}
-                  scope={scope}
+                <p className="text-sm text-sub">
+                  Selectează un județ pentru a-i vedea situația, fără să părăsești pagina.
+                </p>
+                <RomaniaCountyMap
+                  counties={allCounties}
+                  nationalAverage={national.enAverage}
+                  onSelectCounty={setNationalSelectedCounty}
                 />
-                {reportedSchools.length > 0 ? (
-                  <HartaEduHighlights schools={reportedSchools} ngo={ngo} scope={scope} />
+                {nationalSelectedCounty ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setNationalSelectedCounty(null)}
+                      className="mt-8 min-h-11 border-2 border-sub px-4 py-2 text-sm font-semibold text-brand hover:bg-card"
+                    >
+                      Vezi toate județele
+                    </button>
+                    <CountySituationPanel county={nationalSelectedCounty} variant="embedded" />
+                  </>
                 ) : null}
               </div>
             ) : (
-              <SchoolList
-                schools={filteredSchools.slice(0, visibleCount)}
-                ngo={ngo}
-                scope={scope}
-              />
-            )}
+              <>
+                <div className="mt-6 grid items-end gap-4 ">
+                  <label className="min-w-[260px] flex-1">
+                    <span className="mb-1.5 block text-sm font-semibold">
+                      Școală sau localitate
+                    </span>
+                    <div className="relative">
+                      <input
+                        type="search"
+                        value={schoolQuery}
+                        onFocus={() => setSchoolSearchOpen(true)}
+                        onBlur={() => window.setTimeout(() => setSchoolSearchOpen(false), 150)}
+                        onChange={(event) => {
+                          setSchoolQuery(event.target.value);
+                          setVisibleCount(24);
+                          setSchoolSearchOpen(true);
+                        }}
+                        placeholder="Scrie un nume"
+                        className="min-h-12 w-full rounded-md border border-line bg-card px-4 py-3 outline-none focus:border-sub"
+                      />
+                      {schoolSearchOpen && suggestedSchools.length > 0 ? (
+                        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-md border-2 border-sub bg-card shadow-lg">
+                          <ul aria-label="Sugestii școli">
+                            {suggestedSchools.map(({ school }) => (
+                              <li key={school.id} className="border-b border-line last:border-b-0">
+                                <button
+                                  type="button"
+                                  onMouseDown={(event) => event.preventDefault()}
+                                  onClick={() => {
+                                    setSchoolQuery(school.schoolName);
+                                    setSchoolSearchOpen(false);
+                                    setVisibleCount(24);
+                                  }}
+                                  className="w-full px-4 py-3 text-left hover:bg-paper"
+                                >
+                                  <span className="block font-semibold">
+                                    {school.schoolName}
+                                  </span>
+                                  <span className="block text-sm text-sub">
+                                    {school.locality ?? school.county}, {school.county}
+                                  </span>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+                    </div>
+                  </label>
+                </div>
 
-            {view === "list" && visibleCount < filteredSchools.length ? (
-              <button
-                type="button"
-                onClick={() => setVisibleCount((count) => count + 24)}
-                className="mt-6 min-h-12 border-2 border-sub px-5 py-2 font-semibold text-brand hover:bg-card"
-              >
-                Arată următoarele 24
-              </button>
-            ) : null}
+                <p className="mt-5 border-b-2 border-line pb-4 text-sm font-semibold text-sub">
+                  {formatCount(filteredSchools.length)}{" "}
+                  {filteredSchools.length === 1 ? "rezultat" : "rezultate"}
+                </p>
+
+                {filteredSchools.length === 0 ? (
+                  <div className="mt-6">
+                    <EmptyState title="Nu am găsit școli pentru această căutare." />
+                  </div>
+                ) : view === "map" ? (
+                  <div className="mt-6">
+                    <SupportSchoolMap
+                      key={`${ngo.id}-${scope}`}
+                      schools={filteredSchools}
+                      ngo={ngo}
+                      scope={scope}
+                    />
+                    {reportedSchools.length > 0 ? (
+                      <HartaEduHighlights schools={reportedSchools} ngo={ngo} scope={scope} />
+                    ) : null}
+                  </div>
+                ) : (
+                  <SchoolList
+                    schools={filteredSchools.slice(0, visibleCount)}
+                    ngo={ngo}
+                    scope={scope}
+                  />
+                )}
+
+                {view === "list" && visibleCount < filteredSchools.length ? (
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount((count) => count + 24)}
+                    className="mt-6 min-h-12 border-2 border-sub px-5 py-2 font-semibold text-brand hover:bg-card"
+                  >
+                    Arată următoarele 24
+                  </button>
+                ) : null}
+              </>
+            )}
           </section>
         </>
       ) : null}
