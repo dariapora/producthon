@@ -1,9 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { Send } from "lucide-react";
 
 import { Breadcrumb, NAV_LABELS } from "@/components/layout/Breadcrumb";
-import { NgoContactDialog } from "@/components/NgoContactDialog";
 import { EmptyState, Panel, PanelTitle } from "@/components/ui/Panel";
-import { getMockNgoEmail, getNgoContact } from "@/data/enrichment/ngoContactEnrichment";
+import { getMockNgoEmail } from "@/data/enrichment/ngoContactEnrichment";
 import { getNgoById, getSchoolComparison } from "@/lib/dataset";
 import { formatKm, haversineKm } from "@/lib/distance";
 import { getHartaEduAlerts } from "@/lib/hartaedu";
@@ -23,8 +23,7 @@ export const Route = createFileRoute("/ngo/$ngoId")({
     if (!ngo) throw notFound();
 
     const comparison = deps.schoolId ? getSchoolComparison(deps.schoolId) : null;
-    const contact = getNgoContact(ngo.id);
-    const email = contact?.email ?? getMockNgoEmail(ngo.id);
+    const email = getMockNgoEmail(ngo.id);
     const emailDraft = comparison
       ? buildSchoolEmailDraft({
           email,
@@ -33,7 +32,7 @@ export const Route = createFileRoute("/ngo/$ngoId")({
           national: comparison.national,
         })
       : buildGenericEmailDraft(email, ngo.name);
-    if (!comparison) return { ngo, context: null, contact, emailDraft };
+    if (!comparison) return { ngo, context: null, emailDraft };
 
     const school = comparison.school;
     const recommendation = getSchoolRecommendations(school).recommendations.find(
@@ -59,7 +58,6 @@ export const Route = createFileRoute("/ngo/$ngoId")({
         matchedNeeds: recommendation?.matchedNeeds ?? [],
         label: recommendation?.label ?? null,
       },
-      contact,
       emailDraft,
     };
   },
@@ -86,7 +84,7 @@ export const Route = createFileRoute("/ngo/$ngoId")({
 });
 
 function NgoDetail() {
-  const { ngo, context, contact, emailDraft } = Route.useLoaderData();
+  const { ngo, context, emailDraft } = Route.useLoaderData();
   const school = context?.school ?? null;
   const interventions = ngo.interventionType
     .split(/[;+]/)
@@ -178,7 +176,21 @@ function NgoDetail() {
       </section>
 
       <section className="mt-5">
-        <NgoContactDialog contact={contact} emailDraft={emailDraft} variant="panel" />
+        <Panel className="flex flex-wrap items-center justify-between gap-5">
+          <div>
+            <PanelTitle>Contactează organizația</PanelTitle>
+            <p className="mt-2 max-w-[58ch] text-sub">
+              Cere direct sprijinul organizației printr-un email precompletat
+              {school ? ` cu situația școlii ${school.schoolName}` : ""}.
+            </p>
+          </div>
+          <a
+            href={emailDraft.mailtoUrl}
+            className="inline-flex min-h-14 items-center gap-2 rounded-md bg-brand px-6 py-3 text-[17px] font-semibold text-card"
+          >
+            <Send size={20} aria-hidden /> Cere ajutor prin email
+          </a>
+        </Panel>
       </section>
 
       <nav className="mt-6 flex flex-wrap gap-5">

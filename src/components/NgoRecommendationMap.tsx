@@ -2,23 +2,18 @@ import { Building2, GraduationCap } from "lucide-react";
 import { useState, type MouseEvent } from "react";
 
 import { MapZoomControls } from "@/components/MapZoomControls";
-import { NgoContactDialog } from "@/components/NgoContactDialog";
 import { RecommendationScoreBadge } from "@/components/RecommendationScoreBadge";
 import { romaniaCountyShapes } from "@/data/geo/romaniaCounties";
-import { getMockNgoEmail, getNgoContact } from "@/data/enrichment/ngoContactEnrichment";
 import { useSvgPanZoom } from "@/hooks/use-svg-pan-zoom";
 import { formatKm } from "@/lib/distance";
 import { pathBounds, projectPoint } from "@/lib/geo";
-import type { CountyStats, NationalStats, School } from "@/lib/model";
-import { buildSchoolEmailDraft } from "@/lib/ngoEmail";
+import type { School } from "@/lib/model";
 import type { NgoRecommendation } from "@/lib/ngoRecommendations";
 import { recommendationScoreColor } from "@/lib/recommendationScore";
 
 type Props = {
   recommendations: NgoRecommendation[];
   school: School;
-  county: CountyStats | null;
-  national: NationalStats;
   showNational: boolean;
 };
 
@@ -55,13 +50,7 @@ function initialViewport(county: string, showNational: boolean) {
   };
 }
 
-export function NgoRecommendationMap({
-  recommendations,
-  school,
-  county,
-  national,
-  showNational,
-}: Props) {
+export function NgoRecommendationMap({ recommendations, school, showNational }: Props) {
   const nationalView =
     showNational && recommendations.some((recommendation) => !recommendation.sameCounty);
   const viewport = initialViewport(school.county, nationalView);
@@ -187,17 +176,17 @@ export function NgoRecommendationMap({
                 <circle
                   cx={schoolPoint.x}
                   cy={schoolPoint.y}
-                  r={6.5}
+                  r={12}
                   fill="#ffffff"
                   stroke="#9d2e2e"
-                  strokeWidth={2.4}
+                  strokeWidth={3}
                   vectorEffect="non-scaling-stroke"
                 />
                 <GraduationCap
-                  x={schoolPoint.x - 3.5}
-                  y={schoolPoint.y - 3.5}
-                  width={7}
-                  height={7}
+                  x={schoolPoint.x - 7}
+                  y={schoolPoint.y - 7}
+                  width={14}
+                  height={14}
                   color="#9d2e2e"
                   strokeWidth={2.5}
                   vectorEffect="non-scaling-stroke"
@@ -273,19 +262,6 @@ export function NgoRecommendationMap({
                 <p className="mt-2 text-sm leading-relaxed">{selected.ngo.relevanceReason}</p>
               </div>
             ) : null}
-
-            <div className="mt-5 border-t border-line pt-4">
-              <NgoContactDialog
-                contact={getNgoContact(selected.ngo.id)}
-                emailDraft={buildSchoolEmailDraft({
-                  email: getNgoContact(selected.ngo.id)?.email ?? getMockNgoEmail(selected.ngo.id),
-                  school,
-                  county,
-                  national,
-                })}
-                variant="button"
-              />
-            </div>
           </div>
         ) : (
           <p className="font-semibold">Nicio organizație nu are coordonate disponibile.</p>

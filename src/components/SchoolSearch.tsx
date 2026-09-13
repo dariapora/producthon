@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Building2, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { getSchoolsInCounty, schoolCounties, searchSchoolsInCounty } from "@/lib/dataset";
+import { schoolCounties, searchSchoolsInCounty } from "@/lib/dataset";
 import { hasHartaEduAlerts } from "@/lib/hartaedu";
 import { formatGrade } from "@/lib/risk";
 
@@ -20,15 +20,10 @@ export function SchoolSearch({
   const activeCounty = county ?? selectedCounty;
 
   const results = useMemo(
-    () =>
-      !activeCounty
-        ? []
-        : query.trim().length >= 2
-          ? searchSchoolsInCounty(activeCounty, query)
-          : getSchoolsInCounty(activeCounty).slice(0, 8),
+    () => (activeCounty ? searchSchoolsInCounty(activeCounty, query) : []),
     [activeCounty, query],
   );
-  const showResults = open && activeCounty.length > 0;
+  const showResults = open && activeCounty.length > 0 && query.trim().length >= 2;
 
   return (
     <div className="relative">
